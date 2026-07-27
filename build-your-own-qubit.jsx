@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 // ---------- palette ----------
 const C = {
@@ -1265,7 +1265,228 @@ function StepDistance() {
         <strong>Bhattacharyya angle</strong> between the two distributions (its
         straight-line chord is the Hellinger distance). The moral: distances between
         coins are not measured through the interval, but along the Bernoulli circle —
-        the circle isn't decoration, it is the <em>ruler</em>.
+        the circle isn't decoration, it is the <em>ruler</em>. The next step cashes this
+        claim in flips: you'll race the two duels and count.
+      </Notice>
+    </div>
+  );
+}
+
+// ============ BONUS 1½ : APPENDIX — COUNTING THE FLIPS (SPRT RACE) ============
+const LN19 = Math.log(19); // sequential-test walls for 5% error either way
+
+// log-likelihood increment of one flip; positive evidence favours coin 2
+function llrStep(outcome, c1, c2) {
+  const l1 = outcome === 1 ? c1 : 1 - c1;
+  const l2 = outcome === 1 ? c2 : 1 - c2;
+  if (l1 === 0 && l2 === 0) return 0;
+  if (l1 === 0) return Infinity;
+  if (l2 === 0) return -Infinity;
+  return Math.log(l2 / l1);
+}
+
+function EvidenceMeter({ llr, c1, c2, done, verdict }) {
+  const t = Math.max(-1, Math.min(1, llr / LN19));
+  const pct = 50 + 50 * t;
+  return (
+    <div style={{ margin: "8px 0 2px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: 10, color: C.inkSoft, marginBottom: 3 }}>
+        <span style={{ color: C.teal, fontWeight: done && verdict === "c1" ? 700 : 400 }}>
+          ← it's the {c1.toFixed(2)}-coin
+        </span>
+        <span>evidence</span>
+        <span style={{ color: C.gold, fontWeight: done && verdict === "c2" ? 700 : 400 }}>
+          it's the {c2.toFixed(2)}-coin →
+        </span>
+      </div>
+      <div style={{ position: "relative", height: 18, background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 9 }}>
+        <div style={{ position: "absolute", left: "50%", top: 2, bottom: 2, width: 1, background: C.gridBold }} />
+        <div style={{ position: "absolute", left: 3, top: 2, bottom: 2, width: 3, borderRadius: 2, background: C.teal }} />
+        <div style={{ position: "absolute", right: 3, top: 2, bottom: 2, width: 3, borderRadius: 2, background: C.gold }} />
+        <div
+          style={{
+            position: "absolute", top: -3, bottom: -3, width: 4, borderRadius: 2,
+            left: `calc(${pct}% - 2px)`,
+            background: done ? (verdict === "c2" ? C.gold : C.teal) : C.ink,
+            transition: "left .06s linear",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StepFlipCount() {
+  const mkLane = (name, c1, c2, theory) => ({
+    name, c1, c2, theory,
+    truth: Math.random() < 0.5 ? "c1" : "c2",
+    flips: 0, llr: 0, hist: [], done: false, verdict: null,
+  });
+  const freshLanes = () => [
+    mkLane("duel A — the middle pair", 0.5, 0.6, "≈ 140 flips"),
+    mkLane("duel B — the edge pair", 0.0, 0.1, "≈ 20 flips"),
+  ];
+  const [lanes, setLanes] = useState(freshLanes);
+  const [running, setRunning] = useState(false);
+  const [tally, setTally] = useState({ races: 0, a: 0, b: 0 });
+  const tallied = useRef(false);
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      setLanes((ls) =>
+        ls.map((L) => {
+          if (L.done) return L;
+          let { flips, llr } = L;
+          const hist = [...L.hist];
+          // one flip per tick while the drama lasts, then fast-forward
+          const batch = flips < 30 ? 1 : 6;
+          let done = false, verdict = null;
+          for (let k = 0; k < batch && !done; k++) {
+            const p = L.truth === "c1" ? L.c1 : L.c2;
+            const x = flipOne(p);
+            const d = llrStep(x, L.c1, L.c2);
+            llr = d === Infinity ? LN19 : d === -Infinity ? -LN19 : llr + d;
+            flips += 1;
+            hist.push(x);
+            if (llr >= LN19) { done = true; verdict = "c2"; llr = LN19; }
+            else if (llr <= -LN19) { done = true; verdict = "c1"; llr = -LN19; }
+            else if (flips >= 900) { done = true; verdict = llr >= 0 ? "c2" : "c1"; }
+          }
+          return { ...L, flips, llr, hist: hist.slice(-14), done, verdict };
+        })
+      );
+    }, 60);
+    return () => clearInterval(id);
+  }, [running]);
+
+  useEffect(() => {
+    if (running && lanes.every((l) => l.done) && !tallied.current) {
+      tallied.current = true;
+      setRunning(false);
+      setTally((t) => ({ races: t.races + 1, a: t.a + lanes[0].flips, b: t.b + lanes[1].flips }));
+    }
+  }, [lanes, running]);
+
+  const start = () => { tallied.current = false; setLanes(freshLanes()); setRunning(true); };
+  const avgA = tally.races ? tally.a / tally.races : null;
+  const avgB = tally.races ? tally.b / tally.races : null;
+  const alph = (q) => Math.acos(Math.sqrt(Math.min(1, Math.max(0, q))));
+  const dthA = Math.abs(alph(0.5) - alph(0.6));
+  const dthB = Math.abs(alph(0.0) - alph(0.1));
+
+  return (
+    <div>
+      <p>
+        Bonus&nbsp;1 made a promise it hasn't paid: the circle, it claimed, predicts{" "}
+        <em>how many flips</em> you need to tell two coins apart. Let's collect. Take two
+        duels with the <strong>same flat-ruler gap of 0.10</strong>: duel&nbsp;A pits a
+        0.50-coin against a 0.60-coin; duel&nbsp;B pits a 0.00-coin against a 0.10-coin.
+        In each duel one of the two coins is secretly chosen and handed to you. You flip
+        it and run the honest referee — Wald's <em>sequential test</em>: every flip adds
+        its evidence, and the moment the total crosses a wall (set here for 5% error),
+        the verdict is called. Watch which duel finishes first.
+      </p>
+      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+        <Btn onClick={start} disabled={running}>{tally.races ? "race again" : "start the race"}</Btn>
+        <Btn kind="outline" onClick={() => { setRunning(false); tallied.current = false; setLanes(freshLanes()); setTally({ races: 0, a: 0, b: 0 }); }}>
+          reset
+        </Btn>
+      </div>
+      {lanes.map((L, i) => (
+        <div key={i} style={{ padding: "10px 12px", background: "#fff", border: `1.5px solid ${L.done ? (L.verdict === "c2" ? C.gold : C.teal) : C.gridBold}`, borderRadius: 8, marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: 11, color: C.inkSoft }}>
+            <span style={{ letterSpacing: 1 }}>{L.name.toUpperCase()} · {L.c1.toFixed(2)} vs {L.c2.toFixed(2)}</span>
+            <span>theory: {L.theory}</span>
+          </div>
+          <EvidenceMeter llr={L.llr} c1={L.c1} c2={L.c2} done={L.done} verdict={L.verdict} />
+          <div style={{ minHeight: 26, marginTop: 4 }}>
+            {L.hist.map((v, j) => <CoinChip key={j + "-" + L.flips} v={v} />)}
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 12, marginTop: 2 }}>
+            flips: <strong>{L.flips}</strong>
+            {L.done && (
+              <span>
+                {" — verdict: "}
+                <span style={{ color: L.verdict === "c2" ? C.gold : C.teal, fontWeight: 600 }}>
+                  the {(L.verdict === "c2" ? L.c2 : L.c1).toFixed(2)}-coin
+                </span>
+                {" · truth: "}{(L.truth === "c2" ? L.c2 : L.c1).toFixed(2)}
+                {" "}{L.verdict === L.truth ? "✓" : "✗ (the 5% at work)"}
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
+      {tally.races > 0 && (
+        <div style={{ padding: "8px 12px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, fontFamily: mono, fontSize: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <span>races: {tally.races}</span>
+          <span>avg A: {avgA.toFixed(0)} flips</span>
+          <span>avg B: {avgB.toFixed(0)} flips</span>
+          <span style={{ color: C.ink, fontWeight: 600 }}>observed ratio ≈ ×{(avgA / avgB).toFixed(1)}</span>
+        </div>
+      )}
+      <p style={{ marginTop: 16 }}>
+        Now the mathematics, in three moves. <strong>Move 1 — duel A by hand.</strong>{" "}
+        After n flips the head-fraction wobbles around the true p with spread
+        √(p(1−p)/n) ≈ 0.5/√n. Put the decision threshold midway at 0.55 and demand at
+        most 5% error either way: you need the wobble to shrink below the half-gap,
+        0.05&nbsp;≳&nbsp;1.645&nbsp;·&nbsp;0.5/√n, i.e. <strong>n ≈ 270 flips</strong>{" "}
+        for a fixed-length test (the sequential referee above is thriftier — about 145 on
+        average — but same order). <strong>Move 2 — duel B by hand.</strong> The
+        0.00-coin cannot produce a head, so a single H ends the game. The only possible
+        mistake is crowning the 0.00-coin while the 0.10-coin sulks through all tails,
+        probability 0.9ⁿ; demanding 0.9ⁿ&nbsp;≤&nbsp;0.05 gives{" "}
+        <strong>n ≈ 29 flips</strong>, worst case. Same gap on the flat ruler — a factor
+        of ten in flips.
+      </p>
+      <p>
+        <strong>Move 3 — one law behind both.</strong> For the best possible test, the
+        error after n flips shrinks like the n-th power of the <em>overlap</em> between
+        the two coins, the Bhattacharyya coefficient. And when you lift each coin to its
+        angle θ&nbsp;=&nbsp;arccos&nbsp;√p on the circle, that overlap is nothing but a
+        dot product of two unit vectors:
+      </p>
+      <Formula>
+        √(p₁p₂) + √((1−p₁)(1−p₂)) = cos θ₁ cos θ₂ + sin θ₁ sin θ₂ = cos(θ₁ − θ₂)
+      </Formula>
+      <p>
+        The overlap of two coins is the <em>cosine of the arc between them</em>. Errors
+        shrink like cosⁿ(Δθ), so the flip budget for confidence ε is
+      </p>
+      <Formula>
+        n ≈ ln(1/ε) / (−ln cos Δθ) ≈ 2 ln(1/ε) / (Δθ)²
+      </Formula>
+      <p>
+        Flips ∝ 1/(arc length)². The ruler that counts flips is the arc — nothing about
+        |p₁−p₂| appears. Check it against the race: duel A spans
+        Δθ&nbsp;=&nbsp;{dthA.toFixed(3)}, duel B spans Δθ&nbsp;=&nbsp;{dthB.toFixed(3)},
+        so the circle predicts a flip ratio of ({dthB.toFixed(3)}/{dthA.toFixed(3)})²
+        ≈&nbsp;×{((dthB / dthA) ** 2).toFixed(1)}
+        {tally.races > 0 && avgB > 0 && (
+          <span>
+            {" "}— and your own races above clocked ×{(avgA / avgB).toFixed(1)} (the
+            sequential referee trims each duel a little differently, but the order of
+            magnitude belongs to the arc)
+          </span>
+        )}
+        . The flat ruler predicted ×1.0.
+      </p>
+      <Notice>
+        Why is the arc not just <em>a</em> good ruler but <em>the</em> ruler? Three
+        escalating reasons. <strong>Local:</strong> the distinguishing power of one flip
+        is the Fisher information 1/(p(1−p)), which explodes at the edges — exactly the
+        flat ruler's crime. Ask for the coordinate in which one flip buys the same
+        progress everywhere and you are forced to θ&nbsp;=&nbsp;arccos&nbsp;√p
+        (statisticians met it long ago as the arcsine variance-stabilizing
+        transformation). <strong>Global:</strong> over any finite separation the
+        operational cost is cos(Δθ) — equal arcs cost equal flips, wherever they sit on
+        the circle. <strong>Unique:</strong> Čencov's theorem: any honest distance may
+        only shrink when you post-process your data, and the Fisher metric — this arc —
+        is the <em>only</em> Riemannian ruler (up to scale) with that property. And keep
+        the cosine in your pocket: in the quantum half of the tutorial it returns as the
+        overlap ⟨ψ|φ⟩, the arc becomes the Bures angle of Bonus&nbsp;2, and
+        cos²(π/4)&nbsp;=&nbsp;½ is the pass-probability of Bonus&nbsp;3.
       </Notice>
     </div>
   );
@@ -1810,6 +2031,7 @@ const STEPS = [
   { title: "Why the sign hides", comp: StepSign },
   { title: "The complex dial — the Bloch sphere", comp: StepBloch },
   { title: "Bonus: how far apart are two coins?", comp: StepDistance },
+  { title: "Bonus appendix: counting the flips", comp: StepFlipCount },
   { title: "Bonus: the Bernoulli hemisphere", comp: StepBures },
   { title: "Bonus: cashing in the distance", comp: StepOverlap },
   { title: "Bonus: under the hood — the matrix", comp: StepMatrix },
@@ -1838,7 +2060,7 @@ export default function BuildYourOwnQubit() {
             Build your own qubit
           </h1>
           <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, marginTop: 4 }}>
-            ten steps (+ four bonus) from a coin flip to a qubit
+            ten steps (+ five bonus) from a coin flip to a qubit
           </div>
         </header>
 
