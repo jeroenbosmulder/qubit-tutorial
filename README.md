@@ -8,7 +8,7 @@ GitHub Pages on this repo (Settings → Pages → deploy from branch → root) t
 shareable URL.
 
 **Files**
-- `index.html` — self-contained runnable tutorial (React via CDN + Babel standalone)
+- `index.html` — fully self-contained tutorial (React precompiled and inlined; no CDN, works offline)
 - `build-your-own-qubit.jsx` — the React source component (drop into any Vite/CRA project)
 
 **New in this version:** the finale, "Bonus ⊗ Bonus: the summit is a Bell pair." The
