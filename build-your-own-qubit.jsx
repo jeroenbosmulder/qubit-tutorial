@@ -2193,7 +2193,163 @@ function StepBell() {
         certain, locally silent. That stopping point is <strong>entanglement</strong>.
         Hence this step's name: Bonus&nbsp;⊗&nbsp;Bonus is not two bonuses side by side
         but their tensor product — which, as you now know, holds strictly more than the
-        pair of its halves.
+        pair of its halves. One loose thread, deliberately left: a still cleverer
+        factory could cheat this step's tester — by shipping a pre-agreed answer sheet
+        covering <em>every</em> angle δ. The final step deals with it.
+      </Notice>
+    </div>
+  );
+}
+
+// ================= BONUS : THE CLEVEREST FACTORY — BELL'S TEST =================
+function StepCHSH() {
+  // the learner's answer sheet: four committed answers, +1 = ⊕, −1 = ⊖
+  const [sheet, setSheet] = useState([1, 1, 1, 1]); // [A(a), A(a'), B(b), B(b')]
+  const flip = (i) => setSheet((s) => s.map((v, j) => (j === i ? -v : v)));
+  const [Aa, Aa2, Bb, Bb2] = sheet;
+  const Ssheet = Aa * Bb + Aa * Bb2 + Aa2 * Bb - Aa2 * Bb2;
+  // the Bell factory's tilt: right-hand questions at b and b−90
+  const [tilt, setTilt] = useState(45);
+  const tb = (tilt * Math.PI) / 180;
+  const Sbell = 2 * (Math.sin(tb) + Math.cos(tb));
+  const winSheet = 0.5 + Ssheet / 8;
+  const winBell = 0.5 + Sbell / 8;
+  // play the game
+  const [played, setPlayed] = useState(null);
+  const play = () => {
+    const N = 400;
+    const ANG = { a: 0, a2: 90, b: tilt, b2: tilt - 90 };
+    let wS = 0, wB = 0;
+    for (let i = 0; i < N; i++) {
+      const qL = Math.random() < 0.5 ? "a" : "a2";
+      const qR = Math.random() < 0.5 ? "b" : "b2";
+      const wantAgree = !(qL === "a2" && qR === "b2");
+      // sheet factory: both halves read their committed line
+      const sA = qL === "a" ? Aa : Aa2;
+      const sB = qR === "b" ? Bb : Bb2;
+      if ((sA === sB) === wantAgree) wS++;
+      // Bell factory: correlated by the cosine ruler, E = cos(δ₁−δ₂)
+      const E = Math.cos(((ANG[qL] - ANG[qR]) * Math.PI) / 180);
+      const A = Math.random() < 0.5 ? 1 : -1;
+      const B = Math.random() < (1 + E) / 2 ? A : -A;
+      if ((A === B) === wantAgree) wB++;
+    }
+    setPlayed({ N, wS, wB, tilt, Ssheet });
+  };
+  const chip = (val, lab, i) => (
+    <button
+      key={i}
+      onClick={() => { flip(i); setPlayed(null); }}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+        padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+        border: `1.5px solid ${val === 1 ? C.gold : C.red}`,
+        background: val === 1 ? C.goldSoft : C.redSoft, minWidth: 74,
+      }}
+    >
+      <span style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft }}>{lab}</span>
+      <span style={{ fontFamily: mono, fontSize: 17, fontWeight: 600, color: C.ink }}>{val === 1 ? "⊕" : "⊖"}</span>
+    </button>
+  );
+  const scoreCard = (name, col, Sval, winTh, emp) => (
+    <div style={{ flex: "1 1 250px", padding: "8px 12px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8 }}>
+      <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: col, marginBottom: 4 }}>{name}</div>
+      <div style={{ fontFamily: mono, fontSize: 13, margin: "4px 0" }}>
+        S = <strong>{Sval.toFixed(2)}</strong> &nbsp;·&nbsp; win rate {(winTh * 100).toFixed(1)}%
+      </div>
+      <div style={{ height: 14, background: "#fff", border: `1px solid ${C.gridBold}`, borderRadius: 3, overflow: "hidden", position: "relative" }}>
+        <div style={{ position: "absolute", left: "75%", top: 0, bottom: 0, width: 1.5, background: C.ink }} />
+        <div style={{ height: "100%", width: `${winTh * 100}%`, background: col, transition: "width .12s" }} />
+      </div>
+      <div style={{ fontFamily: mono, fontSize: 10, color: C.inkSoft, marginTop: 2 }}>
+        the wall at 75%
+      </div>
+      <div style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft, marginTop: 5, minHeight: 15 }}>
+        {emp || "\u00A0"}
+      </div>
+    </div>
+  );
+  return (
+    <div>
+      <p>
+        The Bell factory won the last round, but one objection survives — and it
+        deserves the tutorial's respect, because it is <em>correct</em>. The glued
+        coins lost only because they carried a single shared fact and had to improvise
+        on every other question. So build the <strong>cleverest classical factory</strong>:
+        before shipping, it writes each pair a complete <strong>answer sheet</strong> — one
+        pre-agreed answer for every possible question δ, identical in both halves — and
+        randomizes the sheets pair to pair so the marginals stay at 50%. Run the
+        previous step's tester against it: both halves read the same line of the same
+        sheet, so they agree at 100% for <em>every</em> δ. The tester is beaten.
+        Sameness of answers, it turns out, is cheap — any shared notebook produces it.
+        If entanglement is more than a notebook, a sharper tester must exist.
+      </p>
+      <p>
+        Here it is: ask the two halves <strong>different questions</strong>. Each round,
+        a referee asks the left half a&nbsp;=&nbsp;0° or a′&nbsp;=&nbsp;90°, and the
+        right half b or b′&nbsp;=&nbsp;b&nbsp;−&nbsp;90°, choosing at random; the halves
+        cannot communicate. Scoring: in three of the four combinations —
+        (a,b), (a,b′), (a′,b) — the pair wins by <em>agreeing</em>; in the fourth,
+        (a′,b′), it wins by <em>disagreeing</em>. (This is the <strong>CHSH game</strong>,
+        Clauser–Horne–Shimony–Holt 1969, sharpening the inequality John Bell found in
+        1964.) First, try to win it with a notebook. Against four fixed questions a
+        sheet is just four committed answers — design yours:
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+        {chip(Aa, "left: A(a)", 0)}
+        {chip(Aa2, "left: A(a′)", 1)}
+        {chip(Bb, "right: B(b)", 2)}
+        {chip(Bb2, "right: B(b′)", 3)}
+      </div>
+      <Formula>
+        S = A(a)B(b) + A(a)B(b′) + A(a′)B(b) − A(a′)B(b′) ={" "}
+        {fmt(Aa * Bb, 0)} {fmt(Aa * Bb2, 0)} {fmt(Aa2 * Bb, 0)} {Aa2 * Bb2 >= 0 ? "−1" : "+1"} ={" "}
+        <strong>{fmt(Ssheet, 0)}</strong>
+      </Formula>
+      <p>
+        Toggle through all sixteen sheets: S lands on <strong>+2 or −2, every single
+        time</strong>. The algebra is unforgiving — S&nbsp;=&nbsp;A(a)[B(b)+B(b′)]&nbsp;+&nbsp;A(a′)[B(b)−B(b′)],
+        and one bracket is always zero while the other is ±2. Shipping different sheets
+        on different rounds only <em>averages</em> the scores, so no notebook factory,
+        however many sheets it prints, can push S past 2 — that is, win more than{" "}
+        <strong>75%</strong> of rounds. This wall is <strong>Bell's inequality</strong>. The
+        Bell factory carries no notebook: it answers by the cosine ruler this tutorial
+        has trusted since the flip-counting bonus — agreement cos²(Δδ/2), correlation
+        E&nbsp;=&nbsp;cos(δ₁−δ₂). Aim the right-hand questions and play:
+      </p>
+      <Slider value={tilt} min={0} max={90} step={1} onChange={(v) => { setTilt(v); setPlayed(null); }}
+        label="b — tilt of the right-hand questions (b and b−90°)"
+        readout={`b=${tilt}°  →  S = ${Sbell.toFixed(2)}${Math.abs(Sbell - 2 * Math.SQRT2) < 0.005 ? " = 2√2" : ""}`} />
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+        {scoreCard("YOUR SHEET FACTORY", C.teal, Ssheet, winSheet,
+          played && `${played.N} rounds played: won ${(100 * played.wS / played.N).toFixed(1)}%`)}
+        {scoreCard("BELL FACTORY", C.gold, Sbell, winBell,
+          played && `${played.N} rounds played: won ${(100 * played.wB / played.N).toFixed(1)}%`)}
+      </div>
+      <div style={{ marginBottom: 14 }}>
+        <Btn onClick={play}>play 400 rounds</Btn>
+      </div>
+      <p>
+        At b&nbsp;=&nbsp;45° the cosine delivers S&nbsp;=&nbsp;2√2&nbsp;≈&nbsp;2.83 and
+        a win rate near 85.4% — <em>through</em> the wall that no answer sheet can
+        cross. When Alain Aspect, John Clauser and Anton Zeilinger ran this test for
+        real — entangled photons, separated detectors, question settings chosen too late
+        for any signal to catch up — the cosine won in the laboratory too, and the work
+        earned the <strong>2022 Nobel Prize in Physics</strong>. The verdict is not that
+        the sheet was hidden very well. The verdict is that <strong>there is no
+        sheet</strong>.
+      </p>
+      <Notice>
+        The tutorial's last objection, answered by its last tester. Classically,
+        correlation is <em>memory</em>: agreement must be written down somewhere — a
+        face, a fact, a sheet — before the questions arrive, and S&nbsp;≤&nbsp;2 is the
+        exact price of that bookkeeping. 2√2&nbsp;&gt;&nbsp;2 is the measured fact that
+        the world declines to pay it. The Bell pair's correlations are not stored in
+        the left half, nor the right, nor in any upstairs ledger — they live only in
+        the pair, which is what "uncertainty <em>inside</em> the pair" meant all along.
+        And notice which instrument crossed the wall: the same cosine that counted
+        flips, measured arcs on the bowl, and cashed distances into probabilities. One
+        ruler, first step to last.
       </Notice>
     </div>
   );
@@ -2217,6 +2373,7 @@ const STEPS = [
   { title: "Bonus: cashing in the distance", comp: StepOverlap },
   { title: "Bonus: under the hood — the matrix", comp: StepMatrix },
   { title: "Bonus ⊗ Bonus: the summit is a Bell pair", comp: StepBell },
+  { title: "Bonus: the cleverest factory — Bell's test", comp: StepCHSH },
 ];
 
 export default function BuildYourOwnQubit() {
@@ -2242,7 +2399,7 @@ export default function BuildYourOwnQubit() {
             Build your own qubit
           </h1>
           <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, marginTop: 4 }}>
-            ten steps (+ six bonus) from a coin flip to a qubit
+            ten steps (+ seven bonus) from a coin flip to a qubit
           </div>
         </header>
 

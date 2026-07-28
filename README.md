@@ -1,23 +1,23 @@
 # Build your own qubit
 
-An interactive tutorial: ten steps (+ six bonus) from a coin flip to a qubit.
-No physics background needed — just a coin, a chart, and sixteen honest questions.
+An interactive tutorial: ten steps (+ seven bonus) from a coin flip to a qubit.
+No physics background needed — just a coin, a chart, and seventeen honest questions.
 
-**Live version:** open `index.html` in any browser (loads React from a CDN), or enable
-GitHub Pages on this repo (Settings → Pages → deploy from branch → root) to get a
-shareable URL.
+**Live version:** open `index.html` in any browser, or enable GitHub Pages on this
+repo (Settings → Pages → deploy from branch → root) to get a shareable URL.
 
 **Files**
 - `index.html` — fully self-contained tutorial (React precompiled and inlined; no CDN, works offline)
 - `build-your-own-qubit.jsx` — the React source component (drop into any Vite/CRA project)
 
-**New in this version:** the finale, "Bonus ⊗ Bonus: the summit is a Bell pair." The
-mystery coin at the center — zero band width, maximal lift height — has spent every
-internal knob, so its uncertainty can only be traded away *sideways*: to a partner.
-A glued-coin factory fails (the ignorance just moves upstairs, still peekable); the
-Bell factory succeeds, and an interactive tester proves it — rotate the question δ and
-the glued pairs' agreement decays to a coin flip at 90° while the Bell pairs never
-blink, even though every marginal stays pinned at 50%. Then the payoff: a purification
-slider showing concurrence = 2√(det ρ) = twice the lift height — the bowl's vertical
-coordinate was entanglement with the purifying partner all along, and the mystery coin,
-purified honestly, is the Bell pair.
+**New in this version:** the closing step, "Bonus: the cleverest factory — Bell's
+test." The previous step's tester left one loophole: a classical factory could ship
+every pair a complete answer sheet — a pre-agreed answer for every question angle —
+and pass the same-question test perfectly. This step concedes the objection, then
+sharpens the tester: ask the two halves *different* questions and score the CHSH game.
+The learner designs their own answer sheet and watches every one of the sixteen hit
+the wall S = ±2 (win rate ≤ 75%), then aims the Bell pair's cosine correlations at
+tilt 45° and plays through the wall: S = 2√2, win rate ≈ 85% — the violation of
+Bell's inequality that earned Aspect, Clauser, and Zeilinger the 2022 Nobel Prize in
+Physics. The correlations are stored in no sheet, no half, no upstairs ledger — only
+in the pair.
