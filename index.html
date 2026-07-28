@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Build your own qubit</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-<style>body{margin:0}</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>body { margin: 0; }</style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
 const { useState, useMemo, useEffect, useRef } = React;
+
 // ---------- palette ----------
 const C = {
   paper: "#FFFFFF",
@@ -2031,6 +2032,187 @@ function StepMatrix() {
   );
 }
 
+// ================= BONUS ⊗ BONUS : THE SUMMIT IS A BELL PAIR =================
+function PairAmpBars({ amps, labels, title }) {
+  const bar = (val, label, i) => (
+    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "5px 0" }}>
+      <span style={{ fontFamily: mono, fontSize: 12, width: 64, color: C.inkSoft }}>{label}</span>
+      <div style={{ position: "relative", flex: 1, height: 16, background: "#fff", border: `1px solid ${C.gridBold}`, borderRadius: 3 }}>
+        <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 1, background: C.gridBold }} />
+        <div
+          style={{
+            position: "absolute",
+            top: 2,
+            bottom: 2,
+            left: val >= 0 ? "50%" : `${50 + val * 48}%`,
+            width: `${Math.abs(val) * 48}%`,
+            background: val >= 0 ? C.gold : C.red,
+            borderRadius: 2,
+            transition: "all .15s",
+          }}
+        />
+      </div>
+      <span style={{ fontFamily: mono, fontSize: 12, width: 52, textAlign: "right" }}>{fmt(val)}</span>
+    </div>
+  );
+  return (
+    <div style={{ padding: "10px 12px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, marginBottom: 10 }}>
+      {title && <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 6 }}>{title}</div>}
+      {amps.map((a, i) => bar(a, labels[i], i))}
+    </div>
+  );
+}
+
+function StepBell() {
+  // the tester: one question, asked to both halves of every pair
+  const [delta, setDelta] = useState(0); // question angle over the disk, degrees
+  const d = (delta * Math.PI) / 180;
+  const agreeGlued = 0.5 + 0.5 * Math.cos(d) * Math.cos(d);
+  const [tally, setTally] = useState(null);
+  const turn = (v) => { setDelta(v); setTally(null); };
+  const ask = () => {
+    const N = 200;
+    let gA = 0, gL = 0, gR = 0, bA = 0, bL = 0, bR = 0;
+    for (let i = 0; i < N; i++) {
+      // glued factory: secretly HH or secretly TT; each half then answers the δ-question on its own
+      const P = Math.random() < 0.5 ? 0.5 + 0.5 * Math.cos(d) : 0.5 - 0.5 * Math.cos(d);
+      const l = Math.random() < P ? 1 : 0;
+      const r = Math.random() < P ? 1 : 0;
+      gA += l === r ? 1 : 0; gL += l; gR += r;
+      // Bell factory: the same question to both halves — the answers always agree, ⊕ half the time
+      const s = Math.random() < 0.5 ? 1 : 0;
+      bA += 1; bL += s; bR += s;
+    }
+    setTally({ N, gA, gL, gR, bA, bL, bR });
+  };
+  const card = (name, col, agreeTh, emp) => (
+    <div style={{ flex: "1 1 250px", padding: "8px 12px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8 }}>
+      <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: col, marginBottom: 4 }}>{name}</div>
+      {[["left half says ⊕", 0.5], ["right half says ⊕", 0.5], ["halves agree", agreeTh]].map(([lab, q], i) => (
+        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
+          <span style={{ fontFamily: mono, fontSize: 11, width: 104, color: C.inkSoft, textAlign: "right" }}>{lab}</span>
+          <div style={{ flex: 1, height: 14, background: "#fff", border: `1px solid ${C.gridBold}`, borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${q * 100}%`, background: i < 2 ? C.inkSoft : col, opacity: i < 2 ? 0.5 : 1, transition: "width .12s" }} />
+          </div>
+          <span style={{ fontFamily: mono, fontSize: 11, width: 38, textAlign: "right" }}>{(q * 100).toFixed(0)}%</span>
+        </div>
+      ))}
+      <div style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft, marginTop: 6, minHeight: 15 }}>
+        {emp || "\u00A0"}
+      </div>
+    </div>
+  );
+  // the purifier
+  const [tp, setTp] = useState(0); // distance of the left half from the center
+  const lp = 0.5 + tp, lm = 0.5 - tp;
+  const hgt = Math.sqrt(Math.max(0, lp * lm)); // lift height = √(det ρ)
+  const conc = 2 * hgt;
+  const amps = [Math.sqrt(lp), 0, 0, Math.sqrt(lm)];
+  return (
+    <div>
+      <p>
+        The previous step signed off with a confession — everything here was tensor
+        algebra wearing a coin costume. One costume is still on, and taking it off
+        settles the tutorial's last open account: the <strong>mystery coin</strong> at
+        the center. Look at it with both instruments you now own. On the disk it is the
+        flattest point of all: band width zero, pure ignorance about a stuck coin. On
+        the bowl it is the <strong>summit</strong>: lift height √(det&nbsp;ρ)&nbsp;=&nbsp;½,
+        farther from every certainty than any other belief. The tutorial's great trade
+        was turning uncertainty <em>about</em> into uncertainty <em>inside</em> — that is
+        what the lift did for the fair coin. Can the summit's uncertainty be traded away
+        too? Not from within: the sign is spent (step&nbsp;9), the complex dial is spent
+        (step&nbsp;10). Inside one qubit there is no room left. The only direction
+        remaining is <em>sideways</em>: give the coin a partner.
+      </p>
+      <p>
+        Try a classical partner first. A factory welds two coins so they always agree,
+        then ships you pair after pair — each one secretly HH or secretly TT,
+        fifty-fifty. Cover the right coin: the left one alone is <em>exactly</em> the
+        mystery coin. But the uncertainty didn't dissolve — it moved upstairs. The pair
+        as a whole is the mixture ½(HH)&nbsp;+&nbsp;½(TT): an interior point of a bigger
+        disk, one level up, and someone at the factory could still peek. A rival factory
+        claims to do better. It ships the <strong>Bell pair</strong>,
+        (HH&nbsp;+&nbsp;TT)/√2 — not a mixture of the two tables but a{" "}
+        <em>superposition</em>, amplitudes added <em>before</em> squaring, the very
+        distinction the mixer of step&nbsp;5 fought to establish. Its multiplication
+        table is rank one: a <em>rim</em> point of the pair's state space. Nothing was
+        prepared-and-forgotten. There is nothing to peek at.
+      </p>
+      <p>
+        Talk is cheap — build the tester. Ask <em>both halves</em> of every pair the
+        same question, then rotate the question away from plain H-or-T: the unmasking
+        trick that separated the fair coin from the mystery coin, now played on pairs.
+        Straight on (δ&nbsp;=&nbsp;0°) the factories are indistinguishable — perfect
+        agreement, fifty-fifty halves. Now turn the dial:
+      </p>
+      <Slider value={delta} min={0} max={180} step={1} onChange={turn}
+        label="δ — rotate the question asked to both halves (0° = plain H-or-T)"
+        readout={`${delta}°`} />
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+        {card("GLUED-COIN FACTORY", C.teal, agreeGlued,
+          tally && `${tally.N} pairs: ⊕ ${(100 * tally.gL / tally.N).toFixed(0)}% | ${(100 * tally.gR / tally.N).toFixed(0)}% · agree ${(100 * tally.gA / tally.N).toFixed(0)}%`)}
+        {card("BELL FACTORY", C.gold, 1,
+          tally && `${tally.N} pairs: ⊕ ${(100 * tally.bL / tally.N).toFixed(0)}% | ${(100 * tally.bR / tally.N).toFixed(0)}% · agree ${(100 * tally.bA / tally.N).toFixed(0)}%`)}
+      </div>
+      <div style={{ marginBottom: 14 }}>
+        <Btn onClick={ask}>ask 200 pairs the δ-question</Btn>
+      </div>
+      <p>
+        The marginal bars stay pinned at 50% forever — each half, alone, is the mystery
+        coin at <em>every</em> angle, for both factories. But the agreement bars split:
+        the glued coins' accord decays to a plain coin flip at δ&nbsp;=&nbsp;90°,
+        because each welded coin faces the rotated question on its own, while the Bell
+        pair <em>never blinks</em> — it answers every joint question with certainty.
+        That is the signature of a rim point upstairs: <strong>jointly certain, locally
+        maximally ignorant</strong>. And it answers the opening question: the summit's
+        uncertainty <em>can</em> be traded away — not into any internal dial, but into
+        agreement with a partner.
+      </p>
+      <p>
+        Now the gem, and the bowl pays off its old guard-rail. The hemisphere step
+        insisted the lift height was "an aid for measuring, not a dial." Here is what it
+        was all along. Take <em>any</em> state at distance t from the center and{" "}
+        <strong>purify</strong> it: build the pure pair whose left half is exactly that
+        state. The recipe is forced — put amplitudes √λ± on the two <em>agreeing</em>{" "}
+        pairs of its eigen-coins e₊, e₋ (the spectral diameter of the previous step):
+      </p>
+      <Slider value={tp} min={0} max={0.5} step={0.01} onChange={setTp}
+        label="t — how mixed the left half is (0 = mystery coin, ½ = rim)"
+        readout={`λ₊=${lp.toFixed(2)}  λ₋=${lm.toFixed(2)}`} />
+      <PairAmpBars amps={amps} labels={["e₊ e₊", "e₊ e₋", "e₋ e₊", "e₋ e₋"]}
+        title="Ψ — THE PURIFYING PAIR (in the eigen-coin basis)" />
+      <Formula>
+        concurrence&nbsp;C = 2√(λ₊λ₋) = 2√(det&nbsp;ρ) ={" "}
+        <strong>2 × lift height</strong> = {conc.toFixed(2)}
+      </Formula>
+      <p>
+        The <strong>concurrence</strong> — the standard measure of how entangled two
+        qubits are — comes out as exactly <em>twice the lift height</em>. The vertical
+        coordinate you have been drawing since the bowl was built <em>is</em> the
+        entanglement with the purifying partner. Slide t to the rim: C&nbsp;=&nbsp;0,
+        the second amplitude empties, no partner was ever needed — pure states purify
+        themselves. Slide to the center: C&nbsp;=&nbsp;1 and the amplitudes become
+        (1/√2,&nbsp;0,&nbsp;0,&nbsp;1/√2). The mystery coin, purified honestly, <em>is</em>{" "}
+        the Bell pair — the tutorial's humblest object was the most famous state in
+        quantum information all along, seen from one side.
+      </p>
+      <Notice>
+        The ladder, seen whole: uncertainty <strong>about</strong> the coin became
+        uncertainty <strong>inside</strong> a state (the lift); uncertainty{" "}
+        <strong>about</strong> the qubit — the mixed center — became uncertainty{" "}
+        <strong>inside</strong> a pair (the purification). Each rung is the same move —
+        append a square root — and each level's "about" is the next level's "inside".
+        Classically the buck never stops: every mixture blames a fact upstairs that
+        someone could peek at. Quantum mechanics lets it stop — at a pure pair, jointly
+        certain, locally silent. That stopping point is <strong>entanglement</strong>.
+        Hence this step's name: Bonus&nbsp;⊗&nbsp;Bonus is not two bonuses side by side
+        but their tensor product — which, as you now know, holds strictly more than the
+        pair of its halves.
+      </Notice>
+    </div>
+  );
+}
+
 // ================= APP =================
 const STEPS = [
   { title: "Flip a fair coin", comp: Step1 },
@@ -2048,6 +2230,7 @@ const STEPS = [
   { title: "Bonus: the Bernoulli hemisphere", comp: StepBures },
   { title: "Bonus: cashing in the distance", comp: StepOverlap },
   { title: "Bonus: under the hood — the matrix", comp: StepMatrix },
+  { title: "Bonus ⊗ Bonus: the summit is a Bell pair", comp: StepBell },
 ];
 
 function BuildYourOwnQubit() {
@@ -2073,7 +2256,7 @@ function BuildYourOwnQubit() {
             Build your own qubit
           </h1>
           <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, marginTop: 4 }}>
-            ten steps (+ five bonus) from a coin flip to a qubit
+            ten steps (+ six bonus) from a coin flip to a qubit
           </div>
         </header>
 
@@ -2120,7 +2303,8 @@ function BuildYourOwnQubit() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(BuildYourOwnQubit));
+
+ReactDOM.createRoot(document.getElementById("root")).render(<BuildYourOwnQubit />);
 
 </script>
 </body>

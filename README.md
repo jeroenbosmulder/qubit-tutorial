@@ -1,7 +1,7 @@
 # Build your own qubit
 
-An interactive tutorial: ten steps (+ five bonus) from a coin flip to a qubit.
-No physics background needed — just a coin, a chart, and fifteen honest questions.
+An interactive tutorial: ten steps (+ six bonus) from a coin flip to a qubit.
+No physics background needed — just a coin, a chart, and sixteen honest questions.
 
 **Live version:** open `index.html` in any browser (loads React from a CDN), or enable
 GitHub Pages on this repo (Settings → Pages → deploy from branch → root) to get a
@@ -11,8 +11,13 @@ shareable URL.
 - `index.html` — self-contained runnable tutorial (React via CDN + Babel standalone)
 - `build-your-own-qubit.jsx` — the React source component (drop into any Vite/CRA project)
 
-**New in this version:** a mathematical appendix to Bonus 1 ("counting the flips") — a
-live sequential-test race between the 0.50-vs-0.60 and 0.00-vs-0.10 duels, the
-Bhattacharyya-cosine law (flips ∝ 1/arc², since overlap = cos Δθ), and the argument
-that the Bernoulli circle is the unique honest statistical ruler (Fisher information,
-the arcsine variance-stabilizing coordinate, Čencov's theorem).
+**New in this version:** the finale, "Bonus ⊗ Bonus: the summit is a Bell pair." The
+mystery coin at the center — zero band width, maximal lift height — has spent every
+internal knob, so its uncertainty can only be traded away *sideways*: to a partner.
+A glued-coin factory fails (the ignorance just moves upstairs, still peekable); the
+Bell factory succeeds, and an interactive tester proves it — rotate the question δ and
+the glued pairs' agreement decays to a coin flip at 90° while the Bell pairs never
+blink, even though every marginal stays pinned at 50%. Then the payoff: a purification
+slider showing concurrence = 2√(det ρ) = twice the lift height — the bowl's vertical
+coordinate was entanglement with the purifying partner all along, and the mystery coin,
+purified honestly, is the Bell pair.
