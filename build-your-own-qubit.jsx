@@ -1026,7 +1026,7 @@ function StepBloch() {
         perfectly certain about exactly one diameter — the one that runs through it.
       </p>
       <Notice>
-        Everything you built survives in 3D: answer odds are still squared distances to a diameter's ends, mixing still pulls inward, purity is still the distance from the center. One phenomenon is new. With three axes, certainty about one diameter forces a 50/50 spread over every diameter perpendicular to it: no state can answer two independent questions sharply at the same time. That trade-off has a famous name: <strong>uncertainty</strong>. This ball, with its diameters, is the complete qubit — and you built it from a coin.
+        Everything you built survives in 3D: answer odds are still squared distances to a diameter's ends, mixing still pulls inward, purity is still the distance from the center. One phenomenon is new. With three axes, certainty about one diameter forces a 50/50 spread over every diameter perpendicular to it: no state can answer two independent questions sharply at the same time. That trade-off has a famous name: <strong>uncertainty</strong>. (This is Heisenberg's uncertainty principle, in its qubit form.) This ball, with its diameters, is the complete qubit — and you built it from a coin.
       </Notice>
     </div>
   );
@@ -2164,22 +2164,29 @@ export default function BuildYourOwnQubit() {
         </header>
 
         {/* stepper */}
-        <nav style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap", marginBottom: 20 }}>
-          {STEPS.map((s, i) => (
-            <button
-              key={i}
-              onClick={() => setStep(i)}
-              title={s.title}
-              style={{
-                width: 30, height: 30, borderRadius: "50%", cursor: "pointer",
-                fontFamily: mono, fontSize: 12, fontWeight: 600,
-                border: `1.5px solid ${i === step ? C.gold : C.gridBold}`,
-                background: i === step ? C.gold : i < step ? C.goldSoft : "#fff",
-                color: i === step ? "#fff" : C.ink,
-              }}
-            >
-              {i + 1}
-            </button>
+        <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 20 }}>
+          {[STEPS.slice(0, 10), STEPS.slice(10)].map((row, r) => (
+            <div key={r} style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap" }}>
+              {row.map((sInfo, j) => {
+                const i = r * 10 + j;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setStep(i)}
+                    title={sInfo.title}
+                    style={{
+                      width: 30, height: 30, borderRadius: "50%", cursor: "pointer",
+                      fontFamily: mono, fontSize: 12, fontWeight: 600,
+                      border: `1.5px solid ${i === step ? C.gold : C.gridBold}`,
+                      background: i === step ? C.gold : i < step ? C.goldSoft : "#fff",
+                      color: i === step ? "#fff" : C.ink,
+                    }}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
           ))}
         </nav>
 
