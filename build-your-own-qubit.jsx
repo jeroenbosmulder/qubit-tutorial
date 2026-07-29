@@ -299,9 +299,7 @@ function Step1() {
   return (
     <div>
       <p>
-        Take a fair coin. Before you flip it ten times, ask yourself: <em>which sequences do
-        you expect to see?</em> All heads? A neat alternation? Something messy? Write a few
-        guesses down, then flip.
+        Take a fair coin. Before you flip it ten times, ask yourself: <em>which sequences do you expect to see?</em> All heads? A regular pattern? Something messy? Write down a few guesses, then flip.
       </p>
       <Btn onClick={() => setRuns((r) => [flipSeq(0.5, 10), ...r].slice(0, 6))}>
         Flip 10 times
@@ -322,9 +320,7 @@ function Step1() {
         ))}
       </div>
       <Notice>
-        Every particular sequence is equally likely — HHHHHHHHHH exactly as likely as
-        HTHHTTHTHT. What differs is how <em>many</em> sequences look "mixed" versus "pure".
-        Your expectations are about the whole ensemble, not any one run.
+        Every particular sequence is equally likely — HHHHHHHHHH is exactly as likely as HTHHTTHTHT. What differs is how <em>many</em> sequences look "mixed" and how many look "pure". Your expectations are about the whole collection of possible runs, not about any single run.
       </Notice>
     </div>
   );
@@ -349,9 +345,7 @@ function Step2() {
   return (
     <div>
       <p>
-        Now three <strong>mystery coins</strong>. One is fair, one is biased, one is
-        deterministic — it has already made up its mind, but you don't know which side it
-        favors. Flip each one and try to identify it.
+        Now three <strong>mystery coins</strong>. One is fair. One is biased. One is deterministic: it has already made up its mind, but you do not know which side it favors. Flip each one and try to identify it.
       </p>
       {coins.map((c, i) => (
         <div key={i} style={{ padding: "10px 12px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, marginBottom: 10 }}>
@@ -394,9 +388,7 @@ function Step2() {
         Reveal
       </Btn>
       <Notice>
-        Before its first flip, what odds would you give the deterministic coin? You don't
-        know its side, so… 50 / 50 — <em>the same as the fair coin</em>. The expected
-        outcome alone can't tell them apart. You need a second indicator.
+        Before its first flip, what odds would you give the deterministic coin? You do not know its side, so: 50/50 — <em>the same as the fair coin</em>. The expected outcome alone cannot tell them apart. You need a second indicator.
       </Notice>
     </div>
   );
@@ -440,12 +432,7 @@ function Step3() {
   return (
     <div>
       <p>
-        Give each run of 30 flips <strong>two numbers</strong>: its average outcome
-        (counting H&nbsp;=&nbsp;1, T&nbsp;=&nbsp;0, so the average is just the observed
-        heads-fraction&nbsp;p) and its spread — call it the <strong>band width</strong> of
-        the sequence. Run many experiments with a fair
-        coin <span style={{ color: C.teal }}>●</span> and with fresh mystery deterministic
-        coins <span style={{ color: C.red }}>●</span>, and drop each run on the chart.
+        Give each run of 30 flips <strong>two numbers</strong>: its average outcome (count H = 1 and T = 0, so the average is simply the observed heads-fraction p) and its spread — we call it the <strong>band width</strong> of the sequence. Run many experiments with a fair coin <span style={{ color: C.teal }}>●</span> and with fresh mystery deterministic coins <span style={{ color: C.red }}>●</span>, and drop each run on the chart.
       </p>
       <div style={{ margin: "14px 0", padding: "12px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8 }}>
         <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 6 }}>
@@ -481,31 +468,14 @@ function Step3() {
         ))}
       </div>
       <p>
-        But here is the important move: your <em>belief</em> about a coin is fixed{" "}
-        <strong>before you start flipping</strong>. So its two numbers are{" "}
-        <em>expectations over everything that might happen</em> — the average of the whole
-        cloud of possible runs, not the run you happen to get. Each belief is one point:
-        the centroid of its cloud (the white-ringed markers).
+        Here is the important move: your <em>belief</em> about a coin is fixed <strong>before you start flipping</strong>. So its two numbers are <em>expectations over everything that might happen</em>: the average over the whole cloud of possible runs, not the one run you happen to get. Each belief is one point — the center of its cloud (the markers with a white ring).
       </p>
       <Btn onClick={runExperiments}>Run 8 experiments of each</Btn>
       <div style={{ marginTop: 12 }}>
         <StatePlot scatter={scatter} centroids={centroids} showSemicircle={scatter.length > 40} labels={false} />
       </div>
       <Notice>
-        The fair coin's possible worlds all agree, so its belief marker settles on the
-        curve near (½,&nbsp;½). The mystery deterministic coin's worlds <em>disagree</em>:
-        each single world lands at a corner, (0,&nbsp;0) or (1,&nbsp;0), but averaging over
-        both possibilities drags the belief to (½,&nbsp;0) — same expected outcome as the
-        fair coin, zero expected band width, and strictly <em>inside</em> the region the
-        curve encloses. Definite coins live on the curve; uncertainty about <em>which</em>{" "}
-        coin you hold pulls the belief into the interior. (Had you first peeked at one
-        flip, you would have learned the coin's side and jumped to a corner — the interior
-        point describes you before learning anything.) And pocket a question for the
-        road: the fair coin and the mystery coin now sit at different points — but how
-        far apart are they, <em>really</em>? That innocent-sounding, entirely
-        non-quantum question is the hidden engine of this whole tutorial. We'll first
-        pin down the exact
-        shape of the curve, then come back to conquer the interior.
+        The fair coin's possible runs all behave alike, so its belief marker settles on the curve, near (½, ½). The mystery deterministic coin's possible worlds <em>disagree</em>: each single world lands at a corner, (0, 0) or (1, 0). Averaging over both possibilities pulls the belief to (½, 0): the same expected outcome as the fair coin, zero expected band width, and strictly <em>inside</em> the region that the curve encloses. Definite coins live on the curve; uncertainty about <em>which</em> coin you hold pulls the belief into the interior. (If you had first peeked at one flip, you would have learned the coin's side and jumped to a corner. The interior point describes you <em>before</em> learning anything.) And save one question for later: the fair coin and the mystery coin now sit at different points — but how far apart are they, <em>really</em>? That simple, completely non-quantum question drives this whole tutorial. First we find the exact shape of the curve. Then we return for the interior.
       </Notice>
     </div>
   );
@@ -518,13 +488,11 @@ function Step4() {
   return (
     <div>
       <p>
-        There's a formula behind that curve. A coin with heads-probability p has band width
+        There is a formula behind that curve. A coin with heads-probability p has band width
       </p>
       <Formula>σ = √(p(1 − p))</Formula>
       <p>
-        which means every state satisfies (p&nbsp;−&nbsp;½)²&nbsp;+&nbsp;σ²&nbsp;=&nbsp;¼:
-        a circle of radius ½ centered on fair odds — the <strong>Bernoulli circle</strong>.
-        Slide the bias and watch where the state of your belief lives.
+        which means every state satisfies (p − ½)² + σ² = ¼: a circle of radius ½, centered on fair odds — the <strong>Bernoulli circle</strong>. Slide the bias and watch where your belief lives.
       </p>
       <Slider
         value={p} min={0} max={1} step={0.01} onChange={setP}
@@ -533,11 +501,7 @@ function Step4() {
       />
       <StatePlot point={[p, w]} />
       <Notice>
-        Every possible coin-belief lands on the <em>upper half of the Bernoulli circle</em>.
-        The fair coin sits at the top of the arc, at (½,&nbsp;½); the two deterministic
-        coins pin down the ends. You have just drawn a state space — but two puzzles
-        remain. Step 3's belief marker fell <em>inside</em> this curve, and the curve
-        itself is exactly half of something. We take the interior first.
+        Every possible coin-belief lands on the <em>upper half of the Bernoulli circle</em>. The fair coin sits at the top of the arc, at (½, ½); the two deterministic coins sit at the two ends. You have just drawn a state space — but two puzzles remain. In step 3, the belief marker fell <em>inside</em> this curve. And the curve itself is exactly half of something. We take the interior first.
       </Notice>
     </div>
   );
@@ -576,16 +540,10 @@ function StepMix() {
   return (
     <div>
       <p>
-        The curve holds every <em>definite</em> coin. But step 3 left a loose end: the
-        mystery deterministic coin's belief marker settled <em>inside</em> the curve.
-        Time to conquer the interior — by mixing beliefs by hand.
+        The curve holds every <em>definite</em> coin. But step 3 left an open point: the mystery deterministic coin's belief marker settled <em>inside</em> the curve. Time to fill the interior — by mixing beliefs by hand.
       </p>
       <p>
-        Say you hold a coin and are confident with weight c that its bias is
-        q₁ <span style={{ color: C.teal }}>●</span>, and otherwise (weight 1−c) that its
-        bias is q₂ <span style={{ color: C.red }}>●</span>. Your two numbers — expected
-        outcome and expected band width — are the c-weighted averages, so your belief
-        slides along the chord between the two candidate coins.
+        Suppose you hold a coin. With weight c you believe its bias is q₁ <span style={{ color: C.teal }}>●</span>, and with weight 1−c you believe its bias is q₂ <span style={{ color: C.red }}>●</span>. Your two numbers — expected outcome and expected band width — are the c-weighted averages. So your belief slides along the straight chord between the two candidate coins.
       </p>
       <Slider value={q1} min={0} max={1} step={0.01} onChange={(v) => { setQ1(v); resetLearn(); }}
         label="q₁ — first candidate bias" readout={`q₁=${q1.toFixed(2)}`} />
@@ -649,17 +607,7 @@ function StepMix() {
         )}
       </div>
       <Notice>
-        Two candidate biases and a confidence reach <em>every</em> point of the upper disk
-        — set q₁=1, q₂=0, c=½ to rebuild the mystery deterministic coin at the exact
-        center. And no belief can ever escape the disk: chords stay inside the circle
-        they span. So the state space of beliefs is not the curve but the whole disk it
-        encloses: <em>definite</em> coins on the rim, <em>uncertainty about the coin</em>{" "}
-        in the interior, total ignorance at the dead center. The disk even sorts your
-        ignorance: the rim carries the statistical part no data can remove, the depth
-        into the interior is the systematic part flips can teach away — purity measures
-        how much of your not-knowing is curable. Fittingly, our two protagonists embody
-        the extremes at the same odds: the fair coin is pure statistics, the mystery
-        coin pure ignorance.
+        Two candidate biases plus one confidence reach <em>every</em> point of the upper disk. Set q₁=1, q₂=0, c=½ and you rebuild the mystery deterministic coin at the exact center. And no belief can ever leave the disk: chords stay inside the circle that they span. So the state space of beliefs is not the curve but the whole disk inside it: <em>definite</em> coins on the rim, <em>uncertainty about the coin</em> in the interior, total ignorance at the exact center. The disk even sorts your ignorance into two kinds. The rim carries the statistical part, which no data can remove. The depth into the interior is the systematic part, which flips can teach away. Purity measures how much of your not-knowing is curable. Our two main characters sit at the two extremes of the same odds: the fair coin is pure statistics, the mystery coin is pure ignorance.
       </Notice>
     </div>
   );
@@ -702,23 +650,11 @@ function StepThales() {
   return (
     <div>
       <p>
-        Go back to the semicircle and pick any belief point on it. Connect it to the two
-        corners: one vector to always-T, one to always-H. Two theorems you may remember
-        from school now click together. <strong>Thales</strong>: a point on a circle
-        always sees a diameter at a right angle — so the two vectors are perpendicular
-        (the little square in the picture). And measuring their lengths gives exactly
+        Go back to the semicircle and pick any belief point on it. Connect it to the two corners: one vector to always-T, one to always-H. Two theorems you may remember from school now work together. <strong>Thales</strong>: from a point on a circle, a diameter is always seen at a right angle — so the two vectors are perpendicular (the little square in the picture). Measuring their lengths gives exactly
       </p>
       <Formula>|to T| = √p&nbsp;&nbsp;&nbsp;&nbsp;|to H| = √(1 − p)</Formula>
       <p>
-        <strong>Pythagoras</strong> closes the loop: the legs squared add up to the
-        hypotenuse squared, and the hypotenuse T–H has length 1 — so
-        p&nbsp;+&nbsp;(1−p)&nbsp;=&nbsp;1. The coin's bookkeeping is literally a right
-        triangle. Now write the two lengths down as coordinates of their own: the pair
-        (√p,&nbsp;√(1−p)) has squares summing to one, so it lives on the{" "}
-        <strong>unit circle</strong> (teal). Nothing was invented here — the unit circle
-        is simply what appears when you <em>measure each state's two distances</em>. The
-        dashed line shows the shortest way to picture the lift: stretch the T-chord out
-        to length one, and you have arrived.
+        <strong>Pythagoras</strong> finishes the argument: the two legs squared add up to the hypotenuse squared, and the hypotenuse T–H has length 1 — so p + (1−p) = 1. The coin's arithmetic is literally a right triangle. Now use the two lengths as coordinates of their own: the pair (√p, √(1−p)) has squares that sum to one, so it lives on the <strong>unit circle</strong> (teal). Nothing was invented here: the unit circle simply appears when you <em>measure each state's two distances</em>. The dashed line shows the shortest way to picture the lift: stretch the T-chord to length one, and you have arrived.
       </p>
       <Slider
         value={alpha} min={0} max={360} step={1} onChange={setAlpha}
@@ -756,11 +692,7 @@ function StepThales() {
         <text x={Fx + 9} y={Fy + 15} fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>state</text>
       </svg>
       <Notice>
-        Sweep α once around the unit circle: the gold point runs around the Bernoulli
-        circle <em>twice</em> — the Bernoulli angle is 2α. And the first quarter alone,
-        where both coordinates are honest square roots, already paints the whole upper
-        semicircle. So the other three quarters revisit the same odds. What new thing
-        could they possibly carry? A <em>sign</em>. That's next.
+        Sweep α once around the unit circle: the gold point runs around the Bernoulli circle <em>twice</em> — the Bernoulli angle is 2α. And the first quarter alone, where both coordinates are honest square roots, already paints the whole upper semicircle. So the other three quarters revisit the same odds. What new thing could they carry? A <em>sign</em>. That is the next step.
       </Notice>
     </div>
   );
@@ -778,18 +710,11 @@ function Step5() {
   return (
     <div>
       <p>
-        Each point of the unit circle you just swept is really a pair of{" "}
-        <strong>amplitudes</strong> (a,&nbsp;b) — square roots that are allowed to carry a
-        sign — with p&nbsp;=&nbsp;a² and 1−p&nbsp;=&nbsp;b². Then
+        Each point of the unit circle you just swept is really a pair of <strong>amplitudes</strong> (a, b) — square roots that are allowed to carry a sign — with p = a² and 1−p = b². Then
       </p>
       <Formula>p = a²&nbsp;&nbsp;&nbsp;&nbsp;σ = √(a²b²) = a·b</Formula>
       <p>
-        Squares erase signs — so (a,&nbsp;b) and (a,&nbsp;−b) give the <em>same odds</em>.
-        But the band width a·b remembers the sign. Whenever exactly one amplitude is
-        negative, the band width is negative: the state lives on the lower half of the
-        Bernoulli circle. The fair coin's own mirror twin down at (½,&nbsp;−½) we'll call
-        the <strong>anti-coin</strong>. Sweep all the way around and watch every set of
-        odds appear twice — once above the axis, once below.
+        Squares erase signs — so (a, b) and (a, −b) give the <em>same odds</em>. But the band width a·b remembers the sign. Whenever exactly one amplitude is negative, the band width is negative: the state lives on the lower half of the Bernoulli circle. The fair coin's own mirror twin, down at (½, −½), we call the <strong>anti-coin</strong>. Sweep all the way around and watch every set of odds appear twice — once above the axis, once below.
       </p>
       <Slider
         value={alpha} min={0} max={360} step={1} onChange={setAlpha}
@@ -799,14 +724,7 @@ function Step5() {
       <AmpBars a={a} b={b} title="AMPLITUDES" />
       <StatePlot showLower showFullCircle point={[p, w]} />
       <Notice>
-        The lower semicircle is a family of new states: same betting odds as their mirror
-        images above, but with a hidden sign. Geometrically the sign is an{" "}
-        <em>orientation</em>: flipping b flips the triangle T–state–H to the other side
-        of the diameter — same side lengths, opposite way around. Flipping the coin can
-        never see it — nothing
-        you bet on heads and tails distinguishes a state from its mirror twin. To see the
-        sign, you have to ask the coin a <em>different question</em> than heads-or-tails —
-        and that is exactly what the next two steps are about.
+        The lower semicircle is a family of new states: the same betting odds as their mirror images above, but with a hidden sign. Geometrically, the sign is an <em>orientation</em>: flipping b flips the triangle T–state–H to the other side of the diameter — same side lengths, opposite way around. Flipping the coin can never see this: no bet on heads and tails distinguishes a state from its mirror twin. To see the sign, you must ask the coin a <em>different question</em> than heads-or-tails. That is exactly what the next two steps are about.
       </Notice>
     </div>
   );
@@ -923,22 +841,10 @@ function StepMeasure() {
   return (
     <div>
       <p>
-        Time to say what "flipping the coin" really is — and to discover that it is only
-        one question among many. Here is the rule of the game: you may never ask a state
-        "where are you?". You may only pick a <strong>diameter</strong> of the circle and
-        ask "<em>which end?</em>" The state must answer with one of the diameter's two
-        endpoints. And the odds of each answer are already drawn in your picture: the
-        chance of an answer is the <strong>squared distance to the opposite end</strong>.
-        Far from "always T" means: probably answers H. (Thales guarantees the right angle
-        at P, so by Pythagoras the two squared chords always add to 1 — the chances of
-        the two answers add up, automatically.)
+        Time to say what "flipping the coin" really is — and to discover that it is only one question among many. Here is the rule of the game. You may never ask a state "where are you?". You may only pick a <strong>diameter</strong> of the circle and ask: "<em>which end?</em>" The state must answer with one of the diameter's two endpoints. The odds of each answer are already drawn in your picture: the chance of an answer is the <strong>squared distance to the opposite end</strong>. Far from "always T" means: probably answers H. (Thales guarantees the right angle at P, so by Pythagoras the two squared chords always add up to 1 — the chances of the two answers add up automatically.)
       </p>
       <p>
-        The horizontal diameter is the <em>raw</em> question, heads-or-tails: that one is
-        the coin flip. But tilted diameters ask <em>combined</em> questions. Compare
-        traffic: sometimes the revealing question is not "which weekday is it?" but
-        "weekend or midweek?" — a contrast built out of the raw days. The vertical
-        diameter asks exactly such a contrast: "coin or anti-coin?".
+        The horizontal diameter is the <em>raw</em> question, heads-or-tails: that one is the coin flip. Tilted diameters ask <em>combined</em> questions. Compare it to traffic: sometimes the revealing question is not "which weekday is it?" but "weekend or midweek?" — a contrast built out of the raw days. The vertical diameter asks exactly such a contrast: "coin or anti-coin?".
       </p>
       <Slider value={theta} min={0} max={360} step={1} onChange={setTheta}
         label="where the state sits on the circle" readout={`state angle ${theta}°`} />
@@ -948,12 +854,7 @@ function StepMeasure() {
       <MeasurePlot theta={theta} delta={delta} />
       <ProbBars title="THE STATE'S ANSWER ODDS" probs={[pPlus, 1 - pPlus]} labels={[`answers ${labP}`, `answers ${labM}`]} />
       <Notice>
-        Rotate the question dial until the diameter passes straight through the state:
-        suddenly it answers with 100% certainty. <em>Every</em> state on the circle is
-        completely certain about exactly one question — and spread out over all the
-        others. The fair coin is certain too: not about heads-or-tails, but about
-        coin-or-anti-coin. No state is "random" in itself; randomness is a mismatch
-        between the state and the question you happened to ask.
+        Rotate the question dial until the diameter passes straight through the state: suddenly the state answers with 100% certainty. <em>Every</em> state on the circle is completely certain about exactly one question — and spread out over all the others. The fair coin is certain too: not about heads-or-tails, but about coin-or-anti-coin. No state is "random" in itself. Randomness is a mismatch between the state and the question you happened to ask.
       </Notice>
     </div>
   );
@@ -970,32 +871,13 @@ function StepSign() {
   return (
     <div>
       <p>
-        Now we can finally answer the question this tutorial has been circling: why do
-        ordinary coin flips never show the sign? Take a state P and its mirror twin P′
-        on the lower half. Look at the horizontal diameter: <em>both of its endpoints lie
-        on the mirror line itself</em>. The mirror doesn't move them. So P and P′ are at
-        identical distances from "always T" and from "always H" — and give identical
-        answer odds to the coin flip. Forever. The flip isn't weak; it is{" "}
-        <em>symmetric</em> under exactly the reflection that the sign encodes.
+        Now we can finally answer the question this tutorial has been circling: why do ordinary coin flips never show the sign? Take a state P and its mirror twin P′ on the lower half. Look at the horizontal diameter: <em>both of its endpoints lie on the mirror line itself</em>. The mirror does not move them. So P and P′ are at identical distances from "always T" and from "always H" — and they give identical answer odds to the coin flip. Forever. The flip is not weak; it is <em>symmetric</em> under exactly the reflection that the sign encodes.
       </p>
       <p>
-        There is a sharper way to say it. From any state, the pair of chords to a
-        diameter's ends carries <em>two</em> kinds of information: their{" "}
-        <strong>lengths</strong> — which, squared, are the answer odds of step 8 — and
-        their <strong>orientation</strong>: walking end&nbsp;→&nbsp;state&nbsp;→&nbsp;end,
-        you pass around the diameter one way or the other. The mirror keeps every length
-        and reverses the orientation; the flip only reads lengths. Set the dial to 0° and
-        look at the two shaded triangles below: identical side lengths, opposite turning
-        arrows — orientation is the <em>only</em> difference, and it is exactly what the
-        sign stores. It even demystifies the band width you have plotted since step 3:
-        its magnitude is twice this triangle's area, and its sign is the triangle's
-        orientation. The unit circle of step 6 keeps track of both; probabilities keep
-        only the lengths.
+        There is a sharper way to say it. From any state, the pair of chords to a diameter's two ends carries <em>two</em> kinds of information. First, their <strong>lengths</strong> — squared, these are the answer odds of step 8. Second, their <strong>orientation</strong>: walking end → state → end, you pass around the diameter one way or the other. The mirror keeps every length and reverses the orientation; the flip reads only lengths. Set the dial to 0° and look at the two shaded triangles below: identical side lengths, opposite turning arrows. Orientation is the <em>only</em> difference, and it is exactly what the sign stores. This also explains the band width you have plotted since step 3: its size is twice this triangle's area, and its sign is the triangle's orientation. The unit circle of step 6 keeps track of both; probabilities keep only the lengths.
       </p>
       <p>
-        Any tilted diameter breaks that symmetry. Turn the dial to the contrast question
-        and watch the twins split apart: P leans toward one end, P′ toward the other. At
-        δ=90° they disagree as strongly as possible.
+        Any tilted diameter breaks that symmetry. Turn the dial to the contrast question and watch the twins split apart: P leans toward one end, P′ toward the other. At δ=90° they disagree as strongly as possible.
       </p>
       <Slider value={theta} min={5} max={175} step={1} onChange={setTheta}
         label="where P sits on the upper half (P′ mirrors it below)" readout={`state angle ${theta}°`} />
@@ -1019,12 +901,7 @@ function StepSign() {
         questions to pin a state down.
       </p>
       <Notice>
-        The lower half of the circle was never hidden from physics — only from one
-        instrument, the coin flip, which happens to be blind to it by symmetry. Classical
-        probability is simply the physics of owning only that one instrument. You have
-        nearly built a qubit: its states are the Bernoulli circle (with the disk of mixed
-        beliefs inside), and its measurements are the diameters. One dial is still
-        hidden, though — and it is the final step.
+        The lower half of the circle was never hidden from physics — only from one instrument, the coin flip, which is blind to it by symmetry. Classical probability is simply the physics of owning only that one instrument. You have nearly built a qubit: its states are the Bernoulli circle (with the disk of mixed beliefs inside), and its measurements are the diameters. One dial is still hidden — and it is the final step.
       </Notice>
     </div>
   );
@@ -1090,25 +967,10 @@ function StepBloch() {
   return (
     <div>
       <p>
-        One dial is still hidden. In step 7 the extra information was a <em>sign</em> — a
-        two-position switch, giving each state one mirror twin. Real quantum amplitudes
-        carry more: the tails amplitude can be turned by <em>any</em> angle φ, like a
-        clock hand. That is all "complex numbers" mean here: numbers that are little{" "}
-        <strong>arrows</strong> rather than a bare + or −. The switch becomes a dial.
+        One dial is still hidden. In step 7 the extra information was a <em>sign</em>: a two-position switch, giving each state one mirror twin. Real quantum amplitudes carry more: the tails amplitude can be turned by <em>any</em> angle φ, like the hand of a clock. That is all that "complex numbers" mean here: numbers that are small <strong>arrows</strong> rather than a bare + or −. The switch becomes a dial.
       </p>
       <p>
-        The picture lays everything on a table first. Your Bernoulli circle lies flat,
-        exactly as you know it — always&nbsp;T on the left, always&nbsp;H on the right,
-        the state P on the far half, its mirror twin on the near half. Read the T–H
-        diameter as an <strong>axle</strong> lying on the table. At each set of odds a{" "}
-        <span style={{ color: C.teal }}>wheel</span> stands upright on that axle, and
-        the dial φ spins the state around it: at φ=0° it rests at the far edge of the
-        table (that is P), at φ=180° at the near edge (precisely the mirror twin of
-        step 7) — and in between it swings <em>up above the table, or down below it</em>.
-        One wheel for every p, and the circle inflates into a <strong>sphere</strong>:
-        pure states on the glassy surface, mixed beliefs filling the ball, total
-        ignorance at the center. Physicists draw the same object centered at zero with
-        radius one and call it the <strong>Bloch sphere</strong>.
+        The picture first lays everything on a table. Your Bernoulli circle lies flat, exactly as you know it — always T on the left, always H on the right, the state P on the far half, its mirror twin on the near half. Read the T–H diameter as an <strong>axle</strong> lying on the table. At each set of odds, a <span style={{ color: C.teal }}>wheel</span> stands upright on that axle, and the dial φ turns the state around it: at φ=0° the state rests at the far edge of the table (that is P); at φ=180° it rests at the near edge (exactly the mirror twin of step 7); and in between it swings <em>up above the table, or down below it</em>. One wheel for every p, and the circle inflates into a <strong>sphere</strong>: pure states on the glassy surface, mixed beliefs filling the ball, total ignorance at the center. Physicists draw the same object centered at zero with radius one and call it the <strong>Bloch sphere</strong>.
       </p>
       <Slider value={thetaDeg} min={0} max={180} step={1} onChange={setThetaDeg}
         label="θ — sets the odds (moves the wheel along the axle)" readout={`p=${p.toFixed(2)}`} />
@@ -1164,13 +1026,7 @@ function StepBloch() {
         perfectly certain about exactly one diameter — the one that runs through it.
       </p>
       <Notice>
-        Everything you built survives in 3D: answer odds are still squared distances to a
-        diameter's ends, mixing still pulls inward, purity is still the distance from the
-        center. One phenomenon is new: with three axes, certainty about one diameter
-        forces 50/50 spread over every diameter perpendicular to it — no state can answer
-        two independent questions sharply at once. That trade-off has a famous name:{" "}
-        <strong>uncertainty</strong>. This ball, with its diameters, is the complete
-        qubit — and you built it from a coin.
+        Everything you built survives in 3D: answer odds are still squared distances to a diameter's ends, mixing still pulls inward, purity is still the distance from the center. One phenomenon is new. With three axes, certainty about one diameter forces a 50/50 spread over every diameter perpendicular to it: no state can answer two independent questions sharply at the same time. That trade-off has a famous name: <strong>uncertainty</strong>. This ball, with its diameters, is the complete qubit — and you built it from a coin.
       </Notice>
     </div>
   );
@@ -1204,19 +1060,10 @@ function StepDistance() {
   return (
     <div>
       <p>
-        A question the tutorial has quietly earned: how <em>far apart</em> are two coins?
-        The lazy answer is the gap on the ruler, |p₁&nbsp;−&nbsp;p₂|. Try to break it:
-        a 0.50-coin and a 0.51-coin are almost impossible to tell apart — you would need
-        thousands of flips. A 0.00-coin and a 0.01-coin? A <em>single head</em> settles
-        it, because the first coin can never produce one. Same gap of 0.01 on the ruler,
-        wildly different real separations. The flat ruler is wrong: near the ends it
-        must stretch.
+        Here is a question the tutorial has quietly prepared: how <em>far apart</em> are two coins? The lazy answer is the gap on the ruler, |p₁ − p₂|. Try to break it. A 0.50-coin and a 0.51-coin are almost impossible to tell apart — you would need thousands of flips. A 0.00-coin and a 0.01-coin? A <em>single head</em> settles it, because the first coin can never produce one. The same gap of 0.01 on the ruler, but very different real separations. The flat ruler is wrong: near the ends, it must stretch.
       </p>
       <p>
-        The right ruler is one you already own. Lift both coins to the Bernoulli circle
-        and walk <em>along the arc</em> between them. Near the middle, the circle runs
-        flat and the arc barely exceeds the gap; near the ends it turns steeply upward,
-        and a tiny gap in p becomes a long walk.
+        The right ruler is one you already own. Lift both coins to the Bernoulli circle and walk <em>along the arc</em> between them. Near the middle, the circle runs almost flat, and the arc is barely longer than the gap. Near the ends, the circle turns steeply upward, and a tiny gap in p becomes a long walk.
       </p>
       <Slider value={p1} min={0} max={1} step={0.01} onChange={setP1}
         label="first coin" readout={`p₁=${p1.toFixed(2)}`} />
@@ -1259,14 +1106,7 @@ function StepDistance() {
         <span style={{ color: C.inkSoft }}>ratio ×{naive > 0 ? (arc / naive).toFixed(1) : "—"}</span>
       </div>
       <Notice>
-        Try the two preset pairs: identical flat gaps, a tenfold difference in circle
-        distance — and the circle is the honest one, because it predicts how many flips
-        you actually need to tell the coins apart. This arc has a classical name: the{" "}
-        <strong>Bhattacharyya angle</strong> between the two distributions (its
-        straight-line chord is the Hellinger distance). The moral: distances between
-        coins are not measured through the interval, but along the Bernoulli circle —
-        the circle isn't decoration, it is the <em>ruler</em>. The next step cashes this
-        claim in flips: you'll race the two duels and count.
+        Try the two preset pairs: identical flat gaps, but a tenfold difference in circle distance. The circle is the honest ruler, because it predicts how many flips you actually need to tell the coins apart. This arc has a classical name: the <strong>Bhattacharyya angle</strong> between the two distributions (its straight-line chord is the Hellinger distance). The lesson: distances between coins are not measured through the interval, but along the Bernoulli circle. The circle is not decoration — it is the <em>ruler</em>. The next step turns this claim into flips: you will race the two duels and count.
       </Notice>
     </div>
   );
@@ -1378,14 +1218,7 @@ function StepFlipCount() {
   return (
     <div>
       <p>
-        Bonus&nbsp;1 made a promise it hasn't paid: the circle, it claimed, predicts{" "}
-        <em>how many flips</em> you need to tell two coins apart. Let's collect. Take two
-        duels with the <strong>same flat-ruler gap of 0.10</strong>: duel&nbsp;A pits a
-        0.50-coin against a 0.60-coin; duel&nbsp;B pits a 0.00-coin against a 0.10-coin.
-        In each duel one of the two coins is secretly chosen and handed to you. You flip
-        it and run the honest referee — Wald's <em>sequential test</em>: every flip adds
-        its evidence, and the moment the total crosses a wall (set here for 5% error),
-        the verdict is called. Watch which duel finishes first.
+        The previous bonus made a promise that it has not yet kept: the circle, it claimed, predicts <em>how many flips</em> you need to tell two coins apart. Let us test that. Take two duels with the <strong>same flat-ruler gap of 0.10</strong>. Duel A: a 0.50-coin against a 0.60-coin. Duel B: a 0.00-coin against a 0.10-coin. In each duel, one of the two coins is secretly chosen and handed to you. You flip it and run the honest referee — Wald's <em>sequential test</em>: every flip adds its evidence, and the moment the total crosses a wall (set here for 5% error), the verdict is final. Watch which duel finishes first.
       </p>
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
         <Btn onClick={start} disabled={running}>{tally.races ? "race again" : "start the race"}</Btn>
@@ -1441,52 +1274,22 @@ function StepFlipCount() {
         of ten in flips.
       </p>
       <p>
-        <strong>Move 3 — one law behind both.</strong> For the best possible test, the
-        error after n flips shrinks like the n-th power of the <em>overlap</em> between
-        the two coins, the Bhattacharyya coefficient. And when you lift each coin to its
-        angle θ&nbsp;=&nbsp;arccos&nbsp;√p on the circle, that overlap is nothing but a
-        dot product of two unit vectors:
+        <strong>Move 3 — one law behind both.</strong> For the best possible test, the error after n flips shrinks like the n-th power of the <em>overlap</em> between the two coins — the Bhattacharyya coefficient. And when you lift each coin to its angle θ = arccos √p on the circle, that overlap is simply a dot product of two unit vectors:
       </p>
       <Formula>
         √(p₁p₂) + √((1−p₁)(1−p₂)) = cos θ₁ cos θ₂ + sin θ₁ sin θ₂ = cos(θ₁ − θ₂)
       </Formula>
       <p>
-        The overlap of two coins is the <em>cosine of the arc between them</em>. Errors
-        shrink like cosⁿ(Δθ), so the flip budget for confidence ε is
+        The overlap of two coins is the <em>cosine of the arc between them</em>. Errors shrink like cosⁿ(Δθ), so the number of flips needed for confidence ε is
       </p>
       <Formula>
         n ≈ ln(1/ε) / (−ln cos Δθ) ≈ 2 ln(1/ε) / (Δθ)²
       </Formula>
       <p>
-        Flips ∝ 1/(arc length)². The ruler that counts flips is the arc — nothing about
-        |p₁−p₂| appears. Check it against the race: duel A spans
-        Δθ&nbsp;=&nbsp;{dthA.toFixed(3)}, duel B spans Δθ&nbsp;=&nbsp;{dthB.toFixed(3)},
-        so the circle predicts a flip ratio of ({dthB.toFixed(3)}/{dthA.toFixed(3)})²
-        ≈&nbsp;×{((dthB / dthA) ** 2).toFixed(1)}
-        {tally.races > 0 && avgB > 0 && (
-          <span>
-            {" "}— and your own races above clocked ×{(avgA / avgB).toFixed(1)} (the
-            sequential referee trims each duel a little differently, but the order of
-            magnitude belongs to the arc)
-          </span>
-        )}
-        . The flat ruler predicted ×1.0.
+        Flips ∝ 1/(arc length)². The ruler that counts flips is the arc; |p₁−p₂| appears nowhere. Check it against the race: duel A spans Δθ = {dthA.toFixed(3)}, duel B spans Δθ = {dthB.toFixed(3)}, so the circle predicts a flip ratio of ({dthB.toFixed(3)}/{dthA.toFixed(3)})² ≈ ×{((dthB / dthA) ** 2).toFixed(1)}{tally.races > 0 && avgB > 0 && (<span> — and your own races above measured ×{(avgA / avgB).toFixed(1)} (the sequential referee ends each duel a little differently, but the order of magnitude comes from the arc)</span>)}. The flat ruler predicted ×1.0.
       </p>
       <Notice>
-        Why is the arc not just <em>a</em> good ruler but <em>the</em> ruler? Three
-        escalating reasons. <strong>Local:</strong> the distinguishing power of one flip
-        is the Fisher information 1/(p(1−p)), which explodes at the edges — exactly the
-        flat ruler's crime. Ask for the coordinate in which one flip buys the same
-        progress everywhere and you are forced to θ&nbsp;=&nbsp;arccos&nbsp;√p
-        (statisticians met it long ago as the arcsine variance-stabilizing
-        transformation). <strong>Global:</strong> over any finite separation the
-        operational cost is cos(Δθ) — equal arcs cost equal flips, wherever they sit on
-        the circle. <strong>Unique:</strong> Čencov's theorem: any honest distance may
-        only shrink when you post-process your data, and the Fisher metric — this arc —
-        is the <em>only</em> Riemannian ruler (up to scale) with that property. And keep
-        the cosine in your pocket: in the quantum half of the tutorial it returns as the
-        overlap ⟨ψ|φ⟩, the arc becomes the Bures angle of Bonus&nbsp;2, and
-        cos²(π/4)&nbsp;=&nbsp;½ is the pass-probability of Bonus&nbsp;3.
+        Why is the arc not just <em>a</em> good ruler but <em>the</em> ruler? Three reasons, each stronger than the last. <strong>Local:</strong> the distinguishing power of one flip is the Fisher information 1/(p(1−p)), which explodes at the edges — exactly the flat ruler's failure. Ask for the coordinate in which one flip buys the same progress everywhere, and you are forced to θ = arccos √p (statisticians met it long ago as the arcsine variance-stabilizing transformation). <strong>Global:</strong> over any finite separation, the operational cost is cos(Δθ) — equal arcs cost equal flips, wherever they sit on the circle. <strong>Unique:</strong> Čencov's theorem: any honest distance may only shrink when you post-process your data, and the Fisher metric — this arc — is the <em>only</em> Riemannian ruler (up to scale) with that property. Keep the cosine in mind: in the quantum half of the tutorial it returns as the overlap ⟨ψ|φ⟩, the arc becomes the Bures angle of the hemisphere bonus, and cos²(π/4) = ½ is the pass-probability of the overlap bonus.
       </Notice>
     </div>
   );
@@ -1564,41 +1367,13 @@ function StepBures() {
   return (
     <div>
       <p>
-        One distance is still missing — the one the tutorial opened with. The fair coin
-        and the mystery deterministic coin give the same odds, yet they are different
-        beliefs: one on the rim, one at the center of the disk. So we need distances{" "}
-        <em>inside</em> the disk — and the flat disk fails for the same reason the flat
-        interval did. On its rim it must reproduce the arcs of the previous step, which
-        a flat sheet's straight lines cannot; and near the rim, tiny steps are once
-        again statistically enormous.
+        One distance is still missing — the one the tutorial opened with. The fair coin and the mystery deterministic coin give the same odds, yet they are different beliefs: one on the rim, one at the center of the disk. So we need distances <em>inside</em> the disk. The flat disk fails for the same reason the flat interval did: on its rim it must reproduce the arcs of the previous step, which straight lines on a flat sheet cannot do; and near the rim, tiny steps are again statistically enormous.
       </p>
       <p>
-        The cure is the same as before — and here is exactly <em>why</em> it produces a
-        hemisphere. Take any point in the disk and draw the diameter through it and the
-        center. That diameter runs from rim to rim, so it has <strong>length 1</strong>:
-        it is a fresh copy of the interval [0,&nbsp;1], and your point sits on it at some
-        position λ. But a diameter is a <em>measurement</em> (step 8), and the states
-        along it are the mixtures of its two endpoint states — a Bernoulli family in λ
-        (λ is even the probability of that measurement's ⊕ answer). The previous step
-        told us what to do with a Bernoulli family: lift it by{" "}
-        <strong>√(λ(1−λ))</strong>. Now do that to <em>every</em> diameter at once. Each
-        one bends into its own Bernoulli semicircle; they all agree wherever they cross
-        and share one summit above the center (each has λ&nbsp;=&nbsp;½ there); and
-        together they assemble into the <strong>Bernoulli hemisphere</strong> — the
-        previous step's cure applied to every direction of the disk simultaneously. On
-        this bowl, distance means the geodesic: the shortest walk along the surface. (Its
-        official name: the <strong>Bures distance</strong>.)
+        The cure is the same as before — and here is exactly <em>why</em> it produces a hemisphere. Take any point in the disk and draw the diameter through it and the center. That diameter runs from rim to rim, so it has <strong>length 1</strong>: it is a fresh copy of the interval [0, 1], and your point sits on it at some position λ. But a diameter is a <em>measurement</em> (step 8), and the states along it are the mixtures of its two endpoint states — a Bernoulli family in λ (λ is even the probability of that measurement's ⊕ answer). The previous step told us what to do with a Bernoulli family: lift it by <strong>√(λ(1−λ))</strong>. Now do that to <em>every</em> diameter at once. Each one bends into its own Bernoulli semicircle; they all agree wherever they cross; they share one summit above the center (each has λ = ½ there); and together they form the <strong>Bernoulli hemisphere</strong> — the previous step's cure, applied to every direction of the disk at the same time. On this bowl, distance means the geodesic: the shortest walk along the surface. (Its official name: the <strong>Bures distance</strong>.)
       </p>
       <p>
-        Below, your Bernoulli disk lies flat in space, exactly as you know it —
-        always&nbsp;T on the left, always&nbsp;H on the right, the gold coin-half toward
-        the back, the red anti-coin-half toward the front, the purity circles drawn
-        around the mystery coin at the center. Pull the <em>raise</em> slider and watch
-        the construction happen: the teal T–H route <em>is</em> the base diameter
-        bending into its Bernoulli semicircle, the purity circles rise into latitude
-        rings, and the mystery coin climbs to the shared summit. The flat straight
-        routes inflate into arcs, and their lengths grow into the true statistical
-        distances.
+        Below, your Bernoulli disk lies flat in space, exactly as you know it — always T on the left, always H on the right, the gold coin-half toward the back, the red anti-coin-half toward the front, and the purity circles drawn around the mystery coin at the center. Pull the <em>raise</em> slider and watch the construction happen: the teal T–H route <em>is</em> the base diameter bending into its Bernoulli semicircle, the purity circles rise into latitude rings, and the mystery coin climbs to the shared summit. The flat straight routes inflate into arcs, and their lengths grow into the true statistical distances.
       </p>
       <Slider value={raise} min={0} max={1} step={0.01} onChange={setRaise}
         label="raise the hemisphere out of the disk" readout={raise === 0 ? "flat disk" : raise === 1 ? "full hemisphere" : `${(raise * 100).toFixed(0)}%`} />
@@ -1638,17 +1413,7 @@ function StepBures() {
         <span style={{ color: C.teal }}>H ↔ T route = {dHT.toFixed(3)}{raise === 1 ? " = π/2" : ""}</span>
       </div>
       <Notice>
-        The punchline the whole tutorial was owed: fully raised, the fair coin and the
-        mystery deterministic coin — indistinguishable by their odds — sit a crisp{" "}
-        <strong>π/4 ≈ 0.785</strong> apart, while the flat disk would have claimed ½.
-        Notice too that the shortest road from certain-heads to certain-tails now runs{" "}
-        <em>over the summit</em>: through total ignorance. And spin the bowl: rotating
-        the measurement basis turns everything rigidly, so every distance stays exactly
-        the same — you have measured how different two beliefs are <em>without choosing
-        any measurement at all</em>. That basis-independence is the great clue that
-        these distances belong to the beliefs themselves. (One guard-rail: this bowl is
-        the flat disk <em>bent into the right ruler</em> — its height is an aid for
-        measuring, not the complex dial of step 10.)
+        Here is the result the whole tutorial was waiting for: fully raised, the fair coin and the mystery deterministic coin — which give identical odds — sit exactly <strong>π/4 ≈ 0.785</strong> apart, while the flat disk would have claimed ½. Notice also that the shortest road from certain-heads to certain-tails now runs <em>over the summit</em>: through total ignorance. And spin the bowl: rotating the measurement basis turns everything rigidly, so every distance stays exactly the same. You have measured how different two beliefs are <em>without choosing any measurement at all</em>. That basis-independence is the strong hint that these distances belong to the beliefs themselves. (One caution: this bowl is the flat disk <em>bent into the right ruler</em> — its height is an aid for measuring, not the complex dial of step 10.)
       </Notice>
     </div>
   );
@@ -1765,14 +1530,11 @@ function StepOverlap() {
   return (
     <div>
       <p>
-        We measured that the fair coin and the mystery coin sit <strong>π/4</strong>{" "}
-        apart on the bowl. Time to cash that number in as a probability. Build a tester
-        for the question <em>"are you the fair coin?"</em> — and notice it is nothing
-        new: it is exactly the contrast question of step 9, the coin/anti-coin diameter.
-        Answering "coin" counts as passing. In fact this tester simply <em>reads the
-        band width</em>: its pass rate is ½&nbsp;+&nbsp;w.
+        We measured that the fair coin and the mystery coin sit <strong>π/4</strong> apart on the bowl. Time to turn that number into a probability. Build a tester for the question <em>"are you the fair coin?"</em> — and notice that it is nothing new: it is exactly the contrast question of step 9, the coin/anti-coin diameter. Answering "coin" counts as passing. In fact, this tester simply <em>reads the band width</em>: its pass rate is ½ + w.
       </p>
-      <p>Feed it a candidate and run it:</p>
+      <p>
+        Feed it a candidate and run it:
+      </p>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
         {CANDS.map((c, i) => (
           <button key={i} onClick={() => { setSel(i); setTrials([]); }}
@@ -1782,15 +1544,7 @@ function StepOverlap() {
         ))}
       </div>
       <p>
-        Everything happens on the bowl. The test diameter — anti-coin to fair coin,
-        length 1 — lies across the floor. The candidate sits at its <em>lifted</em>{" "}
-        position (pure candidates already live on the rim; the mystery coin is the one
-        the bowl truly lifts, to the summit). Now connect the candidate to the two ends
-        of the test diameter: by Thales the two chords meet at a{" "}
-        <strong>right angle</strong> — and their squares are <em>exactly</em> the answer
-        odds, mixed states included. That is the bowl's second gift: inside the flat
-        disk, step 8's chord rule broke for mixed beliefs; lifted onto the bowl, it is
-        exact again. The gold arc is the geodesic to the fair coin: the Bures distance.
+        Everything happens on the bowl. The test diameter — anti-coin to fair coin, length 1 — lies across the floor. The candidate sits at its <em>lifted</em> position (pure candidates already live on the rim; the mystery coin is the one the bowl truly lifts, up to the summit). Now connect the candidate to the two ends of the test diameter. By Thales, the two chords meet at a <strong>right angle</strong> — and their squares are <em>exactly</em> the answer odds, mixed states included. That is the bowl's second gift: inside the flat disk, step 8's chord rule failed for mixed beliefs; lifted onto the bowl, it is exact again. The gold arc is the geodesic to the fair coin: the Bures distance.
       </p>
       <svg viewBox={`0 0 ${W} ${HH}`} style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
         <polygon points={halfPoly(0, Math.PI)} fill={C.goldSoft} fillOpacity={0.5} />
@@ -1842,12 +1596,7 @@ function StepOverlap() {
       </p>
       <Formula>P(pass) = cos²(distance)&nbsp;&nbsp;&nbsp;&nbsp;distance = arccos(√P(pass))</Formula>
       <p>
-        Check it on the mystery coin: it passes half the time, so √P&nbsp;=&nbsp;1/√2,
-        and arccos(1/√2)&nbsp;=&nbsp;<strong>π/4</strong> — exactly its Bures distance.
-        And to see why, simply <em>flatten the triangle's plane onto the page</em>. What
-        appears is step 6's drawing reborn: the test diameter as the base, the candidate
-        on the Thales semicircle above it, legs √P(pass) and √P(fail) — and the
-        inscribed angle at the anti-coin corner is the distance itself.
+        Check it on the mystery coin: it passes half the time, so √P = 1/√2, and arccos(1/√2) = <strong>π/4</strong> — exactly its Bures distance. To see why, simply <em>flatten the triangle's plane onto the page</em>. What appears is step 6's drawing again: the test diameter as the base, the candidate on the Thales semicircle above it, legs √P(pass) and √P(fail) — and the inscribed angle at the anti-coin corner is the distance itself.
       </p>
       <svg viewBox={`0 0 ${TW} ${THh}`} style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
         <polyline points={thales} fill="none" stroke={C.gridBold} strokeWidth={1.2} strokeDasharray="5 4" />
@@ -1881,22 +1630,7 @@ function StepOverlap() {
         <span style={{ color: C.gold }}>distance = {Dlabel}</span>
       </div>
       <Notice>
-        One number, three readings: the <strong>overlap</strong> with the fair coin, its
-        square the <strong>pass probability</strong>, its arccos the{" "}
-        <strong>Bures distance</strong>. Try the other candidates: always-H also sits at
-        π/4 from the fair coin — and sure enough it also passes half the time; the
-        anti-coin sits at π/2 — and never passes. Notice the flattened figure is exactly
-        step 6's triangle with new labels — the candidate even sits at the Bernoulli
-        point of its own pass probability. And here is what basis-independence bought
-        you: the π/4 was computed on the bowl <em>without choosing any measurement</em>,
-        yet it predicts the outcome of this very concrete tester. The whole of qubit
-        statistics, folded into one right triangle — you built a qubit, and now you can
-        also measure with it. And one final step back: the question that drove
-        everything — <em>how far apart are two beliefs about a coin?</em> — contained no
-        quantum physics at all. Answering it honestly forced this entire stage into
-        existence: the circle, the disk, the bowl, the diameters. Quantum mechanics, in
-        the end, is the discovery that nature actually performs on all of it — lower
-        half, phase dial and all.
+        One number, three readings: the <strong>overlap</strong> with the fair coin; its square, the <strong>pass probability</strong>; its arccos, the <strong>Bures distance</strong>. Try the other candidates: always-H also sits at π/4 from the fair coin — and indeed it also passes half the time; the anti-coin sits at π/2 — and never passes. Notice that the flattened figure is exactly step 6's triangle with new labels — the candidate even sits at the Bernoulli point of its own pass probability. And here is what basis-independence bought you: the π/4 was computed on the bowl <em>without choosing any measurement</em>, and yet it predicts the outcome of this very concrete tester. The whole of qubit statistics, folded into one right triangle. You built a qubit, and now you can also measure with it. One final step back: the question that drove everything — <em>how far apart are two beliefs about a coin?</em> — contained no quantum physics at all. Answering it honestly forced this entire stage into existence: the circle, the disk, the bowl, the diameters. Quantum mechanics, in the end, is the discovery that nature actually uses all of it — lower half, phase dial and all.
       </Notice>
     </div>
   );
@@ -1942,14 +1676,7 @@ function StepMatrix() {
   return (
     <div>
       <p>
-        A last look under the hood, for the mathematically curious — three secrets the
-        pictures have been keeping. <strong>First, the maps.</strong> The whole tutorial
-        rode a pipeline: unit circle → Bernoulli circle → interval. The last leg is the
-        naive one: read the odds, p&nbsp;=&nbsp;a² and 1−p&nbsp;=&nbsp;b² — squaring
-        each coordinate <em>separately</em>. But that map is built from degree-2
-        products, and there exist exactly <em>three</em> such products of (a,&nbsp;b):
-        a², ab, and b². All three fit in one master object — the full multiplication
-        table of ψ:
+        A last look inside the machinery, for the mathematically curious — three secrets the pictures have been keeping. <strong>First, the maps.</strong> The whole tutorial used a pipeline: unit circle → Bernoulli circle → interval. The last part is the naive one: read the odds, p = a² and 1−p = b² — squaring each coordinate <em>separately</em>. But that map is built from degree-2 products, and there exist exactly <em>three</em> such products of (a, b): a², ab, and b². All three fit in one master object — the full multiplication table of ψ:
       </p>
       <Slider value={alpha} min={0} max={360} step={1} onChange={setAlpha}
         label="α — the amplitude vector" readout={`ψ = (${a.toFixed(2)}, ${b.toFixed(2)})`} />
@@ -1958,37 +1685,13 @@ function StepMatrix() {
         <Btn kind="outline" onClick={() => setFlipped(!flipped)}>flip the sign of ψ</Btn>
       </div>
       <p>
-        The pipeline is really three <em>readings</em> of this one table. Read only the
-        diagonal, (a²,&nbsp;b²): that is the interval — the coin flip, blind to
-        everything else. Read the highlighted <strong>top row, (a²,&nbsp;ab) =
-        (p,&nbsp;w)</strong>: that is the Bernoulli point — the diagonal <em>plus</em>{" "}
-        the off-diagonal ab, which is exactly the band width (and nothing more is
-        needed, since b²&nbsp;=&nbsp;1−a²). So the Bernoulli circle is what you get by
-        refusing to forget the off-diagonal. And press the sign button: ψ and −ψ
-        produce the <em>identical</em> table — a table cannot remember a global sign,
-        only relative ones. The double cover of step 6, finally explained mechanically.
-        (Official names, for the curious: the table map is the degree-2{" "}
-        <em>Veronese map</em> into Sym², the space of symmetric tensors — and any
-        degree-2 map, coordinate-squaring included, must factor through it.)
+        The pipeline is really three <em>readings</em> of this one table. Read only the diagonal, (a², b²): that is the interval — the coin flip, blind to everything else. Read the highlighted <strong>top row, (a², ab) = (p, w)</strong>: that is the Bernoulli point — the diagonal <em>plus</em> the off-diagonal ab, which is exactly the band width (and nothing more is needed, since b² = 1−a²). So the Bernoulli circle is what you get by refusing to forget the off-diagonal. And press the sign button: ψ and −ψ produce the <em>identical</em> table — a table cannot remember a global sign, only relative ones. The double cover of step 6, finally explained mechanically. (Official names, for the curious: the table map is the degree-2 <em>Veronese map</em> into Sym², the space of symmetric tensors — and any degree-2 map, coordinate-squaring included, must factor through it.)
       </p>
       <p>
-        <strong>Second, the disk was matrix-space all along.</strong> Mix beliefs and
-        the tables average entrywise: the result is always a symmetric table whose
-        diagonal sums to 1 — so it carries exactly two free numbers, its top row
-        (p,&nbsp;w). Your Bernoulli disk <em>is</em> the space of these tables. Physicists
-        call them <strong>density matrices</strong>; the tutorial has been doing matrix
-        arithmetic in disguise: mixing = averaging tables (linear, hence the chords),
-        superposition = adding vectors <em>before</em> squaring (hence a different floor).
+        <strong>Second, the disk was matrix-space all along.</strong> Mix beliefs, and the tables average entry by entry. The result is always a symmetric table whose diagonal sums to 1 — so it carries exactly two free numbers, its top row (p, w). Your Bernoulli disk <em>is</em> the space of these tables. Physicists call them <strong>density matrices</strong>. The tutorial has been doing matrix arithmetic in disguise: mixing = averaging tables (which is linear, hence the chords); superposition = adding vectors <em>before</em> squaring (hence a different floor).
       </p>
       <p>
-        <strong>Third, every table elects its own diameter.</strong> The mixer showed
-        that many different chords pass through one interior point — many ensembles,
-        one belief. But the matrix breaks the tie: its{" "}
-        <strong>spectral decomposition</strong> singles out one canonical splitting —
-        the diameter through the state and the center. The endpoints are the
-        eigen-states (the only decomposition into two <em>perpendicular</em>, antipodal
-        coins), and the weights are the eigenvalues λ±&nbsp;=&nbsp;½&nbsp;±&nbsp;t —
-        precisely the λ that lifted this very diameter into the hemisphere.
+        <strong>Third, every table chooses its own diameter.</strong> The mixer showed that many different chords pass through one interior point — many ensembles, one belief. But the matrix breaks the tie: its <strong>spectral decomposition</strong> selects one canonical splitting — the diameter through the state and the center. The endpoints are the eigen-states (the only decomposition into two <em>perpendicular</em>, antipodal coins), and the weights are the eigenvalues λ± = ½ ± t — exactly the λ that lifted this same diameter into the hemisphere.
       </p>
       <Slider value={tt} min={0} max={0.5} step={0.01} onChange={setTt}
         label="t — how mixed (distance from center)" readout={`λ₊=${(0.5 + tt).toFixed(2)}  λ₋=${(0.5 - tt).toFixed(2)}`} />
@@ -2003,16 +1706,7 @@ function StepMatrix() {
       </div>
       <StatePlot showLower showFullCircle labels={false} segment={[Np, Nm]} point={[pp, ww]} />
       <Notice>
-        So the trilogy closes: the <strong>multiplication table</strong> builds the
-        circle and explains the missing sign; the <strong>density matrix</strong> is the disk,
-        hiding in the plain coordinates (p,&nbsp;w) you plotted since step 3; and the{" "}
-        <strong>spectral decomposition</strong> is geometry you already own — the
-        diameter through the state, endpoints as eigen-states, λ±&nbsp;=&nbsp;½±t as
-        weights. Ensemble ambiguity is real (many chords through one point), but every
-        state carries one distinguished chord: its own diameter — the measurement it
-        answers most decisively, the axis of its hemisphere lift, and now the eigen-basis
-        of its matrix. Three views, one object. Everything in this tutorial was tensor
-        algebra wearing a coin costume.
+        So the three parts close together. The <strong>multiplication table</strong> builds the circle and explains the missing sign. The <strong>density matrix</strong> is the disk, hiding inside the plain coordinates (p, w) you have plotted since step 3. The <strong>spectral decomposition</strong> is geometry you already own: the diameter through the state, endpoints as eigen-states, λ± = ½±t as weights. Ensemble ambiguity is real (many chords through one point), but every state carries one distinguished chord: its own diameter — the measurement it answers most decisively, the axis of its hemisphere lift, and now the eigen-basis of its matrix. Three views, one object. Everything in this tutorial was tensor algebra, dressed up as coins.
       </Notice>
     </div>
   );
@@ -2136,45 +1830,13 @@ function StepBellA() {
   return (
     <div>
       <p>
-        The previous step signed off with a confession — everything here was tensor
-        algebra wearing a coin costume. One costume is still on, and taking it off
-        settles the tutorial's last open account: the <strong>mystery coin</strong> at
-        the center. Look at it with both instruments you now own. On the disk it is the
-        flattest point of all: band width zero, pure ignorance about a stuck coin. On
-        the bowl it is the <strong>summit</strong>: lift height √(det&nbsp;ρ)&nbsp;=&nbsp;½,
-        farther from every certainty than any other belief. The tutorial's great trade
-        was turning uncertainty <em>about</em> into uncertainty <em>inside</em> — that is
-        what the lift did for the fair coin. Can the summit's uncertainty be traded away
-        too? Not from within: the sign is spent (step&nbsp;9), the complex dial is spent
-        (step&nbsp;10). Inside one qubit there is no room left. The only direction
-        remaining is <em>sideways</em>: give the coin a partner — a second coin is
-        the smallest that works. One warning about the word <em>trade</em>, before
-        it misleads: the coin itself will stay exactly as uncertain as before,
-        every bar still pinned at 50%. What changes hands is the ledger, not the
-        coin — where the uncertainty is <em>booked</em> is this step's whole game.
+        The previous step ended with a claim: everything in this tutorial was tensor algebra, dressed up as coins. One piece of the costume is still on. Removing it will answer the tutorial's last open question, which is about the <strong>mystery coin</strong> at the center. Look at that coin with both tools you now own. On the disk, it is the flattest point of all: band width zero, no coherence — only ignorance about a stuck coin. On the bowl, it is the <strong>summit</strong>: its lift height √(det ρ) = ½ is the largest possible. The main lesson of this tutorial was a trade: uncertainty <em>about</em> a coin can be rewritten as uncertainty <em>inside</em> a state. That is what the lift did for the fair coin. Can we make the same trade for the summit? Not with anything inside the qubit: the sign is already used (step 9), and the complex dial is already used (step 10). Inside one qubit there is no room left. Only one direction remains: <em>sideways</em>. Give the coin a partner — a second coin is the smallest partner that works. One warning about the word <em>trade</em>, so it does not mislead you: the coin itself will stay exactly as uncertain as before. Every bar will stay at 50%. What changes is the bookkeeping: <em>where</em> the uncertainty is recorded. That question is the whole point of this step.
       </p>
       <p>
-        Try a classical partner first. A factory welds two coins so they always agree,
-        then ships you pair after pair — each one secretly HH or secretly TT,
-        fifty-fifty. Cover the right coin: the left one alone is <em>exactly</em> the
-        mystery coin. But the uncertainty didn't dissolve — it moved <strong>upstairs</strong>,
-        into the pair's own state space: one floor up in system size, where the
-        states of two-coin systems live. The pair
-        as a whole is the mixture ½(HH)&nbsp;+&nbsp;½(TT): an interior point of a bigger
-        disk, one level up, and someone at the factory could still peek. A rival factory
-        claims to do better. It ships the <strong>Bell pair</strong>,
-        (HH&nbsp;+&nbsp;TT)/√2 — not a mixture of the two tables but a{" "}
-        <em>superposition</em>, amplitudes added <em>before</em> squaring, the very
-        distinction the mixer of step&nbsp;5 fought to establish. Its multiplication
-        table is rank one: a <em>rim</em> point of the pair's state space. Nothing was
-        prepared-and-forgotten. There is nothing to peek at.
+        Try a classical partner first. A factory welds two coins together so that they always land the same way. It then ships you pair after pair. Each pair is secretly HH or secretly TT, with probability ½ each. Cover the right coin: the left coin alone is <em>exactly</em> the mystery coin. But the uncertainty did not disappear. It only moved <strong>upstairs</strong> — into the pair's own state space, one floor up in system size, where the states of two-coin systems live. On that floor, the pair is the mixture ½(HH) + ½(TT): an interior point of a bigger disk. Someone at the factory could still peek and learn which pair you got. A second factory claims to do better. It ships the <strong>Bell pair</strong>, (HH + TT)/√2. This is not a mixture of the two options but a <em>superposition</em>: the amplitudes are added <em>before</em> squaring — the same distinction that step 5 established. Its multiplication table has rank one, so on the pair's floor it is a <em>rim</em> point. Nothing was prepared and then forgotten. There is nothing to peek at.
       </p>
       <p>
-        Talk is cheap — build the tester. Ask <em>both halves</em> of every pair the
-        same question, then rotate the question away from plain H-or-T: the unmasking
-        trick that separated the fair coin from the mystery coin, now played on pairs.
-        Straight on (δ&nbsp;=&nbsp;0°) the factories are indistinguishable — perfect
-        agreement, fifty-fifty halves. Now turn the dial:
+        Claims are cheap, so build a tester. Ask <em>both halves</em> of every pair the same question. Then rotate the question away from plain H-or-T — the same trick that once separated the fair coin from the mystery coin, now used on pairs. At δ = 0° the two factories look identical: perfect agreement, and each half at fifty-fifty. Now turn the dial:
       </p>
       <Slider value={delta} min={0} max={180} step={1} onChange={turn}
         label="δ — rotate the question asked to both halves (0° = plain H-or-T)"
@@ -2189,102 +1851,33 @@ function StepBellA() {
         <Btn onClick={ask}>ask 200 pairs the δ-question</Btn>
       </div>
       <p>
-        The marginal bars stay pinned at 50% forever — each half, alone, is the mystery
-        coin at <em>every</em> angle, for both factories. But the agreement bars split:
-        the glued coins' accord decays to a plain coin flip at δ&nbsp;=&nbsp;90°,
-        because each welded coin faces the rotated question on its own, while the Bell
-        pair <em>never blinks</em> — it answers every joint question with certainty.
-        That is the signature of a rim point upstairs: <strong>jointly certain, locally
-        maximally ignorant</strong>. And it answers the opening question: the summit's
-        uncertainty <em>can</em> be traded away — not into any internal dial, but into
-        agreement with a partner. And check the promised ledger: the marginal bars
-        stayed pinned throughout — the coin is as uncertain as ever, only its
-        uncertainty is no longer booked as ignorance about a fact.
+        The marginal bars never move from 50%. Each half, on its own, behaves like the mystery coin — at <em>every</em> angle, for <em>both</em> factories. But the agreement bars separate. The glued coins' agreement drops to a plain coin flip at δ = 90°, because each welded coin must answer the rotated question by itself. The Bell pair never fails: it answers every joint question with certainty. That is the mark of a rim point on the pair's floor: <strong>certain as a pair, maximally uncertain in each half</strong>. And it answers this step's opening question: yes, the summit's uncertainty <em>can</em> be traded away — not into any internal dial, but into agreement with a partner. Also check the promised bookkeeping: the marginal bars stayed at 50% the whole time. The coin is as uncertain as ever. Only the record has changed: this uncertainty is no longer ignorance about a hidden fact.
       </p>
       <p>
-        Now step back and look at the arena where this contest was fought. Every state
-        in it — HH, TT, the glued shipment, the Bell pair — lives in the span of just
-        two pair-outcomes, HH and TT: a two-dimensional corner of the pair's
-        four-dimensional world. Call it the <strong>agreement corner</strong>. And a
-        two-dimensional state space is not new territory: by this tutorial's own
-        construction, it is a <strong>Bernoulli disk</strong>. You have seen the next
-        picture before — only the labels have changed:
+        Now step back and look at the arena where this contest took place. Every state in it — HH, TT, the glued mixture, the Bell pair — lives in the span of only two pair-outcomes, HH and TT. That span is a two-dimensional corner of the pair's four-dimensional world. Call it the <strong>agreement corner</strong>. A two-dimensional state space is familiar territory: by this tutorial's own construction, it is a <strong>Bernoulli disk</strong>. So the next picture is one you have seen before. Only the labels are new:
       </p>
       <CornerDisk delta={delta} />
       <p>
-        The red diameter is live: it is the tester's dial, drawn into the disk. Drag
-        the δ-slider above and watch the question tilt. At δ = 0° it lies along the
-        poles — the plain H-or-T reading, where the two factories answer as twins. At
-        δ = 90° it stands fully upright: the Φ-versus-Φ⁻ diameter, where they
-        separate completely. The small hollow marker is Φ's shadow on the current
-        question; its distance from the center — which is N's shadow, at every angle —
-        grows as sin δ: zero while the needle lies flat, maximal when it stands, in
-        step with the agreement bars above.
+        The red diameter is live: it shows the tester's question inside the disk. Drag the δ-slider above and watch it tilt. At δ = 0° it lies along the poles: the plain H-or-T question, where the two factories give identical answers. At δ = 90° it stands fully upright: the Φ-versus-Φ⁻ diameter, where the two factories differ completely. The small hollow marker is the shadow of Φ on the current question. Its distance from the center — which is the shadow of N, at every angle — grows as sin δ: zero when the needle is flat, largest when it stands upright, matching the agreement bars above.
       </p>
       <p>
-        The glued shipment N = ½(HH) + ½(TT) sits at the exact center: the
-        corner's <em>mystery coin</em> — a stuck fact, unknown which. The Bell pair
-        Φ = (HH + TT)/√2 sits at the top of the rim: the corner's <em>fair
-        coin</em> — pure amplitudes, no fact at all. Even the supporting cast returns:
-        the anti-fair coin Φ⁻ waits at the bottom of the rim, and the two remaining
-        Bell states are the fair coins of the <em>disagreement</em> corner,
-        span{"{"}HT, TH{"}"} — the four famous Bell states are nothing but the fair
-        coins of the two corners. (Guard-rail: each corner is a two-dimensional{" "}
-        <em>slice</em> of the pair's world — a cross-section, not the whole.) So ask
-        the distance bonus's question, one level up: how far apart are the glued pair
-        and the Bell pair? Each branch of N overlaps Φ with |1/√2|² = ½, so N
-        passes Φ's test with ½·½ + ½·½ = ½ — and the cashing-in bonus
-        converts pass-probability to distance:
+        Read the picture. The glued mixture N = ½(HH) + ½(TT) sits at the exact center: it is the corner's <em>mystery coin</em> — a fixed fact, unknown which. The Bell pair Φ = (HH + TT)/√2 sits at the top of the rim: it is the corner's <em>fair coin</em> — pure amplitudes, no hidden fact at all. The rest of the cast returns too. The anti-fair coin Φ⁻ waits at the bottom of the rim. The two remaining Bell states are the fair coins of the <em>disagreement</em> corner, span{"{"}HT, TH{"}"}. So the four famous Bell states are simply the fair coins of the two corners. (One caution: each corner is a two-dimensional <em>slice</em> of the pair's world — a cross-section, not the whole space.) Now ask the distance bonus's question, one floor up: how far apart are the glued pair and the Bell pair? Each branch of N overlaps Φ with probability |1/√2|² = ½, so N passes the "are you Φ?" test with ½·½ + ½·½ = ½. The overlap bonus turns a pass-probability into a distance:
       </p>
       <Formula>
-        distance(N, Φ) = arccos √½ = <strong>π/4</strong> — the
-        mystery ↔ fair distance, one level up
+        distance(N, Φ) = arccos √½ = <strong>π/4</strong> — the mystery ↔ fair distance, one floor up
       </Formula>
       <p>
-        The ruler, applied upstairs, returns its own old number — because this{" "}
-        <em>is</em> the old configuration, center to rim-top, in an embedded copy of
-        the same geometry. What, then, is genuinely new up here? Not the geometry: the{" "}
-        <strong>handle on the dial</strong>. In the original disk, whoever held the
-        coin could rotate the question, and the rotation unmasked the mystery coin.
-        Try that in the corner while holding <em>only the left coin</em>. For a corner
-        state a·(HH) + d·(TT), marginalize — add the squares across the covered
-        coin — then rotate to any δ you like:
+        The same ruler, used one floor up, returns its own old number. That is no accident: this <em>is</em> the old configuration — center to rim-top — inside an embedded copy of the same geometry. So what is genuinely new on this floor? Not the geometry. What is new is <strong>who can turn the dial</strong>. In the original disk, whoever held the coin could rotate the question, and that rotation exposed the mystery coin. Try the same thing in the corner while holding <em>only the left coin</em>. Take a corner state a·(HH) + d·(TT). Marginalize — add the squares across the covered coin — and then rotate to any δ you like:
       </p>
       <Formula>
         P(left says ⊕) = a²(½ + ½cos δ) + d²(½ − ½cos δ) =
         ½ + ½ cos δ · (a² − d²)
       </Formula>
       <p>
-        Read it like an instrument spec. Whatever δ you turn to, the answer depends
-        only on a² − d² — the state's position along the polar diameter, the{" "}
-        <em>lengths</em>. The cross-product a·d, which carries the corner's{" "}
-        <em>orientation</em> — the very thing separating Φ (a·d = +½) from N (no
-        cross-term at all) — never enters: marginalization added squares, and the
-        cross-term lived between them. So the entire one-sided toolkit — every angle,
-        either coin, fresh pairs forever — collapses into one instrument that reads a
-        single diameter's lengths and is blind to orientation, and step 9 has a name
-        for that instrument: <strong>the plain flip</strong>. (It even explains the
-        pinned bars above: both factories have a² = d² = ½, so every marginal
-        sits at 50% at every δ.) The corner is a true disk with a true dial of
-        questions — but its rotated diameters answer only to <em>joint</em>{" "}
-        measurements, both coins in one apparatus. That is what the factory tester
-        secretly was: set δ = 90° and its agreement reads (1 + 2ad)/2 — pure
-        orientation: 1 for Φ, ½ for N, 0 for Φ⁻. A machine for turning, with two
-        hands, the dial no single hand can reach.
+        Read this formula as a description of an instrument. Whatever δ you choose, the answer depends only on a² − d²: the state's position along the polar diameter — the <em>lengths</em>. The cross-product a·d never appears. But a·d carries the corner's <em>orientation</em>, and orientation is exactly what separates Φ (a·d = +½) from N (no cross-term at all). It cannot appear, because marginalization adds squares, and the cross-term lives between the squares. So the complete one-sided toolkit — every angle, either coin, as many fresh pairs as you like — reduces to one single instrument. That instrument reads the lengths along one diameter and is blind to orientation. Step 9 gave this instrument a name: <strong>the plain flip</strong>. (This also explains the pinned bars above: both factories have a² = d² = ½, so every marginal sits at 50% at every δ.) The corner is a true disk with a true dial of questions — but its rotated diameters respond only to <em>joint</em> measurements, with both coins in one apparatus. That is what the factory tester really was. Set δ = 90°, and its agreement reads (1 + 2ad)/2 — pure orientation: 1 for Φ, ½ for N, 0 for Φ⁻. It is a machine that turns, with two hands, the dial that no single hand can reach.
       </p>
       <Notice>
-        The corner disk hands the finale its cleanest sentence:{" "}
-        <strong>the Bell pair is the fair coin of a disk whose unmasking question is
-        joint.</strong> Hold one coin and you own only the corner's blind flip —
-        lengths, never orientation — so each half shows you a mystery coin, forever.
-        Bring both coins and the dial turns, and the fair coin answers with certainty.
-        "Jointly certain, locally maximally ignorant" is no longer an observation read
-        off the tester — it is derived, in one line of marginalization. That is
-        entanglement, and it is what "uncertainty inside the pair" buys that no shared
-        notebook can. Still, one Bell pair is a single success, built for the summit
-        alone. The claim on the table is bigger: <em>every</em> interior state — any
-        t, any tilt — can trade its ignorance for a partner. The next step builds
-        that partner, in three moves you already own.
+        The corner disk gives this finale its clearest sentence: <strong>the Bell pair is the fair coin of a disk whose revealing question is joint.</strong> Hold one coin, and the only instrument you own is the corner's plain flip — lengths, never orientation — so each half looks like a mystery coin, forever. Bring both coins, and the dial turns: the fair coin then answers with certainty. "Certain as a pair, maximally uncertain in each half" is no longer just an observation from the tester. It follows from one line of marginalization. That is entanglement, and it is what "uncertainty inside the pair" gives you that no shared notebook can. Still, one Bell pair is a single success, built for the summit only. The full claim is larger: <em>every</em> interior state — any t, any tilt — can trade its ignorance for a partner. The next step builds that partner, using three moves you already know.
       </Notice>
     </div>
   );
@@ -2337,21 +1930,16 @@ function StepBellB() {
   return (
     <div>
       <p>
-        Now build the partner — for <em>any</em> state, not just the summit — and
-        watch the bowl pay off its old guard-rail. The hemisphere step insisted the
-        lift height was "an aid for measuring, not a dial." This step reveals what it
-        was all along. Take a state at distance t from the center. The task:{" "}
-        <strong>purify</strong> it — construct, by hand, the pure pair whose left half
-        is exactly that state. Three moves, and you own all of them already:
+        Now build the partner — for <em>any</em> state, not only the summit. Along the way, the bowl will keep an old promise. The hemisphere step said that the lift height was "an aid for measuring, not a dial." This step shows what it really is. Take a state at distance t from the center. The task: <strong>purify</strong> it — construct, by hand, the pure pair whose left half is exactly that state. Three moves, and you already know all of them:
       </p>
       <div style={{ padding: "10px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, marginBottom: 12 }}>
         <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 6 }}>
           BUILD THE PARTNER — THREE MOVES
         </div>
         {[
-          ["1", <>Read the state spectrally (the matrix bonus): with weight λ₊&nbsp;=&nbsp;½&nbsp;+&nbsp;t it is the eigen-coin e₊; with weight λ₋&nbsp;=&nbsp;½&nbsp;−&nbsp;t it is e₋. Prepared-and-forgotten.</>],
-          ["2", <>Make the forgetting physical — hire the previous step's glued factory: on branch e₊ ship the pair e₊e₊, on branch e₋ ship e₋e₋. The pair state is the <em>mixture</em> λ₊(e₊e₊)&nbsp;+&nbsp;λ₋(e₋e₋). Covering the right coin already returns the original state — but upstairs this is still an interior point, still a notebook someone could peek at.</>],
-          ["3", <>Lift, one level up: replace the chord by the arc. Superpose the same two shipments, with amplitudes √λ₊ and √λ₋ so that squaring restores the weights: <strong>Ψ&nbsp;=&nbsp;√λ₊·(e₊e₊)&nbsp;+&nbsp;√λ₋·(e₋e₋)</strong>. Rank one. Rim point. No notebook.</>],
+          ["1", <>Read the state spectrally (the matrix bonus): with weight λ₊&nbsp;=&nbsp;½&nbsp;+&nbsp;t it is the eigen-coin e₊; with weight λ₋&nbsp;=&nbsp;½&nbsp;−&nbsp;t it is e₋. This is a state that was prepared and then forgotten.</>],
+          ["2", <>Make the forgetting physical — hire the previous step's glued factory: on branch e₊ ship the pair e₊e₊, on branch e₋ ship e₋e₋. The pair state is the <em>mixture</em> λ₊(e₊e₊)&nbsp;+&nbsp;λ₋(e₋e₋). Covering the right coin already returns the original state — but one floor up, this is still an interior point — still a notebook that someone could peek at.</>],
+          ["3", <>Lift, one floor up: replace the chord by the arc. Superpose the same two shipments, with amplitudes √λ₊ and √λ₋ so that squaring restores the weights: <strong>Ψ&nbsp;=&nbsp;√λ₊·(e₊e₊)&nbsp;+&nbsp;√λ₋·(e₋e₋)</strong>. Rank one. Rim point. No notebook.</>],
         ].map(([n, body]) => (
           <div key={n} style={{ display: "flex", gap: 10, margin: "7px 0" }}>
             <span style={{ fontFamily: mono, fontSize: 13, fontWeight: 600, color: C.gold, flexShrink: 0 }}>{n}</span>
@@ -2360,16 +1948,7 @@ function StepBellB() {
         ))}
       </div>
       <p>
-        But wait — didn't move&nbsp;3 change everything? Interrogate both candidates and
-        see: move&nbsp;2's <strong>notebook</strong>, N&nbsp;=&nbsp;λ₊(e₊e₊)&nbsp;+&nbsp;λ₋(e₋e₋),
-        against move&nbsp;3's <strong>arc</strong> Ψ. Each answers by its own arithmetic.
-        The notebook answers <em>per branch</em>, then averages with the weights. The
-        arc squares amplitudes — and for a question aimed at <em>one half only</em>, it
-        must <strong>add the squares across the ignored half, never the amplitudes
-        themselves</strong>: adding amplitudes first is exactly what would let the
-        arc's orientation show, and that is a privilege of joint questions only
-        (step&nbsp;9's blindness written as arithmetic — the very rule part I turned
-        into an instrument spec). Now ask away:
+        But wait — did move 3 not change everything? Question both candidates and compare: move 2's <strong>notebook</strong>, N = λ₊(e₊e₊) + λ₋(e₋e₋), against move 3's <strong>arc</strong> Ψ. Each one answers with its own arithmetic. The notebook answers <em>per branch</em>, then averages the answers with the weights. The arc squares amplitudes — and for a question aimed at <em>one half only</em>, it must <strong>add the squares across the ignored half, never the amplitudes themselves</strong>. Adding amplitudes first would reveal the arc's orientation, and only a joint question is allowed to do that. This is step 9's blindness written as arithmetic — the same rule that part I turned into a formula. Now start asking:
       </p>
       <div style={{ padding: "10px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, marginBottom: 12 }}>
         <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 8 }}>
@@ -2392,22 +1971,7 @@ function StepBellB() {
         ))}
       </div>
       <p>
-        Three questions in, the interrogation looks hopeless: identical numbers,
-        identical aftermaths — when the left half answers e₊, only the e₊-branch
-        survives, so the untouched right half now confirms with certainty, in both
-        worlds. (Identical numbers, but not identical <em>kinds</em>: for the notebook
-        that update is the Bayesian learning of step&nbsp;5 — there was a fact, and the
-        answer taught it to you; for the arc there was no fact to learn, and it jumps
-        anyway — the gap step&nbsp;9 called the true beginning of quantum.) This is
-        <em> why</em> covering the right coin returns the original state: every
-        one-sided question lives in the matching rows. The candidates split only where
-        a question touches both halves at once — and look at the surplus in row four:
-        (C/2)sin²δ, the <strong>concurrence</strong>, the very number part I's
-        agreement bars were measuring. N and Ψ are part I's corner picture
-        redrawn in the <em>eigen-corner</em>, span{"{"}e₊e₊, e₋e₋{"}"}, and alive
-        at every t: N its mystery coin, Ψ its fair coin — same answers to the
-        straight questions, unmasked by the rotated ones. Slide t and watch the
-        recipe run, in amplitudes and then in the corner itself:
+        After three questions, the comparison looks hopeless: the numbers are identical, and even the aftermath is identical. When the left half answers "e₊", only the e₊-branch survives, so the untouched right half will now confirm "e₊" with certainty — in both worlds. (Identical numbers, but not identical in <em>kind</em>. For the notebook, this update is the Bayesian learning of step 5: there was a fact, and the answer taught it to you. For the arc, there was no fact to learn — and the state jumps anyway. Step 9 called exactly this gap the true beginning of quantum.) This is <em>why</em> covering the right coin returns the original state: every one-sided question lives in the matching rows. The two candidates differ only where a question touches both halves at once. And look at the extra term in row four: (C/2)sin²δ — the <strong>concurrence</strong>, the same number that part I's agreement bars were measuring. N and Ψ are part I's corner picture, drawn again in the <em>eigen-corner</em> span{"{"}e₊e₊, e₋e₋{"}"}, and valid at every t: N is its mystery coin, Ψ is its fair coin. Same answers to the straight questions; different answers to the rotated ones. Slide t and watch the recipe run — first in amplitudes, then in the corner itself:
       </p>
       <Slider value={tp} min={0} max={0.5} step={0.01} onChange={setTp}
         label="t — how mixed the left half is (0 = mystery coin, ½ = rim)"
@@ -2418,47 +1982,21 @@ function StepBellB() {
         cover the right coin → left half says e₊: {(lp * 100).toFixed(0)}% · e₋: {(lm * 100).toFixed(0)}% — the state at distance t = {tp.toFixed(2)}, recovered
       </div>
       <p>
-        And here is the same recipe drawn in its own arena — the eigen-corner's
-        disk. The notebook N sits on the floor at position λ₊, height zero. Directly
-        above it, on the rim, sits Ψ. The vertical climb between them is a move you
-        have made before: it is <strong>the lift of step 6</strong>, performed one
-        level up — chord to arc, weights to square roots — and the height climbed is
-        h = √(λ₊λ₋) = √(det ρ): the lift height of the very state you set
-        out to purify.
+        Here is the same recipe, drawn in its own arena: the eigen-corner's disk. The notebook N sits on the floor at position λ₊, at height zero. Directly above it, on the rim, sits Ψ. The vertical climb between them is a move you have made before: it is <strong>the lift of step 6</strong>, performed one floor up — chord to arc, weights to square roots. The height of the climb is h = √(λ₊λ₋) = √(det ρ): the lift height of the very state you set out to purify.
       </p>
       <EigenCornerDisk lp={lp} lm={lm} />
       <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, margin: "0 0 12px 4px" }}>
-        corner distance N ↔ Ψ = arccos √(λ₊² + λ₋²) = {Math.acos(Math.sqrt(lp * lp + lm * lm)).toFixed(3)}{tp < 1e-9 ? " = π/4" : ""} — row five of the interrogation, cashed by the ruler
+        corner distance N ↔ Ψ = arccos √(λ₊² + λ₋²) = {Math.acos(Math.sqrt(lp * lp + lm * lm)).toFixed(3)}{tp < 1e-9 ? " = π/4" : ""} — row five of the interrogation, turned into a distance
       </div>
       <Formula>
         concurrence&nbsp;C = 2√(λ₊λ₋) = 2√(det&nbsp;ρ) ={" "}
         <strong>2 × lift height</strong> = {conc.toFixed(2)}
       </Formula>
       <p>
-        The <strong>concurrence</strong> — the standard measure of how entangled two
-        qubits are — comes out as exactly <em>twice the lift height</em>. The vertical
-        coordinate you have been drawing since the bowl was built <em>is</em> the
-        entanglement with the purifying partner. Slide t to the rim: C&nbsp;=&nbsp;0,
-        the second amplitude empties, no partner was ever needed — pure states purify
-        themselves. Slide to the center: C&nbsp;=&nbsp;1 and the amplitudes become
-        (1/√2,&nbsp;0,&nbsp;0,&nbsp;1/√2). The mystery coin, purified honestly, <em>is</em>{" "}
-        the Bell pair — the tutorial's humblest object was the most famous state in
-        quantum information all along, seen from one side.
+        The <strong>concurrence</strong> — the standard measure of how entangled two qubits are — turns out to be exactly <em>twice the lift height</em>. So the vertical coordinate you have been drawing since the bowl was built <em>is</em> the entanglement with the purifying partner. Slide t to the rim: C = 0, the second amplitude vanishes, and no partner was ever needed — pure states purify themselves. Slide t to the center: C = 1, and the amplitudes become (1/√2, 0, 0, 1/√2). The mystery coin, honestly purified, <em>is</em> the Bell pair. The most modest object of this tutorial was the most famous state in quantum information all along — seen from one side.
       </p>
       <Notice>
-        The ladder, seen whole: uncertainty <strong>about</strong> the coin became
-        uncertainty <strong>inside</strong> a state (the lift); uncertainty{" "}
-        <strong>about</strong> the qubit — the mixed center — became uncertainty{" "}
-        <strong>inside</strong> a pair (the purification). Each rung is the same move —
-        append a square root — and each level's "about" is the next level's "inside".
-        Classically the buck never stops: every mixture blames a fact upstairs that
-        someone could peek at. Quantum mechanics lets it stop — at a pure pair, jointly
-        certain, locally silent. That stopping point is <strong>entanglement</strong>.
-        Hence these twin steps' shared name: Bonus&nbsp;⊗&nbsp;Bonus is not two bonuses side by side
-        but their tensor product — which, as you now know, holds strictly more than the
-        pair of its halves. One loose thread, deliberately left: a still cleverer
-        factory could cheat part I's factory tester — by shipping a pre-agreed answer sheet
-        covering <em>every</em> angle δ. The final step deals with it.
+        Now see the whole ladder at once. Uncertainty <strong>about</strong> the coin became uncertainty <strong>inside</strong> a state — that was the lift. Uncertainty <strong>about</strong> the qubit — the mixed center — became uncertainty <strong>inside</strong> a pair — that was the purification. Every rung uses the same move: take a square root. And each floor's "about" becomes the next floor's "inside". In classical physics, this chain never ends: every mixture points to a fact one floor up that someone could peek at. Quantum mechanics lets the chain stop — at a pure pair, certain as a whole, silent in each half. That stopping point is <strong>entanglement</strong>. It also explains the shared name of these twin steps: Bonus ⊗ Bonus is not two bonuses placed side by side, but their tensor product — which, as you now know, holds strictly more than its two halves. One loose thread remains, left on purpose: an even cleverer factory could still beat part I's tester, by shipping a pre-agreed answer sheet that covers <em>every</em> angle δ. The final step deals with it.
       </Notice>
     </div>
   );
@@ -2535,31 +2073,10 @@ function StepCHSH() {
   return (
     <div>
       <p>
-        The Bell factory won the factory round, but one objection survives — and it
-        deserves the tutorial's respect, because it is <em>correct</em>. The glued
-        coins lost only because they carried a single shared fact and had to improvise
-        on every other question. So build the <strong>cleverest classical factory</strong>:
-        before shipping, it writes each pair a complete <strong>answer sheet</strong> — one
-        pre-agreed answer for every possible question δ, identical in both halves — and
-        randomizes the sheets pair to pair so the marginals stay at 50%. Run part I's
-        factory tester against it: both halves read the same line of the same
-        sheet, so they agree at 100% for <em>every</em> δ. The tester is beaten. In
-        part I's picture: the sheets counterfeit Φ's position on every setting of
-        the dial — a perfect forgery of the corner's fair coin, sold from a notebook.
-        Sameness of answers, it turns out, is cheap — any shared notebook produces it.
-        If entanglement is more than a notebook, a sharper tester must exist.
+        The Bell factory won the factory round, but one objection survives — and it deserves respect, because it is <em>correct</em>. The glued coins lost only because they carried a single shared fact and had to improvise on every other question. So build the <strong>cleverest classical factory</strong>. Before shipping, it writes each pair a complete <strong>answer sheet</strong>: one pre-agreed answer for every possible question δ, identical in both halves. It also randomizes the sheets from pair to pair, so the marginals stay at 50%. Now run part I's factory tester against it. Both halves read the same line of the same sheet, so they agree 100% of the time, at <em>every</em> δ. The tester is beaten. In part I's picture: the sheets fake the position of Φ at every setting of the dial — a perfect imitation of the corner's fair coin, produced by a notebook. Agreement, it turns out, is cheap: any shared notebook can produce it. If entanglement is more than a notebook, a sharper tester must exist.
       </p>
       <p>
-        Here it is: abandon the shared dial — ask the two halves{" "}
-        <strong>different questions</strong>. Each round,
-        a referee asks the left half a&nbsp;=&nbsp;0° or a′&nbsp;=&nbsp;90°, and the
-        right half b or b′&nbsp;=&nbsp;b&nbsp;−&nbsp;90°, choosing at random; the halves
-        cannot communicate. Scoring: in three of the four combinations —
-        (a,b), (a,b′), (a′,b) — the pair wins by <em>agreeing</em>; in the fourth,
-        (a′,b′), it wins by <em>disagreeing</em>. (This is the <strong>CHSH game</strong>,
-        Clauser–Horne–Shimony–Holt 1969, sharpening the inequality John Bell found in
-        1964.) First, try to win it with a notebook. Against four fixed questions a
-        sheet is just four committed answers — design yours:
+        Here is the sharper tester: stop asking both halves the same question — ask them <strong>different questions</strong>. In each round, a referee asks the left half either a = 0° or a′ = 90°, and asks the right half either b or b′ = b − 90°. The choices are random, and the two halves cannot communicate. Scoring: in three of the four combinations — (a,b), (a,b′), (a′,b) — the pair wins if the answers <em>agree</em>. In the fourth combination, (a′,b′), the pair wins if the answers <em>disagree</em>. (This is the <strong>CHSH game</strong> — Clauser, Horne, Shimony, Holt, 1969 — a sharper form of the inequality that John Bell found in 1964.) First, try to win it with a notebook. Against four fixed questions, a sheet is just four committed answers. Design yours:
       </p>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
         {chip(Aa, "left: A(a)", 0)}
@@ -2573,15 +2090,7 @@ function StepCHSH() {
         <strong>{fmt(Ssheet, 0)}</strong>
       </Formula>
       <p>
-        Toggle through all sixteen sheets: S lands on <strong>+2 or −2, every single
-        time</strong>. The algebra is unforgiving — S&nbsp;=&nbsp;A(a)[B(b)+B(b′)]&nbsp;+&nbsp;A(a′)[B(b)−B(b′)],
-        and one bracket is always zero while the other is ±2. Shipping different sheets
-        on different rounds only <em>averages</em> the scores, so no notebook factory,
-        however many sheets it prints, can push S past 2 — that is, win more than{" "}
-        <strong>75%</strong> of rounds. This wall is <strong>Bell's inequality</strong>. The
-        Bell factory carries no notebook: it answers by the cosine ruler this tutorial
-        has trusted since the flip-counting bonus — agreement cos²(Δδ/2), correlation
-        E&nbsp;=&nbsp;cos(δ₁−δ₂). Aim the right-hand questions and play:
+        Toggle through all sixteen possible sheets: S lands on <strong>+2 or −2, every single time</strong>. The algebra leaves no way out. Write S = A(a)[B(b)+B(b′)] + A(a′)[B(b)−B(b′)]: one bracket is always zero, and the other is always ±2. Shipping different sheets in different rounds only <em>averages</em> these scores. So no factory that ships notebooks — no matter how many, no matter how clever — can push S above 2. In the game, that means winning at most <strong>75%</strong> of the rounds. This wall is <strong>Bell's inequality</strong>. The Bell factory carries no notebook. It answers with the cosine rule that this tutorial has trusted since the flip-counting bonus: agreement cos²(Δδ/2), correlation E = cos(δ₁ − δ₂). Aim the right-hand questions and play:
       </p>
       <Slider value={tilt} min={0} max={90} step={1} onChange={(v) => { setTilt(v); setPlayed(null); }}
         label="b — tilt of the right-hand questions (b and b−90°)"
@@ -2596,26 +2105,10 @@ function StepCHSH() {
         <Btn onClick={play}>play 400 rounds</Btn>
       </div>
       <p>
-        At b&nbsp;=&nbsp;45° the cosine delivers S&nbsp;=&nbsp;2√2&nbsp;≈&nbsp;2.83 and
-        a win rate near 85.4% — <em>through</em> the wall that no answer sheet can
-        cross. When Alain Aspect, John Clauser and Anton Zeilinger ran this test for
-        real — entangled photons, separated detectors, question settings chosen too late
-        for any signal to catch up — the cosine won in the laboratory too, and the work
-        earned the <strong>2022 Nobel Prize in Physics</strong>. The verdict is not that
-        the sheet was hidden very well. The verdict is that <strong>there is no
-        sheet</strong>.
+        At b = 45°, the cosine gives S = 2√2 ≈ 2.83 and a win rate near 85.4% — <em>through</em> the wall that no answer sheet can cross. Alain Aspect, John Clauser and Anton Zeilinger ran this test in real laboratories: entangled photons, detectors far apart, and question settings chosen so late that no signal could travel between them in time. The cosine won there too. For this work they received the <strong>2022 Nobel Prize in Physics</strong>. The conclusion is not that the answer sheet was hidden very well. The conclusion is that <strong>there is no sheet</strong>.
       </p>
       <Notice>
-        The tutorial's last objection, answered by its last tester. Classically,
-        correlation is <em>memory</em>: agreement must be written down somewhere — a
-        face, a fact, a sheet — before the questions arrive, and S&nbsp;≤&nbsp;2 is the
-        exact price of that bookkeeping. 2√2&nbsp;&gt;&nbsp;2 is the measured fact that
-        the world declines to pay it. The Bell pair's correlations are not stored in
-        the left half, nor the right, nor in any upstairs ledger — they live only in
-        the pair, which is what "uncertainty <em>inside</em> the pair" meant all along.
-        And notice which instrument crossed the wall: the same cosine that counted
-        flips, measured arcs on the bowl, and cashed distances into probabilities. One
-        ruler, first step to last.
+        The tutorial's last objection, answered by its last tester. In classical physics, correlation is <em>memory</em>: agreement must be written down somewhere — in a face, a fact, or a sheet — before the questions arrive. S ≤ 2 is the exact price of that requirement. And 2√2 > 2 is the measured fact that nature does not pay it. The Bell pair's correlations are not stored in the left half, not in the right half, and not in any record one floor up. They live only in the pair — and that is what "uncertainty <em>inside</em> the pair" has meant all along. Notice also which instrument crossed the wall: the same cosine that counted flips, measured arcs on the bowl, and converted distances into probabilities. One ruler, from the first step to the last.
       </Notice>
     </div>
   );
