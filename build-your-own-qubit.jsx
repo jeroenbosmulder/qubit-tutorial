@@ -2049,7 +2049,52 @@ function PairAmpBars({ amps, labels, title }) {
   );
 }
 
-function StepBell() {
+function CornerDisk({ delta = 0 }) {
+  const W = 360, S = 240, r = S / 2, H = 2 * r + 84, cx = W / 2, cy = r + 46;
+  const dRad = (delta * Math.PI) / 180;
+  const ex = r * Math.cos(dRad), ey = r * Math.sin(dRad);
+  const sx = cx + r * Math.sin(dRad) * Math.cos(dRad); // Φ's shadow on the needle
+  const sy = cy - r * Math.sin(dRad) * Math.sin(dRad);
+  const grid = [];
+  for (let u = -0.75; u <= 0.751; u += 0.125) {
+    const bold = Math.abs((u * 2) % 1) < 1e-6;
+    grid.push(<line key={"v" + u.toFixed(3)} x1={cx + u * S} y1={0} x2={cx + u * S} y2={H} stroke={bold ? C.gridBold : C.grid} strokeWidth={bold ? 1 : 0.6} />);
+    grid.push(<line key={"h" + u.toFixed(3)} x1={0} y1={cy + u * S} x2={W} y2={cy + u * S} stroke={bold ? C.gridBold : C.grid} strokeWidth={bold ? 1 : 0.6} />);
+  }
+  return (
+    <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+      <svg width={W} height={H} style={{ background: C.paper, border: `1.5px solid ${C.gridBold}`, borderRadius: 8, maxWidth: "100%" }}>
+        {grid}
+        <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke={C.ink} strokeWidth={2} />
+        <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 0 ${cx + r} ${cy}`} fill="none" stroke={C.inkSoft} strokeWidth={1.2} strokeDasharray="5 5" />
+        <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke={C.ink} strokeWidth={1.5} />
+        <line x1={cx} y1={cy} x2={cx} y2={cy - r} stroke={C.gold} strokeWidth={1.5} strokeDasharray="4 4" />
+        <text x={cx - 8} y={cy - r / 2} fontFamily={mono} fontSize={10} fill={C.gold} textAnchor="end">lifted: π/4</text>
+        {/* the live δ-question diameter */}
+        <line x1={cx - ex} y1={cy + ey} x2={cx + ex} y2={cy - ey} stroke={C.red} strokeWidth={1.8} />
+        <text x={cx + (r + 13) * Math.cos(dRad)} y={cy - (r + 13) * Math.sin(dRad) + 4} fontFamily={mono} fontSize={11} fill={C.red} textAnchor="middle">⊕</text>
+        <text x={cx - (r + 13) * Math.cos(dRad)} y={cy + (r + 13) * Math.sin(dRad) + 4} fontFamily={mono} fontSize={11} fill={C.red} textAnchor="middle">⊖</text>
+        {/* Φ's shadow on the current question */}
+        <line x1={cx} y1={cy - r} x2={sx} y2={sy} stroke={C.gold} strokeWidth={1} strokeDasharray="2 3" />
+        <circle cx={sx} cy={sy} r={3.5} fill="none" stroke={C.gold} strokeWidth={1.5} />
+        <circle cx={cx - r} cy={cy} r={4} fill={C.ink} />
+        <text x={cx - r} y={cy + 20} fontFamily={mono} fontSize={12} fill={C.ink} textAnchor="middle">TT</text>
+        <circle cx={cx + r} cy={cy} r={4} fill={C.ink} />
+        <text x={cx + r} y={cy + 20} fontFamily={mono} fontSize={12} fill={C.ink} textAnchor="middle">HH</text>
+        <circle cx={cx} cy={cy} r={6} fill={C.teal} />
+        <text x={cx + 10} y={cy + 16} fontFamily={mono} fontSize={10.5} fill={C.teal}>N = ½(HH)+½(TT)</text>
+        <text x={cx + 10} y={cy + 29} fontFamily={mono} fontSize={10.5} fill={C.teal}>the corner's mystery coin</text>
+        <circle cx={cx} cy={cy - r} r={6} fill={C.gold} />
+        <text x={cx} y={cy - r - 26} fontFamily={mono} fontSize={10.5} fill={C.gold} textAnchor="middle">Φ = (HH+TT)/√2 — the corner's fair coin</text>
+        <circle cx={cx} cy={cy + r} r={5} fill="none" stroke={C.inkSoft} strokeWidth={1.5} />
+        <text x={cx} y={cy + r + 20} fontFamily={mono} fontSize={10.5} fill={C.inkSoft} textAnchor="middle">Φ⁻ = (HH−TT)/√2 — its anti-fair coin</text>
+        <text x={12} y={H - 10} fontFamily={mono} fontSize={10} fill={C.red}>the δ-question: {delta}°</text>
+      </svg>
+    </div>
+  );
+}
+
+function StepBellA() {
   // the tester: one question, asked to both halves of every pair
   const [delta, setDelta] = useState(0); // question angle over the disk, degrees
   const d = (delta * Math.PI) / 180;
@@ -2088,12 +2133,6 @@ function StepBell() {
       </div>
     </div>
   );
-  // the purifier
-  const [tp, setTp] = useState(0); // distance of the left half from the center
-  const lp = 0.5 + tp, lm = 0.5 - tp;
-  const hgt = Math.sqrt(Math.max(0, lp * lm)); // lift height = √(det ρ)
-  const conc = 2 * hgt;
-  const amps = [Math.sqrt(lp), 0, 0, Math.sqrt(lm)];
   return (
     <div>
       <p>
@@ -2155,18 +2194,234 @@ function StepBell() {
         agreement with a partner.
       </p>
       <p>
-        Now the gem, and the bowl pays off its old guard-rail. The hemisphere step
-        insisted the lift height was "an aid for measuring, not a dial." Here is what it
-        was all along. Take <em>any</em> state at distance t from the center and{" "}
-        <strong>purify</strong> it: build the pure pair whose left half is exactly that
-        state. The recipe is forced — put amplitudes √λ± on the two <em>agreeing</em>{" "}
-        pairs of its eigen-coins e₊, e₋ (the spectral diameter of the previous step):
+        Now step back and look at the arena where this contest was fought. Every state
+        in it — HH, TT, the glued shipment, the Bell pair — lives in the span of just
+        two pair-outcomes, HH and TT: a two-dimensional corner of the pair's
+        four-dimensional world. Call it the <strong>agreement corner</strong>. And a
+        two-dimensional state space is not new territory: by this tutorial's own
+        construction, it is a <strong>Bernoulli disk</strong>. You have seen the next
+        picture before — only the labels have changed:
+      </p>
+      <CornerDisk delta={delta} />
+      <p>
+        The red diameter is live: it is the tester's dial, drawn into the disk. Drag
+        the δ-slider above and watch the question tilt. At δ = 0° it lies along the
+        poles — the plain H-or-T reading, where the two factories answer as twins. At
+        δ = 90° it stands fully upright: the Φ-versus-Φ⁻ diameter, where they
+        separate completely. The small hollow marker is Φ's shadow on the current
+        question; its distance from the center — which is N's shadow, at every angle —
+        grows as sin δ: zero while the needle lies flat, maximal when it stands, in
+        step with the agreement bars above.
+      </p>
+      <p>
+        The glued shipment N = ½(HH) + ½(TT) sits at the exact center: the
+        corner's <em>mystery coin</em> — a stuck fact, unknown which. The Bell pair
+        Φ = (HH + TT)/√2 sits at the top of the rim: the corner's <em>fair
+        coin</em> — pure amplitudes, no fact at all. Even the supporting cast returns:
+        the anti-fair coin Φ⁻ waits at the bottom of the rim, and the two remaining
+        Bell states are the fair coins of the <em>disagreement</em> corner,
+        span{"{"}HT, TH{"}"} — the four famous Bell states are nothing but the fair
+        coins of the two corners. (Guard-rail: each corner is a two-dimensional{" "}
+        <em>slice</em> of the pair's world — a cross-section, not the whole.) So ask
+        the distance bonus's question, one level up: how far apart are the glued pair
+        and the Bell pair? Each branch of N overlaps Φ with |1/√2|² = ½, so N
+        passes Φ's test with ½·½ + ½·½ = ½ — and the cashing-in bonus
+        converts pass-probability to distance:
+      </p>
+      <Formula>
+        distance(N, Φ) = arccos √½ = <strong>π/4</strong> — the
+        mystery ↔ fair distance, one level up
+      </Formula>
+      <p>
+        The ruler, applied upstairs, returns its own old number — because this{" "}
+        <em>is</em> the old configuration, center to rim-top, in an embedded copy of
+        the same geometry. What, then, is genuinely new up here? Not the geometry: the{" "}
+        <strong>handle on the dial</strong>. In the original disk, whoever held the
+        coin could rotate the question, and the rotation unmasked the mystery coin.
+        Try that in the corner while holding <em>only the left coin</em>. For a corner
+        state a·(HH) + d·(TT), marginalize — add the squares across the covered
+        coin — then rotate to any δ you like:
+      </p>
+      <Formula>
+        P(left says ⊕) = a²(½ + ½cos δ) + d²(½ − ½cos δ) =
+        ½ + ½ cos δ · (a² − d²)
+      </Formula>
+      <p>
+        Read it like an instrument spec. Whatever δ you turn to, the answer depends
+        only on a² − d² — the state's position along the polar diameter, the{" "}
+        <em>lengths</em>. The cross-product a·d, which carries the corner's{" "}
+        <em>orientation</em> — the very thing separating Φ (a·d = +½) from N (no
+        cross-term at all) — never enters: marginalization added squares, and the
+        cross-term lived between them. So the entire one-sided toolkit — every angle,
+        either coin, fresh pairs forever — collapses into one instrument that reads a
+        single diameter's lengths and is blind to orientation, and step 9 has a name
+        for that instrument: <strong>the plain flip</strong>. (It even explains the
+        pinned bars above: both factories have a² = d² = ½, so every marginal
+        sits at 50% at every δ.) The corner is a true disk with a true dial of
+        questions — but its rotated diameters answer only to <em>joint</em>{" "}
+        measurements, both coins in one apparatus. That is what the factory tester
+        secretly was: set δ = 90° and its agreement reads (1 + 2ad)/2 — pure
+        orientation: 1 for Φ, ½ for N, 0 for Φ⁻. A machine for turning, with two
+        hands, the dial no single hand can reach.
+      </p>
+      <Notice>
+        The corner disk hands the finale its cleanest sentence:{" "}
+        <strong>the Bell pair is the fair coin of a disk whose unmasking question is
+        joint.</strong> Hold one coin and you own only the corner's blind flip —
+        lengths, never orientation — so each half shows you a mystery coin, forever.
+        Bring both coins and the dial turns, and the fair coin answers with certainty.
+        "Jointly certain, locally maximally ignorant" is no longer an observation read
+        off the tester — it is derived, in one line of marginalization. That is
+        entanglement, and it is what "uncertainty inside the pair" buys that no shared
+        notebook can. Still, one Bell pair is a single success, built for the summit
+        alone. The claim on the table is bigger: <em>every</em> interior state — any
+        t, any tilt — can trade its ignorance for a partner. The next step builds
+        that partner, in three moves you already own.
+      </Notice>
+    </div>
+  );
+}
+
+function EigenCornerDisk({ lp, lm }) {
+  const W = 360, S = 240, r = S / 2, H = r + 90, cx = W / 2, cy = H - 44;
+  const h = Math.sqrt(Math.max(0, lp * lm));
+  const px = cx + (lp - 0.5) * S;
+  const py = cy - h * S;
+  const labelX = Math.min(Math.max(px, 92), W - 92);
+  const flip = lp > 0.72;
+  const grid = [];
+  for (let u = -0.75; u <= 0.751; u += 0.125) {
+    const bold = Math.abs((u * 2) % 1) < 1e-6;
+    grid.push(<line key={"v" + u.toFixed(3)} x1={cx + u * S} y1={0} x2={cx + u * S} y2={H} stroke={bold ? C.gridBold : C.grid} strokeWidth={bold ? 1 : 0.6} />);
+    grid.push(<line key={"h" + u.toFixed(3)} x1={0} y1={cy + u * S} x2={W} y2={cy + u * S} stroke={bold ? C.gridBold : C.grid} strokeWidth={bold ? 1 : 0.6} />);
+  }
+  return (
+    <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
+      <svg width={W} height={H} style={{ background: C.paper, border: `1.5px solid ${C.gridBold}`, borderRadius: 8, maxWidth: "100%" }}>
+        {grid}
+        <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke={C.ink} strokeWidth={2} />
+        <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke={C.ink} strokeWidth={1.5} />
+        <circle cx={cx - r} cy={cy} r={4} fill={C.ink} />
+        <text x={cx - r} y={cy + 20} fontFamily={mono} fontSize={12} fill={C.ink} textAnchor="middle">e₋e₋</text>
+        <circle cx={cx + r} cy={cy} r={4} fill={C.ink} />
+        <text x={cx + r} y={cy + 20} fontFamily={mono} fontSize={12} fill={C.ink} textAnchor="middle">e₊e₊</text>
+        <line x1={px} y1={cy} x2={px} y2={py} stroke={C.gold} strokeWidth={1.5} strokeDasharray="4 4" />
+        {h > 0.03 && (
+          <text x={px + (flip ? -10 : 10)} y={(cy + py) / 2 + 4} fontFamily={mono} fontSize={10} fill={C.gold} textAnchor={flip ? "end" : "start"}>lift h = {h.toFixed(2)}</text>
+        )}
+        <circle cx={px} cy={cy} r={6} fill={C.teal} />
+        <text x={labelX} y={cy + 34} fontFamily={mono} fontSize={10.5} fill={C.teal} textAnchor="middle">N — on the floor at λ₊</text>
+        <circle cx={px} cy={py} r={6} fill={C.gold} />
+        <text x={px + (flip ? -10 : 10)} y={py - 8} fontFamily={mono} fontSize={10.5} fill={C.gold} textAnchor={flip ? "end" : "start"}>Ψ — on the rim</text>
+        <text x={12} y={16} fontFamily={mono} fontSize={10} fill={C.inkSoft}>the eigen-corner: span{"{"}e₊e₊, e₋e₋{"}"}</text>
+      </svg>
+    </div>
+  );
+}
+
+function StepBellB() {
+  // the purifier
+  const [tp, setTp] = useState(0); // distance of the left half from the center
+  const lp = 0.5 + tp, lm = 0.5 - tp;
+  const hgt = Math.sqrt(Math.max(0, lp * lm)); // lift height = √(det ρ)
+  const conc = 2 * hgt;
+  const amps = [Math.sqrt(lp), 0, 0, Math.sqrt(lm)];
+  return (
+    <div>
+      <p>
+        Now build the partner — for <em>any</em> state, not just the summit — and
+        watch the bowl pay off its old guard-rail. The hemisphere step insisted the
+        lift height was "an aid for measuring, not a dial." This step reveals what it
+        was all along. Take a state at distance t from the center. The task:{" "}
+        <strong>purify</strong> it — construct, by hand, the pure pair whose left half
+        is exactly that state. Three moves, and you own all of them already:
+      </p>
+      <div style={{ padding: "10px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, marginBottom: 12 }}>
+        <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 6 }}>
+          BUILD THE PARTNER — THREE MOVES
+        </div>
+        {[
+          ["1", <>Read the state spectrally (the matrix bonus): with weight λ₊&nbsp;=&nbsp;½&nbsp;+&nbsp;t it is the eigen-coin e₊; with weight λ₋&nbsp;=&nbsp;½&nbsp;−&nbsp;t it is e₋. Prepared-and-forgotten.</>],
+          ["2", <>Make the forgetting physical — hire the previous step's glued factory: on branch e₊ ship the pair e₊e₊, on branch e₋ ship e₋e₋. The pair state is the <em>mixture</em> λ₊(e₊e₊)&nbsp;+&nbsp;λ₋(e₋e₋). Covering the right coin already returns the original state — but upstairs this is still an interior point, still a notebook someone could peek at.</>],
+          ["3", <>Lift, one level up: replace the chord by the arc. Superpose the same two shipments, with amplitudes √λ₊ and √λ₋ so that squaring restores the weights: <strong>Ψ&nbsp;=&nbsp;√λ₊·(e₊e₊)&nbsp;+&nbsp;√λ₋·(e₋e₋)</strong>. Rank one. Rim point. No notebook.</>],
+        ].map(([n, body]) => (
+          <div key={n} style={{ display: "flex", gap: 10, margin: "7px 0" }}>
+            <span style={{ fontFamily: mono, fontSize: 13, fontWeight: 600, color: C.gold, flexShrink: 0 }}>{n}</span>
+            <span style={{ lineHeight: 1.55 }}>{body}</span>
+          </div>
+        ))}
+      </div>
+      <p>
+        But wait — didn't move&nbsp;3 change everything? Interrogate both candidates and
+        see: move&nbsp;2's <strong>notebook</strong>, N&nbsp;=&nbsp;λ₊(e₊e₊)&nbsp;+&nbsp;λ₋(e₋e₋),
+        against move&nbsp;3's <strong>arc</strong> Ψ. Each answers by its own arithmetic.
+        The notebook answers <em>per branch</em>, then averages with the weights. The
+        arc squares amplitudes — and for a question aimed at <em>one half only</em>, it
+        must <strong>add the squares across the ignored half, never the amplitudes
+        themselves</strong>: adding amplitudes first is exactly what would let the
+        arc's orientation show, and that is a privilege of joint questions only
+        (step&nbsp;9's blindness written as arithmetic — the very rule part I turned
+        into an instrument spec). Now ask away:
+      </p>
+      <div style={{ padding: "10px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, marginBottom: 12 }}>
+        <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 8 }}>
+          THE INTERROGATION — <span style={{ color: C.teal }}>NOTEBOOK N</span> VS <span style={{ color: C.gold }}>ARC Ψ</span>
+        </div>
+        {[
+          ["pair — are you e₊e₊?", "λ₊", "(√λ₊)² = λ₊", true],
+          ["left half only — are you e₊?", "λ₊·1 + λ₋·0 = λ₊", "(√λ₊)² + 0² = λ₊", true],
+          ["…and now the right half?", "e₊, certainly", "e₊, certainly", true],
+          ["both halves, δ-rotated — agree?", "½ + ½cos²δ", "½ + ½cos²δ + (C/2)sin²δ", false],
+          ["pair — are you Ψ?", "λ₊² + λ₋²", "1, always", false],
+        ].map(([q, n, a, same], i) => (
+          <div key={i} style={{ borderTop: i ? `1px solid ${C.grid}` : "none", padding: "6px 0" }}>
+            <div style={{ fontSize: 15, marginBottom: 3 }}>{q}</div>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontFamily: mono, fontSize: 12 }}>
+              <span style={{ color: same ? C.inkSoft : C.teal, fontWeight: same ? 400 : 600 }}>N: {n}</span>
+              <span style={{ color: same ? C.inkSoft : C.gold, fontWeight: same ? 400 : 600 }}>Ψ: {a}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p>
+        Three questions in, the interrogation looks hopeless: identical numbers,
+        identical aftermaths — when the left half answers e₊, only the e₊-branch
+        survives, so the untouched right half now confirms with certainty, in both
+        worlds. (Identical numbers, but not identical <em>kinds</em>: for the notebook
+        that update is the Bayesian learning of step&nbsp;5 — there was a fact, and the
+        answer taught it to you; for the arc there was no fact to learn, and it jumps
+        anyway — the gap step&nbsp;9 called the true beginning of quantum.) This is
+        <em> why</em> covering the right coin returns the original state: every
+        one-sided question lives in the matching rows. The candidates split only where
+        a question touches both halves at once — and look at the surplus in row four:
+        (C/2)sin²δ, the <strong>concurrence</strong>, the very number part I's
+        agreement bars were measuring. N and Ψ are part I's corner picture
+        redrawn in the <em>eigen-corner</em>, span{"{"}e₊e₊, e₋e₋{"}"}, and alive
+        at every t: N its mystery coin, Ψ its fair coin — same answers to the
+        straight questions, unmasked by the rotated ones. Slide t and watch the
+        recipe run, in amplitudes and then in the corner itself:
       </p>
       <Slider value={tp} min={0} max={0.5} step={0.01} onChange={setTp}
         label="t — how mixed the left half is (0 = mystery coin, ½ = rim)"
         readout={`λ₊=${lp.toFixed(2)}  λ₋=${lm.toFixed(2)}`} />
       <PairAmpBars amps={amps} labels={["e₊ e₊", "e₊ e₋", "e₋ e₊", "e₋ e₋"]}
         title="Ψ — THE PURIFYING PAIR (in the eigen-coin basis)" />
+      <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, margin: "-4px 0 12px 4px" }}>
+        cover the right coin → left half says e₊: {(lp * 100).toFixed(0)}% · e₋: {(lm * 100).toFixed(0)}% — the state at distance t = {tp.toFixed(2)}, recovered
+      </div>
+      <p>
+        And here is the same recipe drawn in its own arena — the eigen-corner's
+        disk. The notebook N sits on the floor at position λ₊, height zero. Directly
+        above it, on the rim, sits Ψ. The vertical climb between them is a move you
+        have made before: it is <strong>the lift of step 6</strong>, performed one
+        level up — chord to arc, weights to square roots — and the height climbed is
+        h = √(λ₊λ₋) = √(det ρ): the lift height of the very state you set
+        out to purify.
+      </p>
+      <EigenCornerDisk lp={lp} lm={lm} />
+      <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, margin: "0 0 12px 4px" }}>
+        corner distance N ↔ Ψ = arccos √(λ₊² + λ₋²) = {Math.acos(Math.sqrt(lp * lp + lm * lm)).toFixed(3)}{tp < 1e-9 ? " = π/4" : ""} — row five of the interrogation, cashed by the ruler
+      </div>
       <Formula>
         concurrence&nbsp;C = 2√(λ₊λ₋) = 2√(det&nbsp;ρ) ={" "}
         <strong>2 × lift height</strong> = {conc.toFixed(2)}
@@ -2191,10 +2446,10 @@ function StepBell() {
         Classically the buck never stops: every mixture blames a fact upstairs that
         someone could peek at. Quantum mechanics lets it stop — at a pure pair, jointly
         certain, locally silent. That stopping point is <strong>entanglement</strong>.
-        Hence this step's name: Bonus&nbsp;⊗&nbsp;Bonus is not two bonuses side by side
+        Hence these twin steps' shared name: Bonus&nbsp;⊗&nbsp;Bonus is not two bonuses side by side
         but their tensor product — which, as you now know, holds strictly more than the
         pair of its halves. One loose thread, deliberately left: a still cleverer
-        factory could cheat this step's tester — by shipping a pre-agreed answer sheet
+        factory could cheat part I's factory tester — by shipping a pre-agreed answer sheet
         covering <em>every</em> angle δ. The final step deals with it.
       </Notice>
     </div>
@@ -2272,20 +2527,23 @@ function StepCHSH() {
   return (
     <div>
       <p>
-        The Bell factory won the last round, but one objection survives — and it
+        The Bell factory won the factory round, but one objection survives — and it
         deserves the tutorial's respect, because it is <em>correct</em>. The glued
         coins lost only because they carried a single shared fact and had to improvise
         on every other question. So build the <strong>cleverest classical factory</strong>:
         before shipping, it writes each pair a complete <strong>answer sheet</strong> — one
         pre-agreed answer for every possible question δ, identical in both halves — and
-        randomizes the sheets pair to pair so the marginals stay at 50%. Run the
-        previous step's tester against it: both halves read the same line of the same
-        sheet, so they agree at 100% for <em>every</em> δ. The tester is beaten.
+        randomizes the sheets pair to pair so the marginals stay at 50%. Run part I's
+        factory tester against it: both halves read the same line of the same
+        sheet, so they agree at 100% for <em>every</em> δ. The tester is beaten. In
+        part I's picture: the sheets counterfeit Φ's position on every setting of
+        the dial — a perfect forgery of the corner's fair coin, sold from a notebook.
         Sameness of answers, it turns out, is cheap — any shared notebook produces it.
         If entanglement is more than a notebook, a sharper tester must exist.
       </p>
       <p>
-        Here it is: ask the two halves <strong>different questions</strong>. Each round,
+        Here it is: abandon the shared dial — ask the two halves{" "}
+        <strong>different questions</strong>. Each round,
         a referee asks the left half a&nbsp;=&nbsp;0° or a′&nbsp;=&nbsp;90°, and the
         right half b or b′&nbsp;=&nbsp;b&nbsp;−&nbsp;90°, choosing at random; the halves
         cannot communicate. Scoring: in three of the four combinations —
@@ -2372,7 +2630,8 @@ const STEPS = [
   { title: "Bonus: the Bernoulli hemisphere", comp: StepBures },
   { title: "Bonus: cashing in the distance", comp: StepOverlap },
   { title: "Bonus: under the hood — the matrix", comp: StepMatrix },
-  { title: "Bonus ⊗ Bonus: the summit is a Bell pair", comp: StepBell },
+  { title: "Bonus ⊗ Bonus I: the summit needs a partner", comp: StepBellA },
+  { title: "Bonus ⊗ Bonus II: build the partner", comp: StepBellB },
   { title: "Bonus: the cleverest factory — Bell's test", comp: StepCHSH },
 ];
 
@@ -2399,7 +2658,7 @@ export default function BuildYourOwnQubit() {
             Build your own qubit
           </h1>
           <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, marginTop: 4 }}>
-            ten steps (+ seven bonus) from a coin flip to a qubit
+            ten steps (+ eight bonus) from a coin flip to a qubit
           </div>
         </header>
 

@@ -1,7 +1,7 @@
 # Build your own qubit
 
-An interactive tutorial: ten steps (+ seven bonus) from a coin flip to a qubit.
-No physics background needed — just a coin, a chart, and seventeen honest questions.
+An interactive tutorial: ten steps (+ eight bonus) from a coin flip to a qubit.
+No physics background needed — just a coin, a chart, and eighteen honest questions.
 
 **Live version:** open `index.html` in any browser, or enable GitHub Pages on this
 repo (Settings → Pages → deploy from branch → root) to get a shareable URL.
@@ -10,7 +10,7 @@ repo (Settings → Pages → deploy from branch → root) to get a shareable URL
 - `index.html` — fully self-contained tutorial (React precompiled and inlined; no CDN, works offline)
 - `build-your-own-qubit.jsx` — the React source component (drop into any Vite/CRA project)
 
-**New in this version:** the closing step, "Bonus: the cleverest factory — Bell's
+**New in this version:** the closing trilogy: "Bonus ⊗ Bonus I & II" (the summit needs a partner; build the partner) and "Bonus: the cleverest factory — Bell's
 test." The previous step's tester left one loophole: a classical factory could ship
 every pair a complete answer sheet — a pre-agreed answer for every question angle —
 and pass the same-question test perfectly. This step concedes the objection, then
