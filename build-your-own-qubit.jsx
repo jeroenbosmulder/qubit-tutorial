@@ -2062,8 +2062,8 @@ function CornerDisk({ delta = 0 }) {
     grid.push(<line key={"h" + u.toFixed(3)} x1={0} y1={cy + u * S} x2={W} y2={cy + u * S} stroke={bold ? C.gridBold : C.grid} strokeWidth={bold ? 1 : 0.6} />);
   }
   return (
-    <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-      <svg width={W} height={H} style={{ background: C.paper, border: `1.5px solid ${C.gridBold}`, borderRadius: 8, maxWidth: "100%" }}>
+    <div style={{ marginBottom: 12 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
         {grid}
         <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke={C.ink} strokeWidth={2} />
         <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 0 ${cx + r} ${cy}`} fill="none" stroke={C.inkSoft} strokeWidth={1.2} strokeDasharray="5 5" />
@@ -2147,13 +2147,19 @@ function StepBellA() {
         what the lift did for the fair coin. Can the summit's uncertainty be traded away
         too? Not from within: the sign is spent (step&nbsp;9), the complex dial is spent
         (step&nbsp;10). Inside one qubit there is no room left. The only direction
-        remaining is <em>sideways</em>: give the coin a partner.
+        remaining is <em>sideways</em>: give the coin a partner — a second coin is
+        the smallest that works. One warning about the word <em>trade</em>, before
+        it misleads: the coin itself will stay exactly as uncertain as before,
+        every bar still pinned at 50%. What changes hands is the ledger, not the
+        coin — where the uncertainty is <em>booked</em> is this step's whole game.
       </p>
       <p>
         Try a classical partner first. A factory welds two coins so they always agree,
         then ships you pair after pair — each one secretly HH or secretly TT,
         fifty-fifty. Cover the right coin: the left one alone is <em>exactly</em> the
-        mystery coin. But the uncertainty didn't dissolve — it moved upstairs. The pair
+        mystery coin. But the uncertainty didn't dissolve — it moved <strong>upstairs</strong>,
+        into the pair's own state space: one floor up in system size, where the
+        states of two-coin systems live. The pair
         as a whole is the mixture ½(HH)&nbsp;+&nbsp;½(TT): an interior point of a bigger
         disk, one level up, and someone at the factory could still peek. A rival factory
         claims to do better. It ships the <strong>Bell pair</strong>,
@@ -2191,7 +2197,9 @@ function StepBellA() {
         That is the signature of a rim point upstairs: <strong>jointly certain, locally
         maximally ignorant</strong>. And it answers the opening question: the summit's
         uncertainty <em>can</em> be traded away — not into any internal dial, but into
-        agreement with a partner.
+        agreement with a partner. And check the promised ledger: the marginal bars
+        stayed pinned throughout — the coin is as uncertain as ever, only its
+        uncertainty is no longer booked as ignorance about a fact.
       </p>
       <p>
         Now step back and look at the arena where this contest was fought. Every state
@@ -2296,8 +2304,8 @@ function EigenCornerDisk({ lp, lm }) {
     grid.push(<line key={"h" + u.toFixed(3)} x1={0} y1={cy + u * S} x2={W} y2={cy + u * S} stroke={bold ? C.gridBold : C.grid} strokeWidth={bold ? 1 : 0.6} />);
   }
   return (
-    <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
-      <svg width={W} height={H} style={{ background: C.paper, border: `1.5px solid ${C.gridBold}`, borderRadius: 8, maxWidth: "100%" }}>
+    <div style={{ marginBottom: 6 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
         {grid}
         <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke={C.ink} strokeWidth={2} />
         <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke={C.ink} strokeWidth={1.5} />
