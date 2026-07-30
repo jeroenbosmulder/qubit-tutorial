@@ -9,6 +9,7 @@ repo (Settings → Pages → deploy from branch → root) to get a shareable URL
 **Files**
 - `index.html` — fully self-contained tutorial (React precompiled and inlined; no CDN, works offline)
 - `build-your-own-qubit.jsx` — the React source component (drop into any Vite/CRA project)
+- `apple-touch-icon.png` — home-screen icon for iOS/Android (linked from index.html)
 
 **New in this version:** the closing trilogy: "Bonus ⊗ Bonus I & II" (the summit needs a partner; build the partner) and "Bonus: the cleverest factory — Bell's
 test." The previous step's tester left one loophole: a classical factory could ship
