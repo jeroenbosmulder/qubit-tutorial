@@ -841,6 +841,16 @@ function StepMeasure() {
   return (
     <div>
       <p>
+        One change of viewpoint before we begin, and it deserves to be announced. In
+        steps 1–3, "flipping" meant: take a fresh coin from a source, look at the
+        outcome, repeat. Every flip used a new copy. From this step on, a new kind of
+        experiment is allowed: ask a question to <em>one single state</em> — and then
+        ask it again, or ask it something different. The source picture simply has no
+        answer for that second question; the rules of this step and the next supply
+        one. (When you want the old many-flips picture back, imagine a machine that
+        hands you a fresh copy of the state each time.)
+      </p>
+      <p>
         Time to say what "flipping the coin" really is — and to discover that it is only one question among many. Here is the rule of the game. You may never ask a state "where are you?". You may only pick a <strong>diameter</strong> of the circle and ask: "<em>which end?</em>" The state must answer with one of the diameter's two endpoints. The odds of each answer are already drawn in your picture: the chance of an answer is the <strong>squared distance to the opposite end</strong>. Far from "always T" means: probably answers H. (Thales guarantees the right angle at P, so by Pythagoras the two squared chords always add up to 1 — the chances of the two answers add up automatically.)
       </p>
       <p>
