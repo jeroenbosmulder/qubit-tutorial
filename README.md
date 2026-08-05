@@ -11,6 +11,7 @@ shareable URL.
 **Files**
 - `index.html` — self-contained runnable tutorial (React via CDN + Babel standalone)
 - `build-your-own-qubit.jsx` — the React source component (drop into any Vite/CRA project)
+- `apple-touch-icon.png` — home-screen / favicon image (linked from index.html)
 
 **New in this version:** the tutorial is refocused on the stepwise construction
 (steps 1–10); the bonus steps are removed. Two bookends frame the journey:
