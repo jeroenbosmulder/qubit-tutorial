@@ -531,28 +531,6 @@ function StepMix() {
   const [q1, setQ1] = useState(0.9);
   const [q2, setQ2] = useState(0.2);
   const [conf, setConf] = useState(0.6);
-  const [truth, setTruth] = useState(null);   // which coin you actually hold (1 or 2), sampled from the prior
-  const [flips, setFlips] = useState([]);
-  const [revealed, setRevealed] = useState(false);
-  const [stuck, setStuck] = useState(false);  // Bayes fell silent: zero likelihood on the whole list
-  const resetLearn = () => { setTruth(null); setFlips([]); setRevealed(false); setStuck(false); };
-  const learnFrom = (x) => {
-    setFlips((f) => [...f, x].slice(-18));
-    const L1 = x ? q1 : 1 - q1, L2 = x ? q2 : 1 - q2;
-    const den = conf * L1 + (1 - conf) * L2;
-    if (den > 1e-9) setConf(Math.min(1, Math.max(0, (conf * L1) / den)));
-    else setStuck(true);
-  };
-  const flipAndLearn = () => {
-    let t = truth;
-    if (t === null) { t = Math.random() < conf ? 1 : 2; setTruth(t); }
-    const q = t === 1 ? q1 : q2;
-    learnFrom(Math.random() < q ? 1 : 0);
-  };
-  const sneakTail = () => {
-    if (truth === null) setTruth(Math.random() < conf ? 1 : 2);
-    learnFrom(0);
-  };
   const bp = conf * q1 + (1 - conf) * q2;
   const bw = conf * sig(q1) + (1 - conf) * sig(q2);
   return (
@@ -561,71 +539,24 @@ function StepMix() {
         The curve holds every <em>definite</em> coin. But step 3 left an open point: the mystery deterministic coin's belief marker settled <em>inside</em> the curve. Time to fill the interior — by mixing beliefs by hand.
       </p>
       <p>
-        Suppose you hold a coin. With weight c you believe its bias is q₁ <span style={{ color: C.teal }}>●</span>, and with weight 1−c you believe its bias is q₂ <span style={{ color: C.red }}>●</span>. Your two numbers — expected outcome and expected band width — are the c-weighted averages. So your belief slides along the straight chord between the two candidate coins.
+        Suppose you hold a coin. With weight c you believe its bias is q₁ <span style={{ color: C.teal }}>●</span>, and with weight 1−c you believe its bias is q₂ <span style={{ color: C.red }}>●</span>. Your two numbers — expected outcome and expected band width — are the c-weighted averages. So as you turn c, your belief slides along the straight chord between the two candidate coins: on top of one candidate at c=1, on top of the other at c=0, and strictly <em>inside</em> the curve everywhere in between. Try it:
       </p>
-      <Slider value={q1} min={0} max={1} step={0.01} onChange={(v) => { setQ1(v); resetLearn(); }}
+      <Slider value={q1} min={0} max={1} step={0.01} onChange={setQ1}
         label="q₁ — first candidate bias" readout={`q₁=${q1.toFixed(2)}`} />
-      <Slider value={q2} min={0} max={1} step={0.01} onChange={(v) => { setQ2(v); resetLearn(); }}
+      <Slider value={q2} min={0} max={1} step={0.01} onChange={setQ2}
         label="q₂ — second candidate bias" readout={`q₂=${q2.toFixed(2)}`} />
-      <Slider value={conf} min={0} max={1} step={0.01} onChange={(v) => { setConf(v); resetLearn(); }}
+      <Slider value={conf} min={0} max={1} step={0.01} onChange={setConf}
         label="c — confidence in the first candidate"
         readout={`c=${conf.toFixed(2)}  →  belief (${bp.toFixed(2)}, ${bw.toFixed(2)})`} />
       <StatePlot segment={[[q1, sig(q1)], [q2, sig(q2)]]} point={[bp, bw]} labels={false} />
-      <div style={{ marginTop: 16, padding: "12px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8 }}>
-        <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 6 }}>
-          TWO KINDS OF NOT-KNOWING — try to learn
-        </div>
-        <p style={{ margin: "0 0 8px" }}>
-          The interior separates two kinds of uncertainty. <strong>Statistical</strong>:
-          even knowing the coin exactly (a point on the curve), each flip stays random —
-          there is nothing to learn, and no flip will ever move your belief.{" "}
-          <strong>Systematic</strong>: not knowing <em>which</em> coin you hold — and
-          that part is curable. Press the button: a real coin is dealt to you according
-          to your confidence, each flip Bayes-updates c, and your belief point slides
-          along the chord toward the coin you actually hold. Then set c&nbsp;=&nbsp;1
-          and flip again: the point freezes — a pure belief is one with nothing left to
-          learn. Which is wisdom when you are right, and a prison when you are wrong:
-        </p>
-        <p style={{ margin: "0 0 8px" }}>
-          <strong>A warning, and it is the door to real learning.</strong> Bayes can
-          only re-weigh coins that are <em>on your list</em>. Set q₁=1, q₂=0, c=½ — the
-          mystery coin. One head makes you certain you hold the always-heads coin. Now{" "}
-          <em>sneak in a tail</em>: zero likelihood under every candidate — Bayes falls
-          silent. Updating weights can never rescue a hypothesis you refused to include.
-          The cure: keep a sliver of belief on <em>every</em> coin, mass smeared along
-          the whole rim. Then "updating the parameters" is nothing but reweighting over
-          that continuum — and your belief point is free to roam the entire disk instead
-          of one chord.
-        </p>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <Btn onClick={flipAndLearn}>Flip once &amp; learn</Btn>
-          <Btn kind="outline" onClick={sneakTail}>sneak in a tail</Btn>
-          <Btn kind="outline" onClick={resetLearn} disabled={truth === null}>reset</Btn>
-          <span style={{ minHeight: 24 }}>
-            {flips.map((v, j) => <CoinChip key={j} v={v} />)}
-          </span>
-          {flips.length > 0 && !revealed && (
-            <button onClick={() => setRevealed(true)}
-              style={{ fontFamily: mono, fontSize: 11, padding: "4px 10px", borderRadius: 12, border: `1.5px solid ${C.gridBold}`, background: "#fff", color: C.ink, cursor: "pointer" }}>
-              reveal
-            </button>
-          )}
-          {revealed && (
-            <span style={{ fontFamily: mono, fontSize: 12, color: C.teal }}>
-              you hold the q{truth === 1 ? "₁" : "₂"} coin — c has moved to {conf.toFixed(2)}
-            </span>
-          )}
-        </div>
-        {stuck && (
-          <div style={{ marginTop: 8, padding: "8px 12px", background: C.redSoft, border: `1.5px solid ${C.red}`, borderRadius: 8, fontFamily: mono, fontSize: 12.5, color: C.ink }}>
-            Bayes is speechless: that flip has zero likelihood under every candidate on
-            your list. No reweighting can repair a wrong hypothesis list — you must
-            revise the list itself.
-          </div>
-        )}
-      </div>
+      <p>
+        The picture now separates the <strong>two kinds of not-knowing</strong> at a glance. A point <em>on the curve</em> is a coin you know exactly — and it is still uncertain! Each flip stays genuinely random; there is nothing left to learn. That is <strong>statistical</strong> uncertainty, and it is there to stay. A point <em>inside</em> the curve carries a second ingredient on top: you also don't know <em>which</em> coin you hold. That is <strong>systematic</strong> uncertainty — and it is curable. Watch the coin's flips long enough and they betray their maker: your confidence c drifts toward the coin you actually hold, and your belief point slides along the chord until it reaches the curve. There it stops, because a definite coin has nothing more to teach.
+      </p>
+      <p>
+        So the geometry itself sorts your ignorance: <em>how far along the arc</em> you sit is a statement about the coin; <em>how deep inside</em> you sit is a statement about you — the part of the uncertainty that is your own missing knowledge rather than the coin's genuine randomness. Set q₁=1, q₂=0, c=½ and you rebuild the mystery deterministic coin from step 3, landing at the exact center of the disk: a coin with no randomness at all, seen through maximal ignorance.
+      </p>
       <Notice>
-        Two candidate biases plus one confidence reach <em>every</em> point of the upper disk. Set q₁=1, q₂=0, c=½ and you rebuild the mystery deterministic coin at the exact center. And no belief can ever leave the disk: chords stay inside the circle that they span. So the state space of beliefs is not the curve but the whole disk inside it: <em>definite</em> coins on the rim, <em>uncertainty about the coin</em> in the interior, total ignorance at the exact center. The disk even sorts your ignorance into two kinds. The rim carries the statistical part, which no data can remove. The depth into the interior is the systematic part, which flips can teach away. Purity measures how much of your not-knowing is curable. Our two main characters sit at the two extremes of the same odds: the fair coin is pure statistics, the mystery coin is pure ignorance.
+        Two candidate biases plus one confidence reach <em>every</em> point of the upper disk — and no belief can ever leave it, since chords stay inside the circle that they span. So the state space of beliefs is not the curve but the whole disk inside it: <em>definite</em> coins on the rim, <em>uncertainty about the coin</em> in the interior, total ignorance at the exact center. The rim position carries the statistical part, which no data can remove; the depth into the interior is the systematic part, which flips can teach away. Our two main characters sit at the two extremes of the same odds: the fair coin is pure statistics, the mystery coin is pure ignorance.
       </Notice>
     </div>
   );
@@ -859,16 +790,6 @@ function StepMeasure() {
   return (
     <div>
       <p>
-        One change of viewpoint before we begin, and it deserves to be announced. In
-        steps 1–3, "flipping" meant: take a fresh coin from a source, look at the
-        outcome, repeat. Every flip used a new copy. From this step on, a new kind of
-        experiment is allowed: ask a question to <em>one single state</em> — and then
-        ask it again, or ask it something different. The source picture simply has no
-        answer for that second question; the rules of this step and the next supply
-        one. (When you want the old many-flips picture back, imagine a machine that
-        hands you a fresh copy of the state each time.)
-      </p>
-      <p>
         Time to say what "flipping the coin" really is — and to discover that it is only one question among many. Here is the rule of the game. You may never ask a state "where are you?". You may only pick a <strong>diameter</strong> of the circle and ask: "<em>which end?</em>" The state must answer with one of the diameter's two endpoints. The odds of each answer are already drawn in your picture: the chance of an answer is the <strong>squared distance to the opposite end</strong>. Far from "always T" means: probably answers H. (Thales guarantees the right angle at P, so by Pythagoras the two squared chords always add up to 1 — the chances of the two answers add up automatically.)
       </p>
       <p>
@@ -921,8 +842,9 @@ function StepSign() {
         all an interferometer or a polarizer does. <strong>After answering, the state
         becomes its answer</strong>: it jumps to the endpoint it named, so repeating the
         same question repeats the same answer, while a fresh question meets fresh chance.
-        (Note this jump is <em>not</em> the Bayesian learning of step 5 — a pure state
-        has nothing left to learn about, yet it jumps anyway. That difference is where
+        (Note this jump is <em>not</em> the learning of step 5 — there, flips could
+        only move a belief that still had something to learn; a pure state has nothing
+        left to learn about, yet it jumps anyway. That difference is where
         quantum truly begins.) And so <strong>no single question can reveal the whole of
         P</strong>: one
         diameter yields one number, but P is two numbers — you need two different
