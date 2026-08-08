@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 // ---------- palette ----------
 const C = {
@@ -1080,7 +1080,7 @@ function StepIntro() {
 }
 
 // ================= EPILOGUE =================
-function StepEpilogue() {
+function StepEpilogue({ openExtra }) {
   return (
     <div>
       <p>
@@ -1096,6 +1096,45 @@ function StepEpilogue() {
       <p>
         Read the ladder one last time, left to right: two answers, an interval of bets, a half-disk of beliefs, a disk that remembers orientation, a ball that lets it turn. Each rung was forced by an honest question about an ordinary coin — what may I believe, and what am I throwing away?
       </p>
+      <p>
+        One more thing before the curtain: is all this a nice story, or an actual construction? It is a construction — and the professionals' machinery fits into your picture without leaving a remainder. The <strong>density matrix</strong>, quantum theory's standard bookkeeping object, turns out to be exactly the disk you drew, hiding inside the coordinates (p, w) you have plotted since step 3. Its <strong>spectral decomposition</strong> is geometry you already own: the diameter through a state, the two opposite endpoints as eigen-states, their weights as eigenvalues. And the statisticians' honest rulers — the <strong>Bhattacharyya angle</strong> between two coins, the <strong>Bures distance</strong> between two beliefs — are nothing but arc length on your circle and on the bowl it bends into; they even predict how many flips a duel takes. None of this was smuggled into the ten steps. All of it was waiting inside them.
+      </p>
+      {openExtra && (
+        <div style={{ marginTop: 16, padding: "12px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8 }}>
+          <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 8 }}>
+            THE EVIDENCE ROOM — additional material, entirely optional
+          </div>
+          <p style={{ margin: "0 0 10px", fontSize: 14 }}>
+            If you want to hold that evidence in your own hands, four playgrounds are waiting. They are heavier than the ten steps — take them in any dose, or not at all.
+          </p>
+          {[
+            { d: "How far apart are two coins? The flat ruler fails; the arc — the Bhattacharyya angle — is the honest one." },
+            { d: "Counting the flips: race two duels with a sequential referee, and find flips ∝ 1/(arc length)²." },
+            { d: "The Bernoulli hemisphere: bend the disk into a bowl — the Bures distance; fair ↔ mystery = π/4." },
+            { d: "Under the hood: the density matrix is the disk, and the spectral decomposition is the state's own diameter." },
+          ].map((c, i) => (
+            <button
+              key={i}
+              onClick={() => openExtra(i)}
+              style={{
+                display: "flex", alignItems: "center", gap: 10, width: "100%",
+                textAlign: "left", cursor: "pointer", background: "#fff",
+                border: `1.5px solid ${C.gridBold}`, borderRadius: 8,
+                padding: "8px 10px", marginBottom: 6, fontFamily: serif,
+                fontSize: 14, color: C.ink,
+              }}
+            >
+              <span style={{
+                flex: "0 0 auto", width: 26, height: 26, borderRadius: "50%",
+                border: `1.5px solid ${C.gridBold}`, background: C.goldSoft,
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                fontFamily: mono, fontSize: 12, fontWeight: 600,
+              }}>{EXTRAS[i].tag}</span>
+              <span><strong>{EXTRAS[i].title}.</strong> {c.d}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <Notice>
         The stage you built contains no quantum physics — only honest bookkeeping about uncertainty, pushed as far as geometry allows. Quantum mechanics is the discovery that nature actually <em>performs</em> on this stage. You built a qubit from a coin; nature had built it first.
       </Notice>
@@ -1143,6 +1182,471 @@ function BraKetBtn({ shape, label, active, visited, onClick, title }) {
   );
 }
 
+// ============ PLAYGROUND A : HOW FAR APART ARE TWO COINS? ============
+function StepDistance() {
+  const [p1, setP1] = useState(0.5);
+  const [p2, setP2] = useState(0.51);
+  const clamp01 = (q) => Math.min(1, Math.max(0, q));
+  const alph = (q) => Math.acos(Math.sqrt(clamp01(q))); // angle on the unit circle
+  const naive = Math.abs(p1 - p2);
+  const arc = Math.abs(alph(p1) - alph(p2)); // = arc length along the Bernoulli circle (radius 1/2, double angle)
+  const W = 340, H = 252, S = 240, ox = 50, oy = 196;
+  const toPx = (x, y) => [ox + x * S, oy - y * S];
+  const phiB = (q) => Math.acos(Math.min(1, Math.max(-1, 2 * q - 1))); // central angle, 0..pi
+  const onCircle = (phi) => [0.5 + 0.5 * Math.cos(phi), 0.5 * Math.sin(phi)];
+  const f1 = phiB(p1), f2 = phiB(p2);
+  const lo = Math.min(f1, f2), hi = Math.max(f1, f2);
+  const arcPts = Array.from({ length: 41 }, (_, i) => toPx(...onCircle(lo + ((hi - lo) * i) / 40)).join(",")).join(" ");
+  const [x1b, y1b] = toPx(p1, 0);
+  const [x2b, y2b] = toPx(p2, 0);
+  const [x1c, y1c] = toPx(...onCircle(f1));
+  const [x2c, y2c] = toPx(...onCircle(f2));
+  const semi = Array.from({ length: 61 }, (_, i) => toPx(...onCircle((Math.PI * i) / 60)).join(",")).join(" ");
+  const presets = [
+    { label: "middle pair: 0.50 vs 0.51", a: 0.5, b: 0.51 },
+    { label: "edge pair: 0.00 vs 0.01", a: 0.0, b: 0.01 },
+    { label: "fair vs always-H", a: 0.5, b: 1.0 },
+  ];
+  return (
+    <div>
+      <p>
+        Here is a question the tutorial has quietly prepared: how <em>far apart</em> are two coins? The lazy answer is the gap on the ruler, |p₁ − p₂|. Try to break it. A 0.50-coin and a 0.51-coin are almost impossible to tell apart — you would need thousands of flips. A 0.00-coin and a 0.01-coin? A <em>single head</em> settles it, because the first coin can never produce one. The same gap of 0.01 on the ruler, but very different real separations. The flat ruler is wrong: near the ends, it must stretch.
+      </p>
+      <p>
+        The right ruler is one you already own. Lift both coins to the Bernoulli circle and walk <em>along the arc</em> between them. Near the middle, the circle runs almost flat, and the arc is barely longer than the gap. Near the ends, the circle turns steeply upward, and a tiny gap in p becomes a long walk.
+      </p>
+      <Slider value={p1} min={0} max={1} step={0.01} onChange={setP1}
+        label="first coin" readout={`p₁=${p1.toFixed(2)}`} />
+      <Slider value={p2} min={0} max={1} step={0.01} onChange={setP2}
+        label="second coin" readout={`p₂=${p2.toFixed(2)}`} />
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+        {presets.map((q) => (
+          <button key={q.label} onClick={() => { setP1(q.a); setP2(q.b); }}
+            style={{ fontFamily: mono, fontSize: 11, padding: "5px 10px", borderRadius: 12, border: `1.5px solid ${C.gridBold}`, background: "#fff", color: C.ink, cursor: "pointer" }}>
+            {q.label}
+          </button>
+        ))}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+        <polyline points={semi} fill="none" stroke={C.gold} strokeWidth={1.6} strokeDasharray="5 4" />
+        {/* the flat ruler */}
+        <line x1={toPx(0, 0)[0]} y1={oy} x2={toPx(1, 0)[0]} y2={oy} stroke={C.ink} strokeWidth={2} />
+        {[0, 0.5, 1].map((q) => (
+          <g key={q}>
+            <line x1={toPx(q, 0)[0]} y1={oy - 4} x2={toPx(q, 0)[0]} y2={oy + 4} stroke={C.ink} strokeWidth={1.4} />
+            <text x={toPx(q, 0)[0]} y={oy + 18} textAnchor="middle" fontFamily={mono} fontSize="10" fill={C.inkSoft}>{q === 0.5 ? "½" : q}</text>
+          </g>
+        ))}
+        {/* naive gap highlighted on the ruler */}
+        <line x1={x1b} y1={oy} x2={x2b} y2={oy} stroke={C.red} strokeWidth={4} />
+        {/* lifts */}
+        <line x1={x1b} y1={y1b} x2={x1c} y2={y1c} stroke={C.inkSoft} strokeWidth={1} strokeDasharray="3 3" />
+        <line x1={x2b} y1={y2b} x2={x2c} y2={y2c} stroke={C.inkSoft} strokeWidth={1} strokeDasharray="3 3" />
+        {/* true distance: the arc */}
+        <polyline points={arcPts} fill="none" stroke={C.teal} strokeWidth={4} strokeLinecap="round" />
+        <circle cx={x1b} cy={y1b} r={4} fill={C.red} stroke={C.ink} strokeWidth={1} />
+        <circle cx={x2b} cy={y2b} r={4} fill={C.red} stroke={C.ink} strokeWidth={1} />
+        <circle cx={x1c} cy={y1c} r={5} fill={C.teal} stroke={C.ink} strokeWidth={1.4} />
+        <circle cx={x2c} cy={y2c} r={5} fill={C.teal} stroke={C.ink} strokeWidth={1.4} />
+        <text x={8} y={16} fontFamily={mono} fontSize="10" fill={C.inkSoft}>lift, then walk the arc</text>
+      </svg>
+      <div style={{ marginTop: 10, padding: "8px 12px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, fontFamily: mono, fontSize: 13, display: "flex", gap: 18, flexWrap: "wrap" }}>
+        <span style={{ color: C.red }}>flat-ruler gap = {naive.toFixed(3)}</span>
+        <span style={{ color: C.teal }}>circle distance = {arc.toFixed(3)}</span>
+        <span style={{ color: C.inkSoft }}>ratio ×{naive > 0 ? (arc / naive).toFixed(1) : "—"}</span>
+      </div>
+      <Notice>
+        Try the two preset pairs: identical flat gaps, but a tenfold difference in circle distance. The circle is the honest ruler, because it predicts how many flips you actually need to tell the coins apart. This arc has a classical name: the <strong>Bhattacharyya angle</strong> between the two distributions (its straight-line chord is the Hellinger distance). The lesson: distances between coins are not measured through the interval, but along the Bernoulli circle. The circle is not decoration — it is the <em>ruler</em>. The next playground turns this claim into flips: you will race the two duels and count.
+      </Notice>
+    </div>
+  );
+}
+
+// ============ PLAYGROUND B : COUNTING THE FLIPS (SPRT RACE) ============
+const LN19 = Math.log(19); // sequential-test walls for 5% error either way
+
+// log-likelihood increment of one flip; positive evidence favours coin 2
+function llrStep(outcome, c1, c2) {
+  const l1 = outcome === 1 ? c1 : 1 - c1;
+  const l2 = outcome === 1 ? c2 : 1 - c2;
+  if (l1 === 0 && l2 === 0) return 0;
+  if (l1 === 0) return Infinity;
+  if (l2 === 0) return -Infinity;
+  return Math.log(l2 / l1);
+}
+
+function EvidenceMeter({ llr, c1, c2, done, verdict }) {
+  const t = Math.max(-1, Math.min(1, llr / LN19));
+  const pct = 50 + 50 * t;
+  return (
+    <div style={{ margin: "8px 0 2px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: 10, color: C.inkSoft, marginBottom: 3 }}>
+        <span style={{ color: C.teal, fontWeight: done && verdict === "c1" ? 700 : 400 }}>
+          ← it's the {c1.toFixed(2)}-coin
+        </span>
+        <span>evidence</span>
+        <span style={{ color: C.gold, fontWeight: done && verdict === "c2" ? 700 : 400 }}>
+          it's the {c2.toFixed(2)}-coin →
+        </span>
+      </div>
+      <div style={{ position: "relative", height: 18, background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 9 }}>
+        <div style={{ position: "absolute", left: "50%", top: 2, bottom: 2, width: 1, background: C.gridBold }} />
+        <div style={{ position: "absolute", left: 3, top: 2, bottom: 2, width: 3, borderRadius: 2, background: C.teal }} />
+        <div style={{ position: "absolute", right: 3, top: 2, bottom: 2, width: 3, borderRadius: 2, background: C.gold }} />
+        <div
+          style={{
+            position: "absolute", top: -3, bottom: -3, width: 4, borderRadius: 2,
+            left: `calc(${pct}% - 2px)`,
+            background: done ? (verdict === "c2" ? C.gold : C.teal) : C.ink,
+            transition: "left .06s linear",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StepFlipCount() {
+  const mkLane = (name, c1, c2, theory) => ({
+    name, c1, c2, theory,
+    truth: Math.random() < 0.5 ? "c1" : "c2",
+    flips: 0, llr: 0, hist: [], done: false, verdict: null,
+  });
+  const freshLanes = () => [
+    mkLane("duel A — the middle pair", 0.5, 0.6, "≈ 140 flips"),
+    mkLane("duel B — the edge pair", 0.0, 0.1, "≈ 20 flips"),
+  ];
+  const [lanes, setLanes] = useState(freshLanes);
+  const [running, setRunning] = useState(false);
+  const [tally, setTally] = useState({ races: 0, a: 0, b: 0 });
+  const tallied = useRef(false);
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      setLanes((ls) =>
+        ls.map((L) => {
+          if (L.done) return L;
+          let { flips, llr } = L;
+          const hist = [...L.hist];
+          // one flip per tick while the drama lasts, then fast-forward
+          const batch = flips < 30 ? 1 : 6;
+          let done = false, verdict = null;
+          for (let k = 0; k < batch && !done; k++) {
+            const p = L.truth === "c1" ? L.c1 : L.c2;
+            const x = flipOne(p);
+            const d = llrStep(x, L.c1, L.c2);
+            llr = d === Infinity ? LN19 : d === -Infinity ? -LN19 : llr + d;
+            flips += 1;
+            hist.push(x);
+            if (llr >= LN19) { done = true; verdict = "c2"; llr = LN19; }
+            else if (llr <= -LN19) { done = true; verdict = "c1"; llr = -LN19; }
+            else if (flips >= 900) { done = true; verdict = llr >= 0 ? "c2" : "c1"; }
+          }
+          return { ...L, flips, llr, hist: hist.slice(-14), done, verdict };
+        })
+      );
+    }, 60);
+    return () => clearInterval(id);
+  }, [running]);
+
+  useEffect(() => {
+    if (running && lanes.every((l) => l.done) && !tallied.current) {
+      tallied.current = true;
+      setRunning(false);
+      setTally((t) => ({ races: t.races + 1, a: t.a + lanes[0].flips, b: t.b + lanes[1].flips }));
+    }
+  }, [lanes, running]);
+
+  const start = () => { tallied.current = false; setLanes(freshLanes()); setRunning(true); };
+  const avgA = tally.races ? tally.a / tally.races : null;
+  const avgB = tally.races ? tally.b / tally.races : null;
+  const alph = (q) => Math.acos(Math.sqrt(Math.min(1, Math.max(0, q))));
+  const dthA = Math.abs(alph(0.5) - alph(0.6));
+  const dthB = Math.abs(alph(0.0) - alph(0.1));
+
+  return (
+    <div>
+      <p>
+        The previous playground made a promise that it has not yet kept: the circle, it claimed, predicts <em>how many flips</em> you need to tell two coins apart. Let us test that. Take two duels with the <strong>same flat-ruler gap of 0.10</strong>. Duel A: a 0.50-coin against a 0.60-coin. Duel B: a 0.00-coin against a 0.10-coin. In each duel, one of the two coins is secretly chosen and handed to you. You flip it and run the honest referee — Wald's <em>sequential test</em>: every flip adds its evidence, and the moment the total crosses a wall (set here for 5% error), the verdict is final. Watch which duel finishes first.
+      </p>
+      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+        <Btn onClick={start} disabled={running}>{tally.races ? "race again" : "start the race"}</Btn>
+        <Btn kind="outline" onClick={() => { setRunning(false); tallied.current = false; setLanes(freshLanes()); setTally({ races: 0, a: 0, b: 0 }); }}>
+          reset
+        </Btn>
+      </div>
+      {lanes.map((L, i) => (
+        <div key={i} style={{ padding: "10px 12px", background: "#fff", border: `1.5px solid ${L.done ? (L.verdict === "c2" ? C.gold : C.teal) : C.gridBold}`, borderRadius: 8, marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: 11, color: C.inkSoft }}>
+            <span style={{ letterSpacing: 1 }}>{L.name.toUpperCase()} · {L.c1.toFixed(2)} vs {L.c2.toFixed(2)}</span>
+            <span>theory: {L.theory}</span>
+          </div>
+          <EvidenceMeter llr={L.llr} c1={L.c1} c2={L.c2} done={L.done} verdict={L.verdict} />
+          <div style={{ minHeight: 26, marginTop: 4 }}>
+            {L.hist.map((v, j) => <CoinChip key={j + "-" + L.flips} v={v} />)}
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 12, marginTop: 2 }}>
+            flips: <strong>{L.flips}</strong>
+            {L.done && (
+              <span>
+                {" — verdict: "}
+                <span style={{ color: L.verdict === "c2" ? C.gold : C.teal, fontWeight: 600 }}>
+                  the {(L.verdict === "c2" ? L.c2 : L.c1).toFixed(2)}-coin
+                </span>
+                {" · truth: "}{(L.truth === "c2" ? L.c2 : L.c1).toFixed(2)}
+                {" "}{L.verdict === L.truth ? "✓" : "✗ (the 5% at work)"}
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
+      {tally.races > 0 && (
+        <div style={{ padding: "8px 12px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, fontFamily: mono, fontSize: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <span>races: {tally.races}</span>
+          <span>avg A: {avgA.toFixed(0)} flips</span>
+          <span>avg B: {avgB.toFixed(0)} flips</span>
+          <span style={{ color: C.ink, fontWeight: 600 }}>observed ratio ≈ ×{(avgA / avgB).toFixed(1)}</span>
+        </div>
+      )}
+      <p style={{ marginTop: 16 }}>
+        Now the mathematics, in three moves. <strong>Move 1 — duel A by hand.</strong>{" "}
+        After n flips the head-fraction wobbles around the true p with spread
+        √(p(1−p)/n) ≈ 0.5/√n. Put the decision threshold midway at 0.55 and demand at
+        most 5% error either way: you need the wobble to shrink below the half-gap,
+        0.05&nbsp;≳&nbsp;1.645&nbsp;·&nbsp;0.5/√n, i.e. <strong>n ≈ 270 flips</strong>{" "}
+        for a fixed-length test (the sequential referee above is thriftier — about 145 on
+        average — but same order). <strong>Move 2 — duel B by hand.</strong> The
+        0.00-coin cannot produce a head, so a single H ends the game. The only possible
+        mistake is crowning the 0.00-coin while the 0.10-coin sulks through all tails,
+        probability 0.9ⁿ; demanding 0.9ⁿ&nbsp;≤&nbsp;0.05 gives{" "}
+        <strong>n ≈ 29 flips</strong>, worst case. Same gap on the flat ruler — a factor
+        of ten in flips.
+      </p>
+      <p>
+        <strong>Move 3 — one law behind both.</strong> For the best possible test, the error after n flips shrinks like the n-th power of the <em>overlap</em> between the two coins — the Bhattacharyya coefficient. And when you lift each coin to its angle θ = arccos √p on the circle, that overlap is simply a dot product of two unit vectors:
+      </p>
+      <Formula>
+        √(p₁p₂) + √((1−p₁)(1−p₂)) = cos θ₁ cos θ₂ + sin θ₁ sin θ₂ = cos(θ₁ − θ₂)
+      </Formula>
+      <p>
+        The overlap of two coins is the <em>cosine of the arc between them</em>. Errors shrink like cosⁿ(Δθ), so the number of flips needed for confidence ε is
+      </p>
+      <Formula>
+        n ≈ ln(1/ε) / (−ln cos Δθ) ≈ 2 ln(1/ε) / (Δθ)²
+      </Formula>
+      <p>
+        Flips ∝ 1/(arc length)². The ruler that counts flips is the arc; |p₁−p₂| appears nowhere. Check it against the race: duel A spans Δθ = {dthA.toFixed(3)}, duel B spans Δθ = {dthB.toFixed(3)}, so the circle predicts a flip ratio of ({dthB.toFixed(3)}/{dthA.toFixed(3)})² ≈ ×{((dthB / dthA) ** 2).toFixed(1)}{tally.races > 0 && avgB > 0 && (<span> — and your own races above measured ×{(avgA / avgB).toFixed(1)} (the sequential referee ends each duel a little differently, but the order of magnitude comes from the arc)</span>)}. The flat ruler predicted ×1.0.
+      </p>
+      <Notice>
+        Why is the arc not just <em>a</em> good ruler but <em>the</em> ruler? Three reasons, each stronger than the last. <strong>Local:</strong> the distinguishing power of one flip is the Fisher information 1/(p(1−p)), which explodes at the edges — exactly the flat ruler's failure. Ask for the coordinate in which one flip buys the same progress everywhere, and you are forced to θ = arccos √p (statisticians met it long ago as the arcsine variance-stabilizing transformation). <strong>Global:</strong> over any finite separation, the operational cost is cos(Δθ) — equal arcs cost equal flips, wherever they sit on the circle. <strong>Unique:</strong> Čencov's theorem: any honest distance may only shrink when you post-process your data, and the Fisher metric — this arc — is the <em>only</em> Riemannian ruler (up to scale) with that property. Keep the cosine in mind: in the quantum picture it returns as the overlap ⟨ψ|φ⟩, and the arc becomes the Bures angle of the hemisphere playground.
+      </Notice>
+    </div>
+  );
+}
+
+// ============ PLAYGROUND C : THE BERNOULLI HEMISPHERE ============
+function StepBures() {
+  const [spin, setSpin] = useState(0);
+  const [raise, setRaise] = useState(0);
+  const psi = 0.55 + (spin * Math.PI) / 180;
+  const eps = 0.5;
+  const W = 340, H = 330, cx = 170, cy = 190, S = 250;
+  // 3D layout = the flat picture laid on a table: x = p−½ (T left, H right),
+  // y = w pointing AWAY from the viewer (coin half at the back), z = raised height
+  const px3 = ([X, Y, Z]) => {
+    const sx = X * Math.cos(psi) + Y * Math.sin(psi);
+    const u = -X * Math.sin(psi) + Y * Math.cos(psi);
+    const sy = Z * Math.cos(eps) + u * Math.sin(eps);
+    const d = u * Math.cos(eps) - Z * Math.sin(eps);
+    return [cx + sx * S, cy - sy * S, d];
+  };
+  const hgt = (t) => raise * Math.sqrt(Math.max(0, 0.25 - t * t));
+  const circleSegs3 = (fn, n = 90) => {
+    const pts = Array.from({ length: n + 1 }, (_, i) => {
+      const v = fn((2 * Math.PI * i) / n);
+      return { q: px3(v), v };
+    });
+    const front = [], back = [];
+    for (let i = 0; i < n; i++) {
+      const seg = { a: pts[i].q, b: pts[i + 1].q, mid: pts[i].v };
+      ((pts[i].q[2] + pts[i + 1].q[2]) / 2 < 0 ? front : back).push(seg);
+    }
+    return { front, back };
+  };
+  const segs = (s, stroke, wd, dash, op = 1, colorFn = null) =>
+    s.map((g, i) => (
+      <line key={i} x1={g.a[0]} y1={g.a[1]} x2={g.b[0]} y2={g.b[1]}
+        stroke={colorFn ? colorFn(g.mid) : stroke} strokeWidth={wd} strokeDasharray={dash} strokeOpacity={op} strokeLinecap="round" />
+    ));
+  const path3 = (fn, n = 60) =>
+    Array.from({ length: n + 1 }, (_, i) => px3(fn(i / n)).slice(0, 2).join(",")).join(" ");
+  const len3 = (fn, n = 200) => {
+    let L = 0, prev = fn(0);
+    for (let i = 1; i <= n; i++) {
+      const v = fn(i / n);
+      L += Math.hypot(v[0] - prev[0], v[1] - prev[1], v[2] - prev[2]);
+      prev = v;
+    }
+    return L;
+  };
+  // floor tints: coin half (w>0, back) and anti-coin half (w<0, front)
+  const halfPoly = (s0, s1) => {
+    const pts = Array.from({ length: 41 }, (_, i) =>
+      px3([0.5 * Math.cos(s0 + ((s1 - s0) * i) / 40), 0.5 * Math.sin(s0 + ((s1 - s0) * i) / 40), 0]).slice(0, 2).join(",")
+    );
+    return pts.join(" ");
+  };
+  // rim and rising rings (purity circles of the flat disk lifting into latitudes)
+  const rim = circleSegs3((s) => [0.5 * Math.cos(s), 0.5 * Math.sin(s), 0]);
+  const rimColor = (v) => (v[1] >= 0 ? C.gold : C.red);
+  const rings = [0.45, 0.38, 0.28, 0.15].map((t) =>
+    circleSegs3((s) => [t * Math.cos(s), t * Math.sin(s), hgt(t)])
+  );
+  // the two routes: flat chords that inflate into geodesics as the bowl rises
+  const routeFair = (u) => [0, 0.5 * Math.cos((u * Math.PI) / 2), raise * 0.5 * Math.sin((u * Math.PI) / 2)];
+  const routeHT = (u) => [0.5 * Math.cos(u * Math.PI), 0, raise * 0.5 * Math.sin(u * Math.PI)];
+  const dFair = len3(routeFair), dHT = len3(routeHT);
+  const [fx, fy] = px3([0, 0.5, 0]);
+  const [mx, my] = px3([0, 0, raise * 0.5]);
+  const [c0x, c0y] = px3([0, 0, 0]);
+  const [hx, hy] = px3([0.5, 0, 0]);
+  const [tx, ty] = px3([-0.5, 0, 0]);
+  const coinLab = px3([0, 0.27, 0]);
+  const antiLab = px3([0, -0.27, 0]);
+  return (
+    <div>
+      <p>
+        One distance is still missing — the one the tutorial opened with. The fair coin and the mystery deterministic coin give the same odds, yet they are different beliefs: one on the rim, one at the center of the disk. So we need distances <em>inside</em> the disk. The flat disk fails for the same reason the flat interval did: on its rim it must reproduce the arcs of playground A, which straight lines on a flat sheet cannot do; and near the rim, tiny steps are again statistically enormous.
+      </p>
+      <p>
+        The cure is the same as before — and here is exactly <em>why</em> it produces a hemisphere. Take any point in the disk and draw the diameter through it and the center. That diameter runs from rim to rim, so it has <strong>length 1</strong>: it is a fresh copy of the interval [0, 1], and your point sits on it at some position λ. But a diameter is a <em>measurement</em> (step 8), and the states along it are the mixtures of its two endpoint states — a Bernoulli family in λ (λ is even the probability of that measurement's ⊕ answer). Playground A told us what to do with a Bernoulli family: lift it by <strong>√(λ(1−λ))</strong>. Now do that to <em>every</em> diameter at once. Each one bends into its own Bernoulli semicircle; they all agree wherever they cross; they share one summit above the center (each has λ = ½ there); and together they form the <strong>Bernoulli hemisphere</strong> — the previous step's cure, applied to every direction of the disk at the same time. On this bowl, distance means the geodesic: the shortest walk along the surface. (Its official name: the <strong>Bures distance</strong>.)
+      </p>
+      <p>
+        Below, your Bernoulli disk lies flat in space, exactly as you know it — always T on the left, always H on the right, the gold coin-half toward the back, the red anti-coin-half toward the front, and the purity circles drawn around the mystery coin at the center. Pull the <em>raise</em> slider and watch the construction happen: the teal T–H route <em>is</em> the base diameter bending into its Bernoulli semicircle, the purity circles rise into latitude rings, and the mystery coin climbs to the shared summit. The flat straight routes inflate into arcs, and their lengths grow into the true statistical distances.
+      </p>
+      <Slider value={raise} min={0} max={1} step={0.01} onChange={setRaise}
+        label="raise the hemisphere out of the disk" readout={raise === 0 ? "flat disk" : raise === 1 ? "full hemisphere" : `${(raise * 100).toFixed(0)}%`} />
+      <Slider value={spin} min={0} max={360} step={1} onChange={setSpin}
+        label="spin (rotate the measurement basis)" readout={`${spin}° — every length stays put`} />
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+        {/* floor tints, exactly the familiar disk */}
+        <polygon points={halfPoly(0, Math.PI)} fill={C.goldSoft} fillOpacity={0.55} />
+        <polygon points={halfPoly(Math.PI, 2 * Math.PI)} fill={C.redSoft} fillOpacity={0.5} />
+        <text x={coinLab[0]} y={coinLab[1]} textAnchor="middle" fontFamily={mono} fontSize="9" fill={C.gold} opacity={0.9}>coins</text>
+        <text x={antiLab[0]} y={antiLab[1]} textAnchor="middle" fontFamily={mono} fontSize="9" fill={C.red} opacity={0.9}>anti-coins</text>
+        {/* classical base T—H on the floor */}
+        <line x1={tx} y1={ty} x2={hx} y2={hy} stroke={C.ink} strokeWidth={1.2} />
+        {/* back parts of rim and rings */}
+        {segs(rim.back, null, 1.8, "3 3", 0.55, rimColor)}
+        {rings.map((r, i) => <g key={"rb" + i}>{segs(r.back, C.gridBold, 1, "3 3", 0.75)}</g>)}
+        {/* the raised mystery coin's drop line back to the disk center */}
+        {raise > 0.02 && <line x1={c0x} y1={c0y} x2={mx} y2={my} stroke={C.inkSoft} strokeWidth={1} strokeDasharray="2 3" />}
+        {/* front parts */}
+        {rings.map((r, i) => <g key={"rf" + i}>{segs(r.front, C.gridBold, 1, null, 0.95)}</g>)}
+        {segs(rim.front, null, 2.6, null, 1, rimColor)}
+        {/* routes */}
+        <polyline points={path3(routeHT)} fill="none" stroke={C.teal} strokeWidth={2.6} strokeLinecap="round" />
+        <polyline points={path3(routeFair)} fill="none" stroke={C.gold} strokeWidth={3.2} strokeLinecap="round" />
+        {/* landmarks */}
+        <circle cx={hx} cy={hy} r={3.5} fill={C.ink} />
+        <circle cx={tx} cy={ty} r={3.5} fill={C.ink} />
+        <text x={hx + 7} y={hy + 4} fontFamily={mono} fontSize="10" fill={C.ink}>always H</text>
+        <text x={tx - 7} y={ty + 4} textAnchor="end" fontFamily={mono} fontSize="10" fill={C.ink}>always T</text>
+        <circle cx={fx} cy={fy} r={6} fill={C.gold} stroke={C.ink} strokeWidth={1.6} />
+        <text x={fx} y={fy - 10} textAnchor="middle" fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>fair coin</text>
+        <circle cx={mx} cy={my} r={6} fill={C.ink} stroke="#fff" strokeWidth={2} />
+        <text x={mx + 10} y={my - 6} fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>mystery coin</text>
+      </svg>
+      <div style={{ marginTop: 10, padding: "8px 12px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, fontFamily: mono, fontSize: 13, display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <span style={{ color: C.gold }}>fair ↔ mystery route = {dFair.toFixed(3)}{raise === 1 ? " = π/4" : ""}</span>
+        <span style={{ color: C.teal }}>H ↔ T route = {dHT.toFixed(3)}{raise === 1 ? " = π/2" : ""}</span>
+      </div>
+      <Notice>
+        Here is the result the whole tutorial was waiting for: fully raised, the fair coin and the mystery deterministic coin — which give identical odds — sit exactly <strong>π/4 ≈ 0.785</strong> apart, while the flat disk would have claimed ½. Notice also that the shortest road from certain-heads to certain-tails now runs <em>over the summit</em>: through total ignorance. And spin the bowl: rotating the measurement basis turns everything rigidly, so every distance stays exactly the same. You have measured how different two beliefs are <em>without choosing any measurement at all</em>. That basis-independence is the strong hint that these distances belong to the beliefs themselves. (One caution: this bowl is the flat disk <em>bent into the right ruler</em> — its height is an aid for measuring, not the complex dial of step 10.)
+      </Notice>
+    </div>
+  );
+}
+
+
+// ============ PLAYGROUND D : UNDER THE HOOD — THE MATRIX ============
+function MatrixBox({ m, highlightRow0 = false, title }) {
+  const cell = (v, hot) => (
+    <div style={{
+      width: 62, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: mono, fontSize: 13, fontWeight: 600,
+      background: hot ? C.goldSoft : "#fff", borderRadius: 4, border: `1px solid ${hot ? C.gold : C.gridBold}`,
+    }}>{v.toFixed(2)}</div>
+  );
+  return (
+    <div style={{ display: "inline-block", padding: "8px 10px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8 }}>
+      {title && <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: 1, color: C.inkSoft, marginBottom: 5 }}>{title}</div>}
+      <div style={{ display: "grid", gridTemplateColumns: "62px 62px", gap: 4 }}>
+        {cell(m[0][0], highlightRow0)}{cell(m[0][1], highlightRow0)}
+        {cell(m[1][0], false)}{cell(m[1][1], false)}
+      </div>
+    </div>
+  );
+}
+
+function StepMatrix() {
+  // part A: squaring a pure amplitude vector
+  const [alpha, setAlpha] = useState(35);
+  const [flipped, setFlipped] = useState(false);
+  const sgn = flipped ? -1 : 1;
+  const a = sgn * Math.cos((alpha * Math.PI) / 180);
+  const b = sgn * Math.sin((alpha * Math.PI) / 180);
+  const Mpure = [[a * a, a * b], [a * b, b * b]];
+  // part C: a mixed state and its spectral diameter
+  const [tt, setTt] = useState(0.3);
+  const [beta, setBeta] = useState(40);
+  const br = (beta * Math.PI) / 180;
+  const pp = 0.5 + tt * Math.cos(br);
+  const ww = tt * Math.sin(br);
+  const Mmix = [[pp, ww], [ww, 1 - pp]];
+  const Np = [0.5 + 0.5 * Math.cos(br), 0.5 * Math.sin(br)];
+  const Nm = [0.5 - 0.5 * Math.cos(br), -0.5 * Math.sin(br)];
+  return (
+    <div>
+      <p>
+        A last look inside the machinery, for the mathematically curious — three secrets the pictures have been keeping. <strong>First, the maps.</strong> The whole tutorial used a pipeline: unit circle → Bernoulli circle → interval. The last part is the naive one: read the odds, p = a² and 1−p = b² — squaring each coordinate <em>separately</em>. But that map is built from degree-2 products, and there exist exactly <em>three</em> such products of (a, b): a², ab, and b². All three fit in one master object — the full multiplication table of ψ:
+      </p>
+      <Slider value={alpha} min={0} max={360} step={1} onChange={setAlpha}
+        label="α — the amplitude vector" readout={`ψ = (${a.toFixed(2)}, ${b.toFixed(2)})`} />
+      <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
+        <MatrixBox m={Mpure} highlightRow0 title="ψ ⊗ ψ — THE MULTIPLICATION TABLE" />
+        <Btn kind="outline" onClick={() => setFlipped(!flipped)}>flip the sign of ψ</Btn>
+      </div>
+      <p>
+        The pipeline is really three <em>readings</em> of this one table. Read only the diagonal, (a², b²): that is the interval — the coin flip, blind to everything else. Read the highlighted <strong>top row, (a², ab) = (p, w)</strong>: that is the Bernoulli point — the diagonal <em>plus</em> the off-diagonal ab, which is exactly the band width (and nothing more is needed, since b² = 1−a²). So the Bernoulli circle is what you get by refusing to forget the off-diagonal. And press the sign button: ψ and −ψ produce the <em>identical</em> table — a table cannot remember a global sign, only relative ones. The double cover of step 6, finally explained mechanically. (Official names, for the curious: the table map is the degree-2 <em>Veronese map</em> into Sym², the space of symmetric tensors — and any degree-2 map, coordinate-squaring included, must factor through it.)
+      </p>
+      <p>
+        <strong>Second, the disk was matrix-space all along.</strong> Mix beliefs, and the tables average entry by entry. The result is always a symmetric table whose diagonal sums to 1 — so it carries exactly two free numbers, its top row (p, w). Your Bernoulli disk <em>is</em> the space of these tables. Physicists call them <strong>density matrices</strong>. The tutorial has been doing matrix arithmetic in disguise: mixing = averaging tables (which is linear, hence the chords); superposition = adding vectors <em>before</em> squaring (hence a different floor).
+      </p>
+      <p>
+        <strong>Third, every table chooses its own diameter.</strong> The mixer showed that many different chords pass through one interior point — many ensembles, one belief. But the matrix breaks the tie: its <strong>spectral decomposition</strong> selects one canonical splitting — the diameter through the state and the center. The endpoints are the eigen-states (the only decomposition into two <em>perpendicular</em>, antipodal coins), and the weights are the eigenvalues λ± = ½ ± t — exactly the λ that lifted this same diameter into the hemisphere.
+      </p>
+      <Slider value={tt} min={0} max={0.5} step={0.01} onChange={setTt}
+        label="t — how mixed (distance from center)" readout={`λ₊=${(0.5 + tt).toFixed(2)}  λ₋=${(0.5 - tt).toFixed(2)}`} />
+      <Slider value={beta} min={0} max={360} step={1} onChange={setBeta}
+        label="β — direction of the state" readout={`ρ top row = (${pp.toFixed(2)}, ${ww.toFixed(2)})`} />
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap", marginBottom: 8 }}>
+        <MatrixBox m={Mmix} highlightRow0 title="ρ — THE DENSITY MATRIX" />
+        <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, lineHeight: 1.7, paddingTop: 4 }}>
+          eigenvalues: ½±t = {(0.5 + tt).toFixed(2)}, {(0.5 - tt).toFixed(2)}<br />
+          eigen-states: the diameter's two endpoints
+        </div>
+      </div>
+      <StatePlot showLower showFullCircle labels={false} segment={[Np, Nm]} point={[pp, ww]} />
+      <Notice>
+        So the three parts close together. The <strong>multiplication table</strong> builds the circle and explains the missing sign. The <strong>density matrix</strong> is the disk, hiding inside the plain coordinates (p, w) you have plotted since step 3. The <strong>spectral decomposition</strong> is geometry you already own: the diameter through the state, endpoints as eigen-states, λ± = ½±t as weights. Ensemble ambiguity is real (many chords through one point), but every state carries one distinguished chord: its own diameter — the measurement it answers most decisively, the axis of its hemisphere lift, and now the eigen-basis of its matrix. Three views, one object. Everything in this tutorial was tensor algebra, dressed up as coins.
+      </Notice>
+    </div>
+  );
+}
+
+
 // ================= APP =================
 const STEPS = [
   { title: "Just statistics — at first", comp: StepIntro, tag: "i", shape: "bra", label: "INTRODUCTION" },
@@ -1159,9 +1663,20 @@ const STEPS = [
   { title: "The ball in the wild", comp: StepEpilogue, tag: "e", shape: "ket", label: "EPILOGUE" },
 ];
 
+// hidden playgrounds — reachable only from the epilogue's evidence room
+const EXTRAS = [
+  { title: "How far apart are two coins?", comp: StepDistance, tag: "A", label: "PLAYGROUND A" },
+  { title: "Counting the flips", comp: StepFlipCount, tag: "B", label: "PLAYGROUND B" },
+  { title: "The Bernoulli hemisphere", comp: StepBures, tag: "C", label: "PLAYGROUND C" },
+  { title: "Under the hood — the matrix", comp: StepMatrix, tag: "D", label: "PLAYGROUND D" },
+];
+
 export default function BuildYourOwnQubit() {
   const [step, setStep] = useState(0);
-  const Comp = STEPS[step].comp;
+  const [extra, setExtra] = useState(null); // null = main tutorial; 0..3 = playgrounds
+  const inExtra = extra !== null;
+  const cur = inExtra ? EXTRAS[extra] : STEPS[step];
+  const Comp = cur.comp;
   return (
     <div style={{ minHeight: "100vh", background: C.paper, color: C.ink }}>
       <style>{`
@@ -1194,22 +1709,22 @@ export default function BuildYourOwnQubit() {
                 key={i}
                 shape={sInfo.shape}
                 label={sInfo.tag}
-                active={i === step}
-                visited={i < step}
-                onClick={() => setStep(i)}
+                active={!inExtra && i === step}
+                visited={inExtra ? true : i < step}
+                onClick={() => { setExtra(null); setStep(i); }}
                 title={sInfo.title}
               />
             ) : (
               <button
                 key={i}
-                onClick={() => setStep(i)}
+                onClick={() => { setExtra(null); setStep(i); }}
                 title={sInfo.title}
                 style={{
                   width: 30, height: 30, borderRadius: "50%", cursor: "pointer",
                   fontFamily: mono, fontSize: 12, fontWeight: 600, padding: 0,
-                  border: `1.5px solid ${i === step ? C.gold : C.gridBold}`,
-                  background: i === step ? C.gold : i < step ? C.goldSoft : "#fff",
-                  color: i === step ? "#fff" : C.ink,
+                  border: `1.5px solid ${!inExtra && i === step ? C.gold : C.gridBold}`,
+                  background: !inExtra && i === step ? C.gold : (inExtra || i < step) ? C.goldSoft : "#fff",
+                  color: !inExtra && i === step ? "#fff" : C.ink,
                 }}
               >
                 {sInfo.tag}
@@ -1218,23 +1733,48 @@ export default function BuildYourOwnQubit() {
           )}
         </nav>
 
+        {inExtra && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft }}>
+            <button
+              onClick={() => setExtra(null)}
+              style={{ fontFamily: mono, fontSize: 11, padding: "4px 10px", borderRadius: 12, border: `1.5px solid ${C.gridBold}`, background: "#fff", color: C.ink, cursor: "pointer" }}
+            >
+              ⟨ back to the epilogue
+            </button>
+            ADDITIONAL MATERIAL — THE EVIDENCE ROOM
+          </div>
+        )}
+
         <h2 style={{ fontSize: 21, fontWeight: 600, margin: "0 0 10px" }}>
           <span style={{ fontFamily: mono, fontSize: 13, color: C.gold, marginRight: 8 }}>
-            {STEPS[step].label}
+            {cur.label}
           </span>
-          {STEPS[step].title}
+          {cur.title}
         </h2>
 
-        <Comp key={step} />
+        <Comp key={inExtra ? `x${extra}` : step} openExtra={inExtra ? undefined : (i) => setExtra(i)} />
 
         {/* nav */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
-          <Btn kind="outline" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
-            ← back
-          </Btn>
-          <Btn onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} disabled={step === STEPS.length - 1}>
-            next →
-          </Btn>
+          {inExtra ? (
+            <>
+              <Btn kind="outline" onClick={() => (extra === 0 ? setExtra(null) : setExtra(extra - 1))}>
+                ← {extra === 0 ? "epilogue" : "back"}
+              </Btn>
+              <Btn onClick={() => setExtra(extra + 1)} disabled={extra === EXTRAS.length - 1}>
+                next →
+              </Btn>
+            </>
+          ) : (
+            <>
+              <Btn kind="outline" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
+                ← back
+              </Btn>
+              <Btn onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} disabled={step === STEPS.length - 1}>
+                next →
+              </Btn>
+            </>
+          )}
         </div>
       </div>
     </div>
