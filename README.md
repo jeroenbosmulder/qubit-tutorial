@@ -14,8 +14,8 @@ shareable URL.
 - `apple-touch-icon.png` — home-screen / favicon image (linked from index.html)
 
 **New in this version:** the tutorial is refocused on the stepwise construction
-(steps 1–10). Four of the former bonus steps return as an optional "evidence room"
-reachable only from the epilogue (playgrounds A–D: Bhattacharyya distance, flip
+(steps 1–10). Four of the former bonus steps return in an optional "evidence room" —
+a landing page reachable only from a small panel in the epilogue (playgrounds A–D: Bhattacharyya distance, flip
 counting, the Bures hemisphere, and the density matrix with its spectral
 decomposition) — they never appear in the main navigation. The entanglement bonus
 steps remain out. Two bookends frame the journey:

@@ -1114,43 +1114,17 @@ function StepEpilogue({ openExtra }) {
       <p>
         Read the ladder one last time, left to right: two answers, an interval of bets, a half-disk of beliefs, a disk that remembers orientation, a ball that lets it turn. Each rung was forced by an honest question about an ordinary coin — what may I believe, and what am I throwing away?
       </p>
-      <p>
-        One more thing before the curtain: is all this a nice story, or an actual construction? It is a construction — and the professionals' machinery fits into your picture without leaving a remainder. The <strong>density matrix</strong>, quantum theory's standard bookkeeping object, turns out to be exactly the disk you drew, hiding inside the coordinates (p, w) you have plotted since step 3. Its <strong>spectral decomposition</strong> is geometry you already own: the diameter through a state, the two opposite endpoints as eigen-states, their weights as eigenvalues. And the statisticians' honest rulers — the <strong>Bhattacharyya angle</strong> between two coins, the <strong>Bures distance</strong> between two beliefs — are nothing but arc length on your circle and on the bowl it bends into; they even predict how many flips a duel takes. None of this was smuggled into the ten steps. All of it was waiting inside them.
-      </p>
       {openExtra && (
-        <div style={{ marginTop: 16, padding: "12px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8 }}>
-          <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 8 }}>
-            THE EVIDENCE ROOM — additional material, entirely optional
+        <div style={{ marginTop: 16, padding: "12px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 300px" }}>
+            <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 4 }}>
+              THE EVIDENCE ROOM
+            </div>
+            <p style={{ margin: 0, fontSize: 14 }}>
+              A nice story, or an actual construction? Behind this door, the professionals' machinery — density matrices, spectral decomposition, statistical distances — is shown to fit your picture without remainder. Optional, playable, and heavier than the ten steps.
+            </p>
           </div>
-          <p style={{ margin: "0 0 10px", fontSize: 14 }}>
-            If you want to hold that evidence in your own hands, four playgrounds are waiting. They are heavier than the ten steps — take them in any dose, or not at all.
-          </p>
-          {[
-            { d: "How far apart are two coins? The flat ruler fails; the arc — the Bhattacharyya angle — is the honest one." },
-            { d: "Counting the flips: race two duels with a sequential referee, and find flips ∝ 1/(arc length)²." },
-            { d: "The Bernoulli hemisphere: bend the disk into a bowl — the Bures distance; fair ↔ mystery = π/4." },
-            { d: "Under the hood: the density matrix is the disk, and the spectral decomposition is the state's own diameter." },
-          ].map((c, i) => (
-            <button
-              key={i}
-              onClick={() => openExtra(i)}
-              style={{
-                display: "flex", alignItems: "center", gap: 10, width: "100%",
-                textAlign: "left", cursor: "pointer", background: "#fff",
-                border: `1.5px solid ${C.gridBold}`, borderRadius: 8,
-                padding: "8px 10px", marginBottom: 6, fontFamily: serif,
-                fontSize: 14, color: C.ink,
-              }}
-            >
-              <span style={{
-                flex: "0 0 auto", width: 26, height: 26, borderRadius: "50%",
-                border: `1.5px solid ${C.gridBold}`, background: C.goldSoft,
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                fontFamily: mono, fontSize: 12, fontWeight: 600,
-              }}>{EXTRAS[i].tag}</span>
-              <span><strong>{EXTRAS[i].title}.</strong> {c.d}</span>
-            </button>
-          ))}
+          <Btn onClick={() => openExtra("room")}>enter ⟩</Btn>
         </div>
       )}
       <Notice>
@@ -1665,6 +1639,49 @@ function StepMatrix() {
 }
 
 
+// ================= THE EVIDENCE ROOM (landing page) =================
+function StepEvidenceRoom({ openExtra }) {
+  return (
+    <div>
+      <p>
+        Is the tutorial a nice story, or an actual construction? It is a construction — and this room holds the proof: the professionals' machinery fits into your picture without leaving a remainder. The <strong>density matrix</strong>, quantum theory's standard bookkeeping object, turns out to be exactly the disk you drew, hiding inside the coordinates (p, w) you have plotted since step 3. Its <strong>spectral decomposition</strong> is geometry you already own: the diameter through a state, the two opposite endpoints as eigen-states, their weights as eigenvalues. And the statisticians' honest rulers — the <strong>Bhattacharyya angle</strong> between two coins, the <strong>Bures distance</strong> between two beliefs — are nothing but arc length on your circle and on the bowl it bends into; they even predict how many flips a duel takes. None of this was smuggled into the ten steps. All of it was waiting inside them.
+      </p>
+      <p>
+        To hold that evidence in your own hands, four playgrounds are waiting. They are heavier than the ten steps — take them in any dose, or not at all.
+      </p>
+      {[
+        { d: "How far apart are two coins? The flat ruler fails; the arc — the Bhattacharyya angle — is the honest one." },
+        { d: "Counting the flips: race two duels with a sequential referee, and find flips ∝ 1/(arc length)²." },
+        { d: "The Bernoulli hemisphere: bend the disk into a bowl — the Bures distance; fair ↔ mystery = π/4." },
+        { d: "Under the hood: the density matrix is the disk, and the spectral decomposition is the state's own diameter." },
+      ].map((c, i) => (
+        <button
+          key={i}
+          onClick={() => openExtra(i)}
+          style={{
+            display: "flex", alignItems: "center", gap: 10, width: "100%",
+            textAlign: "left", cursor: "pointer", background: "#fff",
+            border: `1.5px solid ${C.gridBold}`, borderRadius: 8,
+            padding: "8px 10px", marginBottom: 6, fontFamily: serif,
+            fontSize: 14, color: C.ink,
+          }}
+        >
+          <span style={{
+            flex: "0 0 auto", width: 26, height: 26, borderRadius: "50%",
+            border: `1.5px solid ${C.gridBold}`, background: C.goldSoft,
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            fontFamily: mono, fontSize: 12, fontWeight: 600,
+          }}>{EXTRAS[i].tag}</span>
+          <span><strong>{EXTRAS[i].title}.</strong> {c.d}</span>
+        </button>
+      ))}
+      <Notice>
+        Each playground stands on its own, but they read best in order: first the ruler between coins (A), then its price in flips (B), then the ruler between beliefs (C), and finally the machinery under the hood (D). The navigation at the top always brings you back to the main tutorial.
+      </Notice>
+    </div>
+  );
+}
+
 // ================= APP =================
 const STEPS = [
   { title: "Just statistics — at first", comp: StepIntro, tag: "i", shape: "bra", label: "INTRODUCTION" },
@@ -1688,12 +1705,15 @@ const EXTRAS = [
   { title: "The Bernoulli hemisphere", comp: StepBures, tag: "C", label: "PLAYGROUND C" },
   { title: "Under the hood — the matrix", comp: StepMatrix, tag: "D", label: "PLAYGROUND D" },
 ];
+const ROOM = { title: "The evidence room", comp: StepEvidenceRoom, label: "ADDITIONAL MATERIAL" };
 
 function BuildYourOwnQubit() {
   const [step, setStep] = useState(0);
-  const [extra, setExtra] = useState(null); // null = main tutorial; 0..3 = playgrounds
-  const inExtra = extra !== null;
-  const cur = inExtra ? EXTRAS[extra] : STEPS[step];
+  const [extra, setExtra] = useState(null); // null = main; 'room' = evidence room; 0..3 = playgrounds
+  const inRoom = extra === "room";
+  const inPlayground = typeof extra === "number";
+  const inExtra = inRoom || inPlayground;
+  const cur = inRoom ? ROOM : inPlayground ? EXTRAS[extra] : STEPS[step];
   const Comp = cur.comp;
   return (
     <div style={{ minHeight: "100vh", background: C.paper, color: C.ink }}>
@@ -1754,12 +1774,12 @@ function BuildYourOwnQubit() {
         {inExtra && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft }}>
             <button
-              onClick={() => setExtra(null)}
+              onClick={() => setExtra(inRoom ? null : "room")}
               style={{ fontFamily: mono, fontSize: 11, padding: "4px 10px", borderRadius: 12, border: `1.5px solid ${C.gridBold}`, background: "#fff", color: C.ink, cursor: "pointer" }}
             >
-              ⟨ back to the epilogue
+              ⟨ {inRoom ? "back to the epilogue" : "evidence room"}
             </button>
-            ADDITIONAL MATERIAL — THE EVIDENCE ROOM
+            {inPlayground && "ADDITIONAL MATERIAL — THE EVIDENCE ROOM"}
           </div>
         )}
 
@@ -1770,14 +1790,19 @@ function BuildYourOwnQubit() {
           {cur.title}
         </h2>
 
-        <Comp key={inExtra ? `x${extra}` : step} openExtra={inExtra ? undefined : (i) => setExtra(i)} />
+        <Comp key={inExtra ? `x${extra}` : step} openExtra={(i) => setExtra(i)} />
 
         {/* nav */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
-          {inExtra ? (
+          {inRoom ? (
             <>
-              <Btn kind="outline" onClick={() => (extra === 0 ? setExtra(null) : setExtra(extra - 1))}>
-                ← {extra === 0 ? "epilogue" : "back"}
+              <Btn kind="outline" onClick={() => setExtra(null)}>← epilogue</Btn>
+              <Btn onClick={() => setExtra(0)}>next →</Btn>
+            </>
+          ) : inPlayground ? (
+            <>
+              <Btn kind="outline" onClick={() => (extra === 0 ? setExtra("room") : setExtra(extra - 1))}>
+                ← back
               </Btn>
               <Btn onClick={() => setExtra(extra + 1)} disabled={extra === EXTRAS.length - 1}>
                 next →
