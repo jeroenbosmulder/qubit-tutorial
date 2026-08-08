@@ -1583,26 +1583,17 @@ function MatrixBox({ m, highlightRow0 = false, title }) {
 }
 
 function StepMatrix() {
-  // part A: squaring a pure amplitude vector
+  // squaring a pure amplitude vector
   const [alpha, setAlpha] = useState(35);
   const [flipped, setFlipped] = useState(false);
   const sgn = flipped ? -1 : 1;
   const a = sgn * Math.cos((alpha * Math.PI) / 180);
   const b = sgn * Math.sin((alpha * Math.PI) / 180);
   const Mpure = [[a * a, a * b], [a * b, b * b]];
-  // part C: a mixed state and its spectral diameter
-  const [tt, setTt] = useState(0.3);
-  const [beta, setBeta] = useState(40);
-  const br = (beta * Math.PI) / 180;
-  const pp = 0.5 + tt * Math.cos(br);
-  const ww = tt * Math.sin(br);
-  const Mmix = [[pp, ww], [ww, 1 - pp]];
-  const Np = [0.5 + 0.5 * Math.cos(br), 0.5 * Math.sin(br)];
-  const Nm = [0.5 - 0.5 * Math.cos(br), -0.5 * Math.sin(br)];
   return (
     <div>
       <p>
-        A last look inside the machinery, for the mathematically curious — three secrets the pictures have been keeping. <strong>First, the maps.</strong> The whole tutorial used a pipeline: unit circle → Bernoulli circle → interval. The last part is the naive one: read the odds, p = a² and 1−p = b² — squaring each coordinate <em>separately</em>. But that map is built from degree-2 products, and there exist exactly <em>three</em> such products of (a, b): a², ab, and b². All three fit in one master object — the full multiplication table of ψ:
+        A look inside the machinery, for the mathematically curious — two secrets the pictures have been keeping. <strong>First, the maps.</strong> The whole tutorial used a pipeline: unit circle → Bernoulli circle → interval. The last part is the naive one: read the odds, p = a² and 1−p = b² — squaring each coordinate <em>separately</em>. But that map is built from degree-2 products, and there exist exactly <em>three</em> such products of (a, b): a², ab, and b². All three fit in one master object — the full multiplication table of ψ:
       </p>
       <Slider value={alpha} min={0} max={360} step={1} onChange={setAlpha}
         label="α — the amplitude vector" readout={`ψ = (${a.toFixed(2)}, ${b.toFixed(2)})`} />
@@ -1616,8 +1607,69 @@ function StepMatrix() {
       <p>
         <strong>Second, the disk was matrix-space all along.</strong> Mix beliefs, and the tables average entry by entry. The result is always a symmetric table whose diagonal sums to 1 — so it carries exactly two free numbers, its top row (p, w). Your Bernoulli disk <em>is</em> the space of these tables. Physicists call them <strong>density matrices</strong>. The tutorial has been doing matrix arithmetic in disguise: mixing = averaging tables (which is linear, hence the chords); superposition = adding vectors <em>before</em> squaring (hence a different floor).
       </p>
+      <Notice>
+        The <strong>multiplication table</strong> builds the circle and explains the missing sign; the <strong>density matrix</strong> is the disk, hiding inside the plain coordinates (p, w) you have plotted since step 3. Everything in this tutorial was tensor algebra, dressed up as coins. But the table keeps one more secret — it chooses its own diameter — and that secret has earned a playground of its own: the next one.
+      </Notice>
+    </div>
+  );
+}
+
+// ============ PLAYGROUND E : THE STATE'S OWN AXES — SPECTRAL MEETS PCA ============
+function CloudPlot({ beta, tt }) {
+  // deterministic gaussian-ish cloud via Box–Muller on hashed uniforms
+  const pts = useMemo(() => {
+    const fract = (x) => x - Math.floor(x);
+    const out = [];
+    for (let i = 0; i < 46; i++) {
+      const u1 = Math.max(1e-4, fract(Math.sin((i + 1) * 127.1) * 43758.5453));
+      const u2 = fract(Math.sin((i + 1) * 311.7) * 26451.2937);
+      const r = Math.sqrt(-2 * Math.log(u1));
+      out.push([r * Math.cos(2 * Math.PI * u2), r * Math.sin(2 * Math.PI * u2)]);
+    }
+    return out;
+  }, []);
+  const br = (beta * Math.PI) / 180;
+  const sP = 52 * Math.sqrt(2 * (0.5 + tt));   // spread along the major axis
+  const sM = 52 * Math.sqrt(2 * (0.5 - tt));   // spread along the minor axis
+  const cx = 160, cy = 100;
+  const rot = ([x, y]) => [
+    cx + (x * sP * Math.cos(br) - y * sM * Math.sin(br)),
+    cy - (x * sP * Math.sin(br) + y * sM * Math.cos(br)),
+  ];
+  const axis = (len, ang, color) => {
+    const dx = len * Math.cos(ang), dy = len * Math.sin(ang);
+    return <line x1={cx - dx} y1={cy + dy} x2={cx + dx} y2={cy - dy} stroke={color} strokeWidth={2.4} />;
+  };
+  return (
+    <svg viewBox="0 0 320 200" style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+      {[40, 80, 120, 160].map((y) => <line key={y} x1={0} y1={y} x2={320} y2={y} stroke={C.grid} strokeWidth={1} />)}
+      {[40, 80, 120, 160, 200, 240, 280].map((x) => <line key={x} x1={x} y1={0} x2={x} y2={200} stroke={C.grid} strokeWidth={1} />)}
+      {pts.map((p, i) => {
+        const [x, y] = rot(p);
+        return <circle key={i} cx={x} cy={y} r={3} fill={C.inkSoft} opacity={0.55} />;
+      })}
+      {axis(1.55 * sP, br, C.gold)}
+      {axis(1.55 * sM, br + Math.PI / 2, C.teal)}
+      <text x={8} y={16} fontFamily={mono} fontSize="9.5" letterSpacing="1" fill={C.inkSoft}>THE SAME MOVE ON A DATA CLOUD — PCA</text>
+      <text x={8} y={192} fontFamily={mono} fontSize="9.5" fill={C.gold}>major axis ∝ √λ₊</text>
+      <text x={312} y={192} textAnchor="end" fontFamily={mono} fontSize="9.5" fill={C.teal}>minor axis ∝ √λ₋</text>
+    </svg>
+  );
+}
+
+function StepSpectral() {
+  const [tt, setTt] = useState(0.3);
+  const [beta, setBeta] = useState(40);
+  const br = (beta * Math.PI) / 180;
+  const pp = 0.5 + tt * Math.cos(br);
+  const ww = tt * Math.sin(br);
+  const Mmix = [[pp, ww], [ww, 1 - pp]];
+  const Np = [0.5 + 0.5 * Math.cos(br), 0.5 * Math.sin(br)];
+  const Nm = [0.5 - 0.5 * Math.cos(br), -0.5 * Math.sin(br)];
+  return (
+    <div>
       <p>
-        <strong>Third, every table chooses its own diameter.</strong> The mixer showed that many different chords pass through one interior point — many ensembles, one belief. But the matrix breaks the tie: its <strong>spectral decomposition</strong> selects one canonical splitting — the diameter through the state and the center. The endpoints are the eigen-states (the only decomposition into two <em>perpendicular</em>, antipodal coins), and the weights are the eigenvalues λ± = ½ ± t — exactly the λ that lifted this same diameter into the hemisphere.
+        Step 5's mixer left a genuine ambiguity: many different chords pass through one interior point — many ensembles, one belief. The matrix breaks the tie. Its <strong>spectral decomposition</strong> selects one canonical splitting: the <strong>diameter through the state and the center</strong>. The endpoints are the <strong>eigen-states</strong> — the only decomposition into two <em>perpendicular</em>, antipodal coins — and the weights are the <strong>eigenvalues</strong> λ± = ½ ± t, exactly the λ that lifted this same diameter into the hemisphere of playground C. Steer the state and watch its matrix, its eigenvalues, and its own diameter move together:
       </p>
       <Slider value={tt} min={0} max={0.5} step={0.01} onChange={setTt}
         label="t — how mixed (distance from center)" readout={`λ₊=${(0.5 + tt).toFixed(2)}  λ₋=${(0.5 - tt).toFixed(2)}`} />
@@ -1631,8 +1683,15 @@ function StepMatrix() {
         </div>
       </div>
       <StatePlot showLower showFullCircle labels={false} segment={[Np, Nm]} point={[pp, ww]} />
+      <p>
+        Now the <strong>quantum dictionary</strong>, and it is shorter than its reputation. In quantum speech, a question — a diameter, step 8 — is called an <em>observable</em>. Its <strong>eigen-states</strong> are the diameter's two endpoints: the only states that answer that question with certainty. Its <strong>eigenvalues</strong> are the <em>measured values</em> — the numbers you attach to the two answers, say +1 for one end and −1 for the other; every measurement outcome is such an eigenvalue. The state's own matrix ρ uses the same word differently: <em>its</em> eigenvalues are the <strong>weights</strong> λ± with which the two outcomes appear when you ask the state its own diameter. One geometric object, two readings: the question's matrix stores the <em>values</em> on the endpoints, the state's matrix stores the <em>probabilities</em> over them. Whenever a physicist says "eigen-something," picture a diameter with its two endpoints — nothing more.
+      </p>
+      <p>
+        And if this "find the object's own axes" move feels familiar, it should — data science performs it daily under the name <strong>PCA</strong>, principal component analysis. A cloud of data points has a covariance table: second moments, exactly the kind of table this room is built from. PCA diagonalizes it: the eigenvectors are the cloud's <em>own axes</em>, and the eigenvalues are the spread along each. The density matrix is such a table for a belief, so its spectral decomposition <em>is</em> PCA applied to a belief: the state's diameter is its principal axis, and λ± say how the belief's weight distributes along it. The sliders above steer this cloud too — same t, same β:
+      </p>
+      <CloudPlot beta={beta} tt={tt} />
       <Notice>
-        So the three parts close together. The <strong>multiplication table</strong> builds the circle and explains the missing sign. The <strong>density matrix</strong> is the disk, hiding inside the plain coordinates (p, w) you have plotted since step 3. The <strong>spectral decomposition</strong> is geometry you already own: the diameter through the state, endpoints as eigen-states, λ± = ½±t as weights. Ensemble ambiguity is real (many chords through one point), but every state carries one distinguished chord: its own diameter — the measurement it answers most decisively, the axis of its hemisphere lift, and now the eigen-basis of its matrix. Three views, one object. Everything in this tutorial was tensor algebra, dressed up as coins.
+        Ensemble ambiguity is real — many chords through one point — but every state carries one distinguished chord: its own diameter. It is the measurement the state answers most decisively (step 8), the axis of its hemisphere lift (playground C), the eigen-basis of its matrix, and the principal axis of its cloud. Spectral decomposition is not exotic quantum machinery; it is the oldest move in data analysis — let the object choose its own axes — applied to a belief instead of a data set.
       </Notice>
     </div>
   );
@@ -1647,13 +1706,14 @@ function StepEvidenceRoom({ openExtra }) {
         Is the tutorial a nice story, or an actual construction? It is a construction — and this room holds the proof: the professionals' machinery fits into your picture without leaving a remainder. The <strong>density matrix</strong>, quantum theory's standard bookkeeping object, turns out to be exactly the disk you drew, hiding inside the coordinates (p, w) you have plotted since step 3. Its <strong>spectral decomposition</strong> is geometry you already own: the diameter through a state, the two opposite endpoints as eigen-states, their weights as eigenvalues. And the statisticians' honest rulers — the <strong>Bhattacharyya angle</strong> between two coins, the <strong>Bures distance</strong> between two beliefs — are nothing but arc length on your circle and on the bowl it bends into; they even predict how many flips a duel takes. None of this was smuggled into the ten steps. All of it was waiting inside them.
       </p>
       <p>
-        To hold that evidence in your own hands, four playgrounds are waiting. They are heavier than the ten steps — take them in any dose, or not at all.
+        To hold that evidence in your own hands, five playgrounds are waiting. They are heavier than the ten steps — take them in any dose, or not at all.
       </p>
       {[
         { d: "How far apart are two coins? The flat ruler fails; the arc — the Bhattacharyya angle — is the honest one." },
         { d: "Counting the flips: race two duels with a sequential referee, and find flips ∝ 1/(arc length)²." },
         { d: "The Bernoulli hemisphere: bend the disk into a bowl — the Bures distance; fair ↔ mystery = π/4." },
-        { d: "Under the hood: the density matrix is the disk, and the spectral decomposition is the state's own diameter." },
+        { d: "Under the hood: the multiplication table builds the circle, and the density matrix is the disk." },
+        { d: "Spectral decomposition in pictures: eigen-states, eigenvalues as measured values and weights — and why it is PCA for beliefs." },
       ].map((c, i) => (
         <button
           key={i}
@@ -1676,7 +1736,7 @@ function StepEvidenceRoom({ openExtra }) {
         </button>
       ))}
       <Notice>
-        Each playground stands on its own, but they read best in order: first the ruler between coins (A), then its price in flips (B), then the ruler between beliefs (C), and finally the machinery under the hood (D). The navigation at the top always brings you back to the main tutorial.
+        Each playground stands on its own, but they read best in order: first the ruler between coins (A), then its price in flips (B), then the ruler between beliefs (C), then the machinery under the hood (D), and finally the state's own axes (E) — where the quantum words <em>eigen-state</em> and <em>eigenvalue</em> turn out to be old acquaintances from data analysis. The navigation at the top always brings you back to the main tutorial.
       </Notice>
     </div>
   );
@@ -1704,6 +1764,7 @@ const EXTRAS = [
   { title: "Counting the flips", comp: StepFlipCount, tag: "B", label: "PLAYGROUND B" },
   { title: "The Bernoulli hemisphere", comp: StepBures, tag: "C", label: "PLAYGROUND C" },
   { title: "Under the hood — the matrix", comp: StepMatrix, tag: "D", label: "PLAYGROUND D" },
+  { title: "The state's own axes", comp: StepSpectral, tag: "E", label: "PLAYGROUND E" },
 ];
 const ROOM = { title: "The evidence room", comp: StepEvidenceRoom, label: "ADDITIONAL MATERIAL" };
 
