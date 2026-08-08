@@ -14,7 +14,11 @@ shareable URL.
 - `apple-touch-icon.png` — home-screen / favicon image (linked from index.html)
 
 **New in this version:** the tutorial is refocused on the stepwise construction
-(steps 1–10); the bonus steps are removed. Two bookends frame the journey:
+(steps 1–10). Four of the former bonus steps return as an optional "evidence room"
+reachable only from the epilogue (playgrounds A–D: Bhattacharyya distance, flip
+counting, the Bures hemisphere, and the density matrix with its spectral
+decomposition) — they never appear in the main navigation. The entanglement bonus
+steps remain out. Two bookends frame the journey:
 
 - an **introduction**, "Just statistics — at first" — the promise that nothing quantum
   will be added, only detail kept (Schrödinger's cat may stay asleep in its box);
