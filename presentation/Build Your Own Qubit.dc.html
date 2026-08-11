@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #0B1B3A; }
+    a { color: #EE7203; } a:hover { color: #00A1E4; }
+  </style>
+</helmet>
+<x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1920" height="1080" hint-size="100%,100%">
+
+  <section data-label="Title" data-speaker-notes="Welcome. Promise of the talk: starting from an ordinary coin flip, we will build — step by step, no equations needed — the data structure at the heart of a quantum computer." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
+    <div style="width:130px; height:130px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #FFAE5E, #EE7203); border:3px solid #FFFFFF; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono', monospace; font-size:56px; font-weight:600; color:#FFFFFF;">H</div>
+    <h1 style="font-size:110px; font-weight:700; margin:0; letter-spacing:-2px; text-align:center;"><span>Build your own qubit</span></h1>
+    <p style="font-family:'IBM Plex Mono', monospace; font-size:30px; color:#AFE0F7; margin:0; text-align:center;"><span>from a coin flip to the quantum ball — no equations required</span></p>
+  </section>
+
+  <section data-label="Classical certainty" data-speaker-notes="Ground everyone in the familiar: classical measurement reports a definite fact. Heads or tails, never both. Two possible answers, nothing in between." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>01 · THE CLASSICAL WORLD</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>In the classical world, every answer is definite</span></h2>
+    </div>
+    <div style="display:flex; gap:80px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:30px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Flip a coin and look. It is heads, or it is tails — one or the other, never both at once.</span></p>
+        <p style="margin:0;"><span>Look again tomorrow: the answer stands. Measuring simply reports a fact that was already there.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Two possible answers. Nothing in between. This is the world of the bit.</span></p>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; gap:60px;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:24px;">
+          <div style="width:220px; height:220px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #FFAE5E, #EE7203); border:4px solid #002157; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono', monospace; font-size:88px; font-weight:600; color:#FFFFFF;">H</div>
+          <div style="font-family:'IBM Plex Mono', monospace; font-size:26px; color:#5C6E8F;"><span>heads · 1</span></div>
+        </div>
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:40px; color:#5C6E8F;"><span>or</span></div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:24px;">
+          <div style="width:220px; height:220px; border-radius:50%; background:#FFFFFF; border:4px solid #AFE0F7; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono', monospace; font-size:88px; font-weight:600; color:#002157;">T</div>
+          <div style="font-family:'IBM Plex Mono', monospace; font-size:26px; color:#5C6E8F;"><span>tails · 0</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Probabilities" data-speaker-notes="At very small scales the honest statement before measuring is a bet: heads with probability p, tails with 1 minus p. Every belief about the coin is one point on the interval from 0 to 1." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>02 · PROBABILITY</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>At small scales, answers become probabilities</span></h2>
+    </div>
+    <div style="display:flex; gap:80px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:30px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Zoom in far enough and certainty crumbles. Before you look, the honest statement is a bet:</span></p>
+        <p style="margin:0;"><span>heads with probability </span><strong>p</strong><span>, tails with the remaining </span><strong>1&nbsp;−&nbsp;p</strong><span>.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Every possible belief about the coin becomes a single point on the interval [0, 1].</span></p>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:30px;">
+        <svg viewBox="0 0 900 320" style="width:100%; display:block;">
+          <line x1="100" y1="180" x2="800" y2="180" stroke="#002157" stroke-width="4"></line>
+          <line x1="100" y1="164" x2="100" y2="196" stroke="#002157" stroke-width="4"></line>
+          <line x1="800" y1="164" x2="800" y2="196" stroke="#002157" stroke-width="4"></line>
+          <line x1="450" y1="168" x2="450" y2="192" stroke="#5C6E8F" stroke-width="3"></line>
+          <circle cx="590" cy="180" r="13" fill="#EE7203" stroke="#002157" stroke-width="3"></circle>
+          <line x1="590" y1="167" x2="590" y2="118" stroke="#EE7203" stroke-width="2" stroke-dasharray="5 5"></line>
+          <text x="590" y="96" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#EE7203">your coin · p = 0.7</text>
+          <text x="60" y="240" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="25" fill="#5C6E8F">0 · always tails</text>
+          <text x="450" y="240" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="25" fill="#5C6E8F">½</text>
+          <text x="840" y="240" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="25" fill="#5C6E8F">1 · always heads</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Two uncertainties" data-speaker-notes="Key distinction. Fair coin: randomness is in the coin, flips never remove it — statistical. Mystery deterministic coin: already decided, one peek cures your ignorance — systematic. Before the first flip both are 50/50: the interval collapses them to the same point. Tease: a quantum coin is neither — its answer is not decided upfront at all, only at the moment you look. That returns in the bonus." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>03 · TWO KINDS OF NOT-KNOWING</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>One number hides where the uncertainty comes from</span></h2>
+    </div>
+    <div style="display:flex; gap:50px; margin-top:56px;">
+      <div style="flex:1; border:2px solid #00A1E4; border-radius:14px; padding:44px 48px; display:flex; flex-direction:column; gap:22px;">
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:2px; color:#00A1E4; font-weight:600;"><span>THE FAIR COIN</span></div>
+        <p style="margin:0; font-size:29px; line-height:1.5;"><span>Genuinely random. Every flip is fresh chance — flip it forever and the 50/50 never budges.</span></p>
+        <p style="margin:0; font-size:29px; line-height:1.5; color:#5C6E8F;"><strong style="color:#002157;">Statistical uncertainty</strong><span> — it is there to stay.</span></p>
+      </div>
+      <div style="flex:1; border:2px solid #F71D25; border-radius:14px; padding:44px 48px; display:flex; flex-direction:column; gap:22px;">
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:2px; color:#F71D25; font-weight:600;"><span>THE MYSTERY COIN</span></div>
+        <p style="margin:0; font-size:29px; line-height:1.5;"><span>Already decided — it always lands the same side. You just don't know which. One peek and you know everything.</span></p>
+        <p style="margin:0; font-size:29px; line-height:1.5; color:#5C6E8F;"><strong style="color:#002157;">Systematic uncertainty</strong><span> — you can learn it away.</span></p>
+      </div>
+    </div>
+    <div style="margin-top:52px; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); padding:24px 40px; display:flex; align-items:center; gap:50px;">
+      <svg viewBox="0 0 900 200" style="width:56%; display:block;">
+        <line x1="100" y1="130" x2="800" y2="130" stroke="#002157" stroke-width="4"></line>
+        <line x1="100" y1="114" x2="100" y2="146" stroke="#002157" stroke-width="4"></line>
+        <line x1="800" y1="114" x2="800" y2="146" stroke="#002157" stroke-width="4"></line>
+        <circle cx="450" cy="130" r="14" fill="#EE7203" stroke="#002157" stroke-width="3"></circle>
+        <line x1="360" y1="66" x2="437" y2="120" stroke="#00A1E4" stroke-width="3"></line>
+        <line x1="540" y1="66" x2="463" y2="120" stroke="#F71D25" stroke-width="3"></line>
+        <text x="345" y="48" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#00A1E4">fair coin</text>
+        <text x="560" y="48" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#F71D25">mystery coin</text>
+        <text x="450" y="184" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="25" fill="#5C6E8F">both sit at exactly ½</text>
+      </svg>
+      <p style="margin:0; flex:1; font-size:30px; line-height:1.5;"><span>Before the first flip, both coins are 50/50. On the interval they are the </span><em>same point</em><span> — one number cannot tell wisdom-to-come from permanent chance.</span></p>
+    </div>
+    <p style="margin:26px 0 0; font-size:26px; line-height:1.5; color:#5C6E8F;"><span>Spoiler: a quantum coin is </span><em>neither</em><span> — nothing is written down before you look. Hold that thought for the bonus.</span></p>
+  </section>
+
+  <section data-label="Bernoulli semicircle" data-speaker-notes="Fix: score every coin with TWO numbers — average outcome, and spread (how much its flips wobble). Definite coins land exactly on an arc: the upper half of the Bernoulli circle. The averaged mystery coin drops to the interior — finally distinguishable from the fair coin." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>04 · THE BERNOULLI CIRCLE</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>A second number separates the two coins</span></h2>
+    </div>
+    <div style="display:flex; gap:70px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:28px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Give every coin two scores: its </span><strong>average</strong><span> outcome, and its </span><strong>spread</strong><span> — how much its flips wobble.</span></p>
+        <p style="margin:0;"><span>The fair coin wobbles maximally. The mystery coin, averaged over both its possibilities, doesn't wobble at all.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Plot average across, spread up: every definite coin lands on one arc — the upper half of the </span><em>Bernoulli circle</em><span>.</span></p>
+        <sc-if value="{{ showFormulas }}" hint-placeholder-val="{{ true }}">
+          <div style="align-self:flex-start; font-family:'IBM Plex Mono', monospace; font-size:25px; padding:14px 24px; border:1.5px solid #AFE0F7; border-radius:8px; background:#FFF4E8;"><span>spread = √(p(1−p)) → a circle of radius ½</span></div>
+        </sc-if>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+        <svg viewBox="0 0 900 520" style="width:100%; display:block;">
+          <line x1="90" y1="430" x2="810" y2="430" stroke="#002157" stroke-width="3"></line>
+          <path d="M 150 430 A 300 300 0 0 1 750 430" fill="none" stroke="#EE7203" stroke-width="5" stroke-dasharray="10 9"></path>
+          <text x="810" y="402" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">average →</text>
+          <text x="130" y="150" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">spread ↑</text>
+          <circle cx="150" cy="430" r="9" fill="#002157"></circle>
+          <circle cx="750" cy="430" r="9" fill="#002157"></circle>
+          <circle cx="450" cy="130" r="11" fill="#00A1E4" stroke="#002157" stroke-width="3"></circle>
+          <circle cx="450" cy="430" r="11" fill="#F71D25" stroke="#002157" stroke-width="3"></circle>
+          <text x="150" y="474" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">always T</text>
+          <text x="750" y="474" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">always H</text>
+          <text x="450" y="98" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#00A1E4">fair coin (½, ½)</text>
+          <text x="450" y="480" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#F71D25">mystery coin (½, 0)</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Mixed beliefs" data-speaker-notes="Unsure which coin you hold? Your belief is a weighted blend and slides along the chord between the candidates. Blends reach every interior point and never escape the circle. Rim = permanent chance; depth into the interior = the curable, learnable part." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>05 · MIXED BELIEFS</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Mixed beliefs fill the half-disk</span></h2>
+    </div>
+    <div style="display:flex; gap:70px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:28px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Not sure which coin is in your hand? Your belief is a blend — and it slides along the straight line between the candidates.</span></p>
+        <p style="margin:0;"><span>Blends reach </span><em>every</em><span> point inside the arc, and none can escape it.</span></p>
+        <p style="margin:0;"><strong style="color:#EE7203;">On the rim:</strong><span> coins you know exactly — chance that stays.</span></p>
+        <p style="margin:0;"><strong style="color:#EE7203;">Deeper inside:</strong><span> doubt about the coin itself — flips can teach it away. Dead center: total ignorance.</span></p>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+        <svg viewBox="0 0 900 520" style="width:100%; display:block;">
+          <path d="M 150 430 A 300 300 0 0 1 750 430 Z" fill="#FDE9D3" fill-opacity="0.55"></path>
+          <line x1="90" y1="430" x2="810" y2="430" stroke="#002157" stroke-width="3"></line>
+          <path d="M 150 430 A 300 300 0 0 1 750 430" fill="none" stroke="#EE7203" stroke-width="5" stroke-dasharray="10 9"></path>
+          <line x1="690" y1="250" x2="240" y2="216" stroke="#5C6E8F" stroke-width="3"></line>
+          <circle cx="690" cy="250" r="9" fill="#00A1E4" stroke="#002157" stroke-width="2.5"></circle>
+          <circle cx="240" cy="216" r="9" fill="#F71D25" stroke="#002157" stroke-width="2.5"></circle>
+          <circle cx="488" cy="235" r="12" fill="#EE7203" stroke="#002157" stroke-width="3"></circle>
+          <circle cx="450" cy="430" r="8" fill="#002157"></circle>
+          <text x="726" y="270" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" font-weight="600" fill="#00A1E4">candidate 1</text>
+          <text x="204" y="240" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="24" font-weight="600" fill="#F71D25">candidate 2</text>
+          <text x="495" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="25" font-weight="600" fill="#EE7203">your blend</text>
+          <text x="450" y="478" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">total ignorance (½, 0)</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="The hidden twin" data-speaker-notes="The upper half is exactly half of something. Each point P has a mirror twin P-prime below: identical betting odds, so the coin flip never separates them. But walking T to state to H circles one way above the line and the other way below — orientation. Keep the orientation and the twins are distinct: the full Bernoulli circle." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>06 · THE HIDDEN TWIN</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Every point has a hidden twin</span></h2>
+    </div>
+    <div style="display:flex; gap:70px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:28px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>A half-circle is suspicious — half of </span><em>what</em><span>?</span></p>
+        <p style="margin:0;"><span>Mirror any point P below the line: the twin P′ gives </span><strong>exactly the same odds</strong><span>. No coin flip will ever tell them apart.</span></p>
+        <p style="margin:0;"><span>But the triangle T–state–H circles </span><em>one way</em><span> above the line and </span><em>the other way</em><span> below. Same lengths, opposite </span><strong>orientation</strong><span>.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Keep the orientation and the twins become distinct: the full Bernoulli circle.</span></p>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+        <svg viewBox="0 0 900 600" style="width:96%; display:block;">
+          <line x1="140" y1="300" x2="760" y2="300" stroke="#5C6E8F" stroke-width="2.5" stroke-dasharray="6 6"></line>
+          <path d="M 220 300 A 230 230 0 0 1 680 300" fill="none" stroke="#EE7203" stroke-width="4.5" stroke-dasharray="9 8"></path>
+          <path d="M 220 300 A 230 230 0 0 0 680 300" fill="none" stroke="#F71D25" stroke-width="4.5" stroke-dasharray="9 8"></path>
+          <line x1="220" y1="300" x2="598" y2="124" stroke="#EE7203" stroke-width="3"></line>
+          <line x1="680" y1="300" x2="598" y2="124" stroke="#00A1E4" stroke-width="3"></line>
+          <line x1="220" y1="300" x2="598" y2="476" stroke="#EE7203" stroke-width="2.5" stroke-dasharray="6 5"></line>
+          <line x1="680" y1="300" x2="598" y2="476" stroke="#00A1E4" stroke-width="2.5" stroke-dasharray="6 5"></line>
+          <text x="499" y="256" text-anchor="middle" font-size="46" fill="#EE7203">↺</text>
+          <text x="499" y="386" text-anchor="middle" font-size="46" fill="#F71D25">↻</text>
+          <circle cx="220" cy="300" r="9" fill="#002157"></circle>
+          <circle cx="680" cy="300" r="9" fill="#002157"></circle>
+          <text x="196" y="342" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">T</text>
+          <text x="704" y="342" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">H</text>
+          <circle cx="598" cy="124" r="11" fill="#EE7203" stroke="#002157" stroke-width="3"></circle>
+          <circle cx="598" cy="476" r="11" fill="#FFFFFF" stroke="#002157" stroke-width="3"></circle>
+          <text x="630" y="112" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#002157">P</text>
+          <text x="622" y="524" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#002157">P′ · the twin</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="The Bloch ball" data-speaker-notes="Quantum's move: the two-position switch (above/below) becomes a continuous dial phi. Spin each point out of the page: at every set of odds a wheel of twins stands on the T-H axle, and the circle inflates into a ball — the Bloch ball. Surface = definite states, interior = mixed beliefs, center = total ignorance." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>07 · THE BLOCH BALL</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>The switch becomes a dial, the circle becomes a ball</span></h2>
+    </div>
+    <div style="display:flex; gap:70px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:28px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>The twin was a two-position switch: above or below the line.</span></p>
+        <p style="margin:0;"><span>Quantum replaces the switch with a </span><strong>continuous dial φ</strong><span>. At every set of odds, a whole wheel of twins now stands upright on the T–H axle.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>The circle inflates into a ball — the </span><em>Bloch ball</em><span>. Definite states on the glassy surface, mixed beliefs inside, total ignorance at the center.</span></p>
+        <sc-if value="{{ showFormulas }}" hint-placeholder-val="{{ true }}">
+          <div style="align-self:flex-start; font-family:'IBM Plex Mono', monospace; font-size:25px; padding:14px 24px; border:1.5px solid #AFE0F7; border-radius:8px; background:#FFF4E8;"><span>the sign ± grows into an angle φ ∈ [0°, 360°)</span></div>
+        </sc-if>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+        <svg viewBox="0 0 900 600" style="width:96%; display:block;">
+          <defs>
+            <radialGradient id="ballshade" cx="0.36" cy="0.3" r="0.95">
+              <stop offset="0%" stop-color="#FFFFFF"></stop>
+              <stop offset="45%" stop-color="#EDF7FD"></stop>
+              <stop offset="80%" stop-color="#CFEAF9"></stop>
+              <stop offset="100%" stop-color="#AFD9F2"></stop>
+            </radialGradient>
+          </defs>
+          <circle cx="450" cy="300" r="240" fill="url(#ballshade)" stroke="#AFE0F7" stroke-width="2.5"></circle>
+          <ellipse cx="450" cy="300" rx="240" ry="62" fill="none" stroke="#EE7203" stroke-width="3" stroke-dasharray="9 8"></ellipse>
+          <line x1="210" y1="300" x2="690" y2="300" stroke="#5C6E8F" stroke-width="2" stroke-dasharray="4 5"></line>
+          <ellipse cx="522" cy="300" rx="52" ry="229" fill="none" stroke="#00A1E4" stroke-width="3.5"></ellipse>
+          <circle cx="210" cy="300" r="8" fill="#002157"></circle>
+          <circle cx="690" cy="300" r="8" fill="#002157"></circle>
+          <text x="185" y="306" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="24" fill="#002157">always T</text>
+          <text x="715" y="306" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" fill="#002157">always H</text>
+          <line x1="450" y1="300" x2="559" y2="140" stroke="#002157" stroke-width="2.5"></line>
+          <circle cx="559" cy="140" r="12" fill="#EE7203" stroke="#002157" stroke-width="3"></circle>
+          <text x="588" y="130" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#002157">state</text>
+          <text x="595" y="62" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="25" font-weight="600" fill="#00A1E4">φ spins the wheel</text>
+          <text x="180" y="540" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" fill="#EE7203">gold: your Bernoulli circle, lying flat</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Why it matters" data-speaker-notes="Recap the whole construction in one strip. A qubit still answers with a single bit — but between questions it lives in this vastly richer structure, and quantum computers do their work in that room." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>08 · WHY IT MATTERS</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>A richer data structure is the power of quantum</span></h2>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; gap:34px; margin-top:80px;">
+      <div style="width:330px; display:flex; flex-direction:column; align-items:center; gap:20px; border:2px solid #AFE0F7; border-radius:14px; padding:34px 20px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px);">
+        <svg viewBox="0 0 200 160" style="width:200px; display:block;">
+          <circle cx="60" cy="80" r="15" fill="#002157"></circle>
+          <circle cx="140" cy="80" r="15" fill="#EE7203"></circle>
+        </svg>
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; color:#002157; text-align:center;"><span>bit — two answers</span></div>
+      </div>
+      <div style="font-size:44px; color:#5C6E8F;"><span>→</span></div>
+      <div style="width:330px; display:flex; flex-direction:column; align-items:center; gap:20px; border:2px solid #AFE0F7; border-radius:14px; padding:34px 20px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px);">
+        <svg viewBox="0 0 200 160" style="width:200px; display:block;">
+          <line x1="30" y1="80" x2="170" y2="80" stroke="#002157" stroke-width="5"></line>
+          <circle cx="115" cy="80" r="11" fill="#EE7203" stroke="#002157" stroke-width="2.5"></circle>
+        </svg>
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; color:#002157; text-align:center;"><span>probability — an interval</span></div>
+      </div>
+      <div style="font-size:44px; color:#5C6E8F;"><span>→</span></div>
+      <div style="width:330px; display:flex; flex-direction:column; align-items:center; gap:20px; border:2px solid #AFE0F7; border-radius:14px; padding:34px 20px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px);">
+        <svg viewBox="0 0 200 160" style="width:200px; display:block;">
+          <circle cx="100" cy="80" r="58" fill="none" stroke="#EE7203" stroke-width="4" stroke-dasharray="8 7"></circle>
+          <circle cx="100" cy="22" r="9" fill="#EE7203"></circle>
+          <circle cx="100" cy="138" r="9" fill="#FFFFFF" stroke="#002157" stroke-width="2.5"></circle>
+        </svg>
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; color:#002157; text-align:center;"><span>a sign — the full circle</span></div>
+      </div>
+      <div style="font-size:44px; color:#5C6E8F;"><span>→</span></div>
+      <div style="width:330px; display:flex; flex-direction:column; align-items:center; gap:20px; border:2px solid #EE7203; border-radius:14px; padding:34px 20px; background:#FFF4E8;">
+        <svg viewBox="0 0 200 160" style="width:200px; display:block;">
+          <defs>
+            <radialGradient id="miniball" cx="0.36" cy="0.3" r="0.95">
+              <stop offset="0%" stop-color="#FFFFFF"></stop>
+              <stop offset="60%" stop-color="#CFEAF9"></stop>
+              <stop offset="100%" stop-color="#AFD9F2"></stop>
+            </radialGradient>
+          </defs>
+          <circle cx="100" cy="80" r="58" fill="url(#miniball)" stroke="#AFE0F7" stroke-width="2.5"></circle>
+          <ellipse cx="100" cy="80" rx="58" ry="16" fill="none" stroke="#EE7203" stroke-width="3" stroke-dasharray="6 5"></ellipse>
+        </svg>
+        <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; font-weight:600; color:#002157; text-align:center;"><span>a dial — the quantum ball</span></div>
+      </div>
+    </div>
+    <p style="margin:70px auto 0; max-width:1300px; font-size:32px; line-height:1.55; text-align:center;"><span>A qubit still answers with a single bit. But between questions it carries, blends, and steers information in this whole ball of states — and that is the room quantum computers work in.</span></p>
+    <p style="margin:24px auto 0; max-width:1300px; font-size:28px; line-height:1.55; text-align:center; color:#5C6E8F;"><span>And richer data comes with richer handles: a bit you can only swap — a qubit you can rotate, any angle, around any axis. More on that in the bonus.</span></p>
+  </section>
+
+  <sc-if value="{{ includeBonus }}" hint-placeholder-val="{{ true }}">
+
+  <section data-label="Bonus divider" data-speaker-notes="Transition to the bonus material: what measuring really is, why it can be rotated, and how it all reduces to distances between beliefs." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
+    <div style="font-family:'IBM Plex Mono', monospace; font-size:26px; letter-spacing:4px; color:#EE7203; font-weight:600;"><span>BONUS</span></div>
+    <h2 style="font-size:88px; font-weight:700; margin:0; letter-spacing:-1.5px; text-align:center;"><span>What makes it really quantum</span></h2>
+    <p style="font-family:'IBM Plex Mono', monospace; font-size:28px; color:#AFE0F7; margin:0; text-align:center;"><span>measuring, in three moves: ask · rotate · compare</span></p>
+  </section>
+
+  <section data-label="Measuring is asking" data-speaker-notes="The rule of the game: you may never ask a state where it is. You pick a diameter and ask 'which end?'. The odds are pure geometry: the chance of an answer is the squared distance to the OPPOSITE end. Every state is 100% certain about exactly one diameter — the one through it. Randomness is a mismatch between state and question. Callback to slide 4: unlike the mystery coin, the answer does not pre-exist — it is created at the moment of asking; there is no hidden fact to learn away upfront." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 1 · MEASURING</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Measuring is asking "which end?"</span></h2>
+    </div>
+    <div style="display:flex; gap:70px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:28px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>You may never ask a state "where are you?". You may only pick a </span><strong>diameter</strong><span> and ask: </span><em>which end?</em></p>
+        <p style="margin:0;"><span>The odds are drawn in the picture: the chance of an answer is the </span><strong>squared distance to the opposite end</strong><span>. Far from "always T" means: probably answers H.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Every state is 100% certain about exactly one question — the diameter through it. Randomness is a mismatch between the state and the question you chose.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>And unlike the mystery coin, the answer is not sitting there waiting: it comes into being </span><em>at the moment you ask</em><span>.</span></p>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+        <svg viewBox="0 0 900 560" style="width:96%; display:block;">
+          <path d="M 220 290 A 230 230 0 0 1 680 290" fill="none" stroke="#EE7203" stroke-width="4" stroke-dasharray="9 8"></path>
+          <path d="M 220 290 A 230 230 0 0 0 680 290" fill="none" stroke="#F71D25" stroke-width="4" stroke-dasharray="9 8"></path>
+          <line x1="262" y1="422" x2="638" y2="158" stroke="#002157" stroke-width="3.5"></line>
+          <circle cx="450" cy="290" r="5" fill="#5C6E8F"></circle>
+          <line x1="371" y1="74" x2="262" y2="422" stroke="#00A1E4" stroke-width="4"></line>
+          <line x1="371" y1="74" x2="638" y2="158" stroke="#EE7203" stroke-width="4"></line>
+          <polyline points="392,81 385,102 364,95" fill="none" stroke="#002157" stroke-width="2"></polyline>
+          <circle cx="638" cy="158" r="10" fill="#EE7203" stroke="#002157" stroke-width="2.5"></circle>
+          <circle cx="262" cy="422" r="10" fill="#00A1E4" stroke="#002157" stroke-width="2.5"></circle>
+          <circle cx="371" cy="74" r="11" fill="#002157" stroke="#FFFFFF" stroke-width="3"></circle>
+          <text x="371" y="44" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#002157">state</text>
+          <text x="662" y="140" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="25" font-weight="600" fill="#EE7203">end ⊕</text>
+          <text x="240" y="458" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="25" font-weight="600" fill="#00A1E4">end ⊖</text>
+          <text x="450" y="540" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="25" fill="#5C6E8F">P(answers ⊕) = (teal chord)² · P(answers ⊖) = (gold chord)²</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Rotating the question" data-speaker-notes="Tilted questions are physically real: rotate the whole system, then flip — that is all an interferometer or a polarizer does. The plain flip is symmetric under the mirror, so it never sees the twins; any tilted diameter breaks the symmetry and P and P-prime answer differently. And after answering, the state becomes its answer." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 2 · INTERFERENCE</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Rotating the question is real physics</span></h2>
+    </div>
+    <div style="display:flex; gap:70px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:28px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>The plain flip is the </span><em>horizontal</em><span> diameter — and its two ends sit on the mirror line itself. That is exactly why it never sees the twins.</span></p>
+        <p style="margin:0;"><span>Any </span><strong>tilted</strong><span> question breaks the symmetry: P leans toward one end, its twin P′ toward the other. The hidden sign becomes visible.</span></p>
+        <p style="margin:0;"><span>And tilting is not fantasy: rotate the whole system first, then flip. That is all an </span><strong>interferometer</strong><span> or a polarizer does.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>One more rule: after answering, the state </span><em>becomes</em><span> its answer — repeat the question, repeat the answer.</span></p>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+        <svg viewBox="0 0 900 590" style="width:92%; display:block;">
+          <path d="M 220 300 A 230 230 0 0 1 680 300" fill="none" stroke="#EE7203" stroke-width="4" stroke-dasharray="9 8"></path>
+          <path d="M 220 300 A 230 230 0 0 0 680 300" fill="none" stroke="#F71D25" stroke-width="4" stroke-dasharray="9 8"></path>
+          <line x1="220" y1="300" x2="680" y2="300" stroke="#5C6E8F" stroke-width="2.5" stroke-dasharray="6 6"></line>
+          <line x1="450" y1="70" x2="450" y2="530" stroke="#002157" stroke-width="3.5"></line>
+          <line x1="598" y1="114" x2="450" y2="70" stroke="#EE7203" stroke-width="4"></line>
+          <line x1="598" y1="466" x2="450" y2="530" stroke="#EE7203" stroke-width="4"></line>
+          <line x1="598" y1="114" x2="450" y2="530" stroke="#5C6E8F" stroke-width="2" stroke-dasharray="5 5"></line>
+          <line x1="598" y1="466" x2="450" y2="70" stroke="#5C6E8F" stroke-width="2" stroke-dasharray="5 5"></line>
+          <circle cx="450" cy="70" r="10" fill="#EE7203" stroke="#002157" stroke-width="2.5"></circle>
+          <circle cx="450" cy="530" r="10" fill="#00A1E4" stroke="#002157" stroke-width="2.5"></circle>
+          <circle cx="598" cy="114" r="11" fill="#002157" stroke="#FFFFFF" stroke-width="3"></circle>
+          <circle cx="598" cy="466" r="11" fill="#FFFFFF" stroke="#002157" stroke-width="3"></circle>
+          <text x="480" y="60" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="25" font-weight="600" fill="#EE7203">tilted question</text>
+          <text x="480" y="562" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" fill="#00A1E4">its other end</text>
+          <text x="628" y="106" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#002157">P</text>
+          <text x="628" y="488" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="26" font-weight="600" fill="#002157">P′</text>
+          <text x="90" y="262" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">the flip: blind to the twins</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Operations" data-speaker-notes="Second half of the quantum advantage: not just richer data, richer moves. A bit has exactly one non-trivial operation — swap heads and tails. On the ball every diameter is an axis, and you can rotate by any angle around any of them. These continuous rotations are the gates of a quantum computer, and interferometers perform them in the lab." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 3 · OPERATIONS</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>A bit swaps; a qubit rotates</span></h2>
+    </div>
+    <div style="display:flex; gap:70px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:28px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>A bit has exactly one non-trivial move: </span><strong>swap</strong><span> heads and tails. That is the whole toolbox.</span></p>
+        <p style="margin:0;"><span>On the ball, </span><em>every diameter is an axis</em><span>: rotate by any angle around any of them — full flips along tilted diameters, quarter-turns, the gentlest nudge.</span></p>
+        <p style="margin:0;"><span>These continuous rotations are the </span><strong>gates</strong><span> of a quantum computer — and the previous slide already showed the hardware: an interferometer rotates before it flips.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>So the power of quantum is twofold: more information in the state, and a continuous range of ways to steer it.</span></p>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+        <svg viewBox="0 0 900 560" style="width:96%; display:block;">
+          <defs>
+            <radialGradient id="opsball" cx="0.36" cy="0.3" r="0.95">
+              <stop offset="0%" stop-color="#FFFFFF"></stop>
+              <stop offset="60%" stop-color="#CFEAF9"></stop>
+              <stop offset="100%" stop-color="#AFD9F2"></stop>
+            </radialGradient>
+          </defs>
+          <circle cx="170" cy="270" r="48" fill="#EE7203" stroke="#002157" stroke-width="3"></circle>
+          <text x="170" y="286" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="42" font-weight="600" fill="#FFFFFF">H</text>
+          <circle cx="300" cy="270" r="48" fill="#FFFFFF" stroke="#AFE0F7" stroke-width="3"></circle>
+          <text x="300" y="286" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="42" font-weight="600" fill="#002157">T</text>
+          <text x="235" y="185" text-anchor="middle" font-size="58" fill="#5C6E8F">⇄</text>
+          <text x="235" y="420" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="25" fill="#5C6E8F">the bit: swap — that's all</text>
+          <circle cx="620" cy="270" r="145" fill="url(#opsball)" stroke="#AFE0F7" stroke-width="2.5"></circle>
+          <ellipse cx="620" cy="270" rx="145" ry="38" fill="none" stroke="#EE7203" stroke-width="3" stroke-dasharray="7 6"></ellipse>
+          <ellipse cx="620" cy="270" rx="38" ry="145" fill="none" stroke="#00A1E4" stroke-width="3" stroke-dasharray="7 6"></ellipse>
+          <line x1="512" y1="378" x2="728" y2="162" stroke="#5C6E8F" stroke-width="2.5" stroke-dasharray="5 5"></line>
+          <text x="782" y="286" text-anchor="middle" font-size="44" fill="#EE7203">↻</text>
+          <text x="620" y="102" text-anchor="middle" font-size="44" fill="#00A1E4">↻</text>
+          <text x="754" y="150" text-anchor="middle" font-size="40" fill="#5C6E8F">↻</text>
+          <text x="620" y="470" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="25" font-weight="600" fill="#002157">the qubit: any axis, any angle</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Measuring is distance" data-speaker-notes="Punchline: a measurement compares — how far is your state from the answer-points of the question? Distances are walked on the Bernoulli bowl, not the flat ruler. Fair coin and mystery coin — identical odds — sit pi/4 apart, and distance cashes into probability: P(pass) = cos-squared of the distance; cos-squared of pi/4 is one half." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 4 · DISTANCE</span></div>
+      <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Measuring is judging how far apart states sit</span></h2>
+    </div>
+    <div style="display:flex; gap:70px; flex:1; align-items:center; margin-top:30px;">
+      <div style="width:620px; display:flex; flex-direction:column; gap:28px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>In the end, every measurement compares: how far is your state from the answer-points of your question?</span></p>
+        <p style="margin:0;"><span>Distances are not read on a flat ruler. Bend the disk into a bowl — the </span><strong>Bernoulli hemisphere</strong><span> — and walk along its surface.</span></p>
+        <p style="margin:0;"><span>The fair coin and the mystery coin, forever identical in their odds, sit a crisp </span><strong style="color:#EE7203;">π/4</strong><span> apart on the bowl.</span></p>
+        <sc-if value="{{ showFormulas }}" hint-placeholder-val="{{ true }}">
+          <div style="align-self:flex-start; font-family:'IBM Plex Mono', monospace; font-size:25px; padding:14px 24px; border:1.5px solid #AFE0F7; border-radius:8px; background:#FFF4E8; line-height:1.6; display:flex; flex-direction:column;"><span style="white-space:nowrap;">P(pass) = cos²(distance)</span><span style="white-space:nowrap;">cos²(π/4) = ½</span></div>
+        </sc-if>
+        <p style="margin:0; color:#5C6E8F;"><span>So the mystery coin passes the "are you the fair coin?" test exactly half the time. Geometry, cashed in as probability.</span></p>
+      </div>
+      <div style="flex:1; align-self:stretch; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+        <svg viewBox="0 0 900 560" style="width:100%; display:block;">
+          <ellipse cx="450" cy="400" rx="300" ry="90" fill="#FDE9D3" fill-opacity="0.35"></ellipse>
+          <ellipse cx="450" cy="400" rx="300" ry="90" fill="none" stroke="#EE7203" stroke-width="3.5" stroke-dasharray="9 8"></ellipse>
+          <path d="M 150 400 A 300 270 0 0 1 750 400" fill="none" stroke="#00A1E4" stroke-width="4"></path>
+          <ellipse cx="450" cy="310" rx="283" ry="85" fill="none" stroke="#AFE0F7" stroke-width="1.8" stroke-dasharray="5 6"></ellipse>
+          <ellipse cx="450" cy="215" rx="224" ry="67" fill="none" stroke="#AFE0F7" stroke-width="1.8" stroke-dasharray="5 6"></ellipse>
+          <line x1="450" y1="130" x2="450" y2="400" stroke="#5C6E8F" stroke-width="2" stroke-dasharray="4 5"></line>
+          <circle cx="450" cy="400" r="7" fill="#5C6E8F"></circle>
+          <path d="M 600 478 C 600 390 555 210 450 130" fill="none" stroke="#EE7203" stroke-width="7" stroke-linecap="round"></path>
+          <circle cx="600" cy="478" r="11" fill="#EE7203" stroke="#002157" stroke-width="3"></circle>
+          <circle cx="300" cy="322" r="9" fill="#F71D25" stroke="#002157" stroke-width="2.5"></circle>
+          <circle cx="450" cy="130" r="11" fill="#002157" stroke="#FFFFFF" stroke-width="3"></circle>
+          <text x="655" y="300" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="32" font-weight="600" fill="#EE7203">π/4</text>
+          <text x="450" y="98" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="25" font-weight="600" fill="#002157">mystery coin · lifted to the summit</text>
+          <text x="632" y="512" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="25" font-weight="600" fill="#EE7203">fair coin</text>
+          <text x="288" y="296" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="24" fill="#F71D25">anti-coin</text>
+          <text x="462" y="428" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" fill="#5C6E8F">its flat position</text>
+          <text x="120" y="540" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="24" fill="#00A1E4">the flat disk, bent into a bowl</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  </sc-if>
+
+</x-import>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showFormulas&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;includeBonus&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showFormulas: this.props.showFormulas ?? true,
+      includeBonus: this.props.includeBonus ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>
