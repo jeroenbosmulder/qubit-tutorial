@@ -1,6 +1,33 @@
 /* Interactive figures for the Three Arches deck — grab the points directly, no sliders.
    Geometry + palette follow the deck's static diagrams / the tutorial's interactives. */
-const { useState, useRef } = React;
+const { useState, useRef, useEffect } = React;
+
+/* One-way figure sync: drags in the main (presenter) window broadcast state;
+   the ?present mirror applies it. Mirror never sends. */
+const figBC = 'BroadcastChannel' in window ? new BroadcastChannel('three-arches-figs') : null;
+const isMirror = /[?&]present/.test(location.search) || location.hash.indexOf('present') >= 0;
+const figCache = {};
+if (figBC) {
+  if (isMirror) figBC.postMessage({ hello: true });
+  else figBC.addEventListener('message', (e) => {
+    if (e.data && e.data.hello) Object.keys(figCache).forEach((k) => figBC.postMessage({ fig: k, state: figCache[k] }));
+  });
+}
+function useSynced(figKey, initial) {
+  const [st, setSt] = useState(initial);
+  useEffect(() => {
+    if (!figBC || !isMirror) return;
+    const fn = (e) => { const d = e.data; if (d && d.fig === figKey) setSt(d.state); };
+    figBC.addEventListener('message', fn);
+    return () => figBC.removeEventListener('message', fn);
+  }, []);
+  const set = (updater) => setSt((prev) => {
+    const next = typeof updater === 'function' ? updater(prev) : updater;
+    if (figBC && !isMirror) { figCache[figKey] = next; figBC.postMessage({ fig: figKey, state: next }); }
+    return next;
+  });
+  return [st, set];
+}
 
 const INK = "#002157", SOFT = "#5C6E8F", GOLD = "#EE7203", TEAL = "#00A1E4",
       RED = "#F71D25", LBLUE = "#AFE0F7", PEACH = "#FDE9D3";
@@ -53,17 +80,16 @@ const svgStyle = { width: "100%", display: "block", touchAction: "none", userSel
 
 // ── slide I·3 : semicircle + blends ──
 function FigMix() {
-  const [q1, setQ1] = useState(0.9);
-  const [q2, setQ2] = useState(0.2);
-  const [lam, setLam] = useState(0.45);
+  const [st, setSt] = useSynced("mix", { q1: 0.9, q2: 0.2, lam: 0.45 });
+  const { q1, q2, lam } = st;
   const A = (q) => ({ x: 150 + 600 * q, y: 430 - 600 * Math.sqrt(Math.max(0, q * (1 - q))) });
   const P1 = A(q1), P2 = A(q2);
   const f = useFig((id, pt) => {
-    if (id === "q1") setQ1(clamp((pt.x - 150) / 600, 0.03, 0.97));
-    else if (id === "q2") setQ2(clamp((pt.x - 150) / 600, 0.03, 0.97));
+    if (id === "q1") setSt((s) => ({ ...s, q1: clamp((pt.x - 150) / 600, 0.03, 0.97) }));
+    else if (id === "q2") setSt((s) => ({ ...s, q2: clamp((pt.x - 150) / 600, 0.03, 0.97) }));
     else {
       const dx = P1.x - P2.x, dy = P1.y - P2.y, L2 = dx * dx + dy * dy || 1;
-      setLam(clamp(((pt.x - P2.x) * dx + (pt.y - P2.y) * dy) / L2, 0, 1));
+      setSt((s) => ({ ...s, lam: clamp(((pt.x - P2.x) * dx + (pt.y - P2.y) * dy) / L2, 0, 1) }));
     }
   });
   const B = { x: P2.x + lam * (P1.x - P2.x), y: P2.y + lam * (P1.y - P2.y) };
@@ -91,8 +117,9 @@ function FigMix() {
 
 // ── slide I·4 : Thales lift ──
 function FigThales() {
-  const [p, setP] = useState(0.62);
-  const f = useFig((id, pt) => setP(clamp((pt.x - 170) / 560, 0.03, 0.97)));
+  const [st, setSt] = useSynced("thales", { p: 0.62 });
+  const p = st.p;
+  const f = useFig((id, pt) => setSt({ p: clamp((pt.x - 170) / 560, 0.03, 0.97) }));
   const T = { x: 170, y: 470 }, H = { x: 730, y: 470 };
   const P = { x: 170 + 560 * p, y: 470 - 560 * Math.sqrt(p * (1 - p)) };
   const unit = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1; return { x: dx / L, y: dy / L }; };
@@ -126,15 +153,16 @@ function FigThales() {
 
 // ── slide I·5 : square-root embedding, α → 2α ──
 function FigEmbed() {
-  const [alpha, setAlpha] = useState(40);
+  const [st, setSt] = useSynced("embed", { alpha: 40 });
+  const alpha = st.alpha;
   const f = useFig((id, pt) => {
     if (id === "amp") {
-      setAlpha(norm360(Math.atan2(300 - pt.y, pt.x - 450) * DEG));
+      setSt({ alpha: norm360(Math.atan2(300 - pt.y, pt.x - 450) * DEG) });
     } else {
       const a = norm360(Math.atan2(300 - pt.y, pt.x - 565) * DEG);
       const c1 = a / 2, c2 = a / 2 + 180;
       const d = (x) => Math.abs(((x - alpha + 540) % 360) - 180);
-      setAlpha(d(c1) <= d(c2) ? c1 : c2);
+      setSt({ alpha: d(c1) <= d(c2) ? c1 : c2 });
     }
   });
   const ar = alpha / DEG;
@@ -174,10 +202,11 @@ function FigEmbed() {
 
 // ── slide I·6 : the hidden twin ──
 function FigTwin() {
-  const [th, setTh] = useState(40);
+  const [st, setSt] = useSynced("twin", { th: 40 });
+  const th = st.th;
   const f = useFig((id, pt) => {
     const a = norm360(Math.atan2(300 - pt.y, pt.x - 450) * DEG);
-    setTh(id === "twin" ? norm360(-a) : a);
+    setSt({ th: id === "twin" ? norm360(-a) : a });
   });
   const ar = th / DEG;
   const P = { x: 450 + 230 * Math.cos(ar), y: 300 - 230 * Math.sin(ar) };
@@ -211,16 +240,16 @@ function FigTwin() {
 
 // ── slide I·7 : the Bloch ball ──
 function FigBloch() {
-  const [s, setS] = useState({ x: 559, y: 140 });
-  const [phi, setPhi] = useState(70);
+  const [st, setSt] = useSynced("bloch", { s: { x: 559, y: 140 }, phi: 70 });
+  const { s, phi } = st;
   const f = useFig((id, pt) => {
     if (id === "s") {
       let dx = pt.x - 450, dy = pt.y - 300;
       const r = Math.hypot(dx, dy);
       if (r > 238) { dx *= 238 / r; dy *= 238 / r; }
-      setS({ x: 450 + dx, y: 300 + dy });
+      setSt((prev) => ({ ...prev, s: { x: 450 + dx, y: 300 + dy } }));
     } else {
-      setPhi(norm360(Math.atan2((300 - pt.y) / 229, (pt.x - 522) / 52) * DEG));
+      setSt((prev) => ({ ...prev, phi: norm360(Math.atan2((300 - pt.y) / 229, (pt.x - 522) / 52) * DEG) }));
     }
   });
   const rr = Math.hypot(s.x - 450, s.y - 300) / 238;
@@ -260,10 +289,11 @@ function FigBloch() {
 
 // ── slide I·8 : a bit swaps, a qubit rotates ──
 function FigRotate() {
-  const [del, setDel] = useState(28);
+  const [st, setSt] = useSynced("rotate", { del: 28 });
+  const del = st.del;
   const f = useFig((id, pt) => {
     const a = norm360(Math.atan2(270 - pt.y, pt.x - 620) * DEG);
-    setDel(id === "e2" ? norm360(a + 180) : a);
+    setSt({ del: id === "e2" ? norm360(a + 180) : a });
   });
   const dr = del / DEG;
   const E1 = { x: 620 + 145 * Math.cos(dr), y: 270 - 145 * Math.sin(dr) };
