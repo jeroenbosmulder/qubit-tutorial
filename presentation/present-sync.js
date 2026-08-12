@@ -26,6 +26,10 @@
     // ── speaker-notes panel (presenter view only, toggle with N) ──
     var KEY = 'three-arches-notes-open';
     var HKEY = 'three-arches-notes-height';
+    var EKEY = 'three-arches-notes-edits';
+    var edits = {};
+    try { edits = JSON.parse(localStorage.getItem(EKEY)) || {}; } catch (err) {}
+    var curSlide = null, curKey = null;
     var open = localStorage.getItem(KEY) !== '0';
     var panelH = Math.max(90, Math.min(window.innerHeight * 0.6, parseInt(localStorage.getItem(HKEY), 10) || 190));
     var panel, head, body;
@@ -58,7 +62,18 @@
       head = document.createElement('div');
       head.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:10px 22px 4px;font-size:13px;color:#AFE0F7;flex:none;';
       body = document.createElement('div');
-      body.style.cssText = 'flex:1;overflow-y:auto;padding:4px 22px 14px;font-size:17px;line-height:1.55;white-space:pre-wrap;color:#FFFFFF;';
+      body.style.cssText = 'flex:1;overflow-y:auto;padding:4px 22px 14px;font-size:17px;line-height:1.55;white-space:pre-wrap;color:#FFFFFF;outline:none;caret-color:#EE7203;';
+      body.contentEditable = 'true';
+      body.spellcheck = false;
+      body.addEventListener('input', function () {
+        if (curKey === null) return;
+        var txt = body.innerText.replace(/\n$/, '');
+        edits[curKey] = txt;
+        try { localStorage.setItem(EKEY, JSON.stringify(edits)); } catch (err) {}
+        if (curSlide) curSlide.setAttribute('data-speaker-notes', txt);
+        body.style.color = '#FFFFFF';
+      });
+      body.addEventListener('keydown', function (e) { e.stopPropagation(); });
       panel.appendChild(head); panel.appendChild(body);
       document.body.appendChild(panel);
     }
@@ -74,16 +89,20 @@
       ensurePanel();
       var slideEl = d.slide || (stage() && stage().querySelectorAll('section')[d.index]);
       var label = slideEl ? (slideEl.getAttribute('data-label') || '') : '';
-      var note = slideEl ? (slideEl.getAttribute('data-speaker-notes') || '') : '';
+      curSlide = slideEl; curKey = label || String(d.index);
+      var saved = edits[curKey];
+      var note = typeof saved === 'string' ? saved : (slideEl ? (slideEl.getAttribute('data-speaker-notes') || '') : '');
+      if (typeof saved === 'string' && slideEl) slideEl.setAttribute('data-speaker-notes', saved);
       head.innerHTML = '';
       var left = document.createElement('span');
       left.textContent = 'notes \u00b7 slide ' + (d.index + 1) + (d.total ? '/' + d.total : '') + (label ? ' \u2014 ' + label : '');
       var right = document.createElement('span');
-      right.textContent = 'drag top edge to resize \u00b7 N to hide \u00b7 P for mirror';
+      right.textContent = 'click to edit \u00b7 drag top edge to resize \u00b7 N to hide \u00b7 P for mirror';
       right.style.color = '#5C6E8F';
       head.appendChild(left); head.appendChild(right);
-      body.textContent = note || '(no notes for this slide)';
-      body.style.color = note ? '#FFFFFF' : '#5C6E8F';
+      body.textContent = note;
+      body.style.color = '#FFFFFF';
+      if (!note) { body.setAttribute('data-empty', '1'); } else { body.removeAttribute('data-empty'); }
       body.scrollTop = 0;
     }
     document.addEventListener('slidechange', function (e) {

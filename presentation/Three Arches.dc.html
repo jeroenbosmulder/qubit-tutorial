@@ -17,7 +17,17 @@
 </helmet>
 <x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1920" height="1080" hint-size="100%,100%" data-uneditable="">
 
-  <section data-label="Title" data-speaker-notes="Promise of the talk: one coin flip, three questions — and each question, answered honestly, walks us from ordinary statistics straight into the quantum world. No equations needed to follow. The tutorial's creed: nowhere do we ADD anything quantum — we only keep adding detail. Quantum is not statistics plus magic; it is statistics with the details kept." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
+  <section data-label="Title" data-speaker-notes="Promise of the talk: 
+— one coin flip, three questions 
+— and each question, answered honestly, 
+— walks us from ordinary statistics straight into the quantum world. 
+— No equations needed to follow. 
+
+The tutorial's creed: 
+— nowhere do we ADD anything quantum 
+— we only keep adding detail. 
+— Quantum is not statistics plus magic; 
+— it is statistics with the details kept." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
     <img src="icon-dark.png" alt="Bernoulli arch" style="width:170px; height:170px;">
     <h1 style="font-size:104px; font-weight:700; margin:0; letter-spacing:-2px; text-align:center;"><span>Build your own qubit</span></h1>
     <p style="font-family:'IBM Plex Mono', monospace; font-size:30px; color:#AFE0F7; margin:0; text-align:center;"><span>quantum is not statistics plus magic — it is statistics with the details kept</span></p>
@@ -28,7 +38,14 @@
     </div>
   </section>
 
-  <section data-label="Chips kept shrinking" data-speaker-notes="Why quantum, why now — in three beats. Beat one: computing improved for five decades for one dominant reason — the transistors kept getting smaller, so more of them fit on a chip. Plotted on a log scale the count climbs as a straight line: doubling every couple of years, from thousands in 1970 toward a trillion per package around 2030. The whole digital world rides this one curve." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Chips kept shrinking" data-speaker-notes="Why quantum, why now — in three beats 
+Beat one: 
+— computing improved for five decades for one dominant reason 
+— the transistors kept getting smaller, so more of them fit on a chip. 
+
+Plotted on a log scale the count climbs as a straight line:
+— doubling every couple of years, from thousands in 1970 toward a trillion per package around 2030. 
+— The whole digital world rides this one curve." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>PROLOGUE · 1 — WHY QUANTUM, WHY NOW</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Computing grew because chips kept shrinking</span></h2>
@@ -57,7 +74,14 @@
     </div>
   </section>
 
-  <section data-label="Atomic scales" data-speaker-notes="Beat two: follow the shrinking to its end. 90 nanometers, 65, 45, 32, 22, 14, 10, 7, 3 — the industry now speaks of the angstrom era: a tenth of a nanometer, the width of a single atom. A transistor gate is a few dozen atoms across. Down here the comfortable rules of classical physics — definite places, definite answers — simply stop applying. The shrinking that powered everything has delivered us to the doorstep of a different rulebook." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Atomic scales" data-speaker-notes="Beat two:
+— follow the shrinking to its end. 
+— 90 nanometers, 65, 45, 32, 22, 14, 10, 7, 3 
+— the industry now speaks of the angstrom era: a tenth of a nanometer, the width of a single atom. 
+— A transistor gate is a few dozen atoms across. 
+— Down here the comfortable rules of classical physics 
+— definite places, definite answers — simply stop applying. 
+— The shrinking that powered everything has delivered us to the doorstep of a different rulebook." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>PROLOGUE · 2 — THE END OF SMALL</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Shrinking has reached the atoms themselves</span></h2>
@@ -89,7 +113,21 @@
     </div>
   </section>
 
-  <section data-label="Balls vs waves" data-speaker-notes="Beat three: Young's double-slit experiment, the cleanest sorter of particles from waves. Part I — throw tennis balls at a wall with two slits. Some bounce off, some pass through; mark where they land on a second wall and you get two strips of marks, roughly the shape of the slits. That is what particles do. Part II — shine light of a single color at the same wall. Each slit becomes the source of a fresh ripple; where peak meets peak the ripples reinforce (bright), where peak meets trough they cancel (dark). The second wall shows a whole stripy ladder — the interference pattern. That is what waves do. Two slits, two signatures." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Balls vs waves" data-speaker-notes="Beat three:
+— Young's double-slit experiment, the cleanest sorter of particles from waves. 
+Part I 
+— throw tennis balls at a wall with two slits. 
+— Some bounce off, some pass through; 
+— mark where they land on a second wall and you get two strips of marks, roughly the shape of the slits. 
+— That is what particles do. 
+Part II 
+— shine light of a single color at the same wall. 
+— Each slit becomes the source of a fresh ripple; 
+— where peak meets peak the ripples reinforce (bright), 
+— where peak meets trough they cancel (dark). 
+— The second wall shows a whole stripy ladder — the interference pattern. 
+— That is what waves do. 
+Two slits, two signatures." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>PROLOGUE · 3 — YOUNG'S DOUBLE SLIT</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Two slits sort particles from waves</span></h2>
@@ -131,7 +169,22 @@
     </div>
   </section>
 
-  <section data-label="Electrons choose" data-speaker-notes="Part III, the punchline. Fire electrons — solid particles, tiny tennis balls — at the two slits. You would bet on two strips. But the screen builds the LADDER, dot by dot: each electron lands as a single definite dot, yet the dots pile up in a wave's interference pattern — even sending them one at a time. Weirder still: put a detector at the slits to see which slit each electron takes, and the ladder collapses back into the two strips. Watching changes the answer. Definite trajectories are gone; what remains are probabilities of where the next dot lands. Our cue: if nature offers only statistics down here, take the statistics seriously — just statistics, at first. That sentence is the door into arch I." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Electrons choose" data-speaker-notes="Part III, the punchline:
+— fire electrons — solid particles, tiny tennis balls — at the two slits.
+— You would bet on two strips.
+— But the screen builds the LADDER, dot by dot:
+— each electron lands as a single definite dot,
+— yet the dots pile up in a wave's interference pattern — even sent one at a time.
+
+Weirder still:
+— put a detector at the slits to see which slit each electron takes,
+— and the ladder collapses back into the two strips.
+— Watching changes the answer.
+— Definite trajectories are gone; what remains are probabilities of where the next dot lands.
+
+Our cue:
+— if nature offers only statistics down here, take the statistics seriously — just statistics, at first.
+— That sentence is the door into arch I." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>PROLOGUE · 4 — THE NEW RULEBOOK</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Electrons build the ladder — until you watch</span></h2>
@@ -170,7 +223,21 @@
     </div>
   </section>
 
-  <section data-label="Just statistics" data-speaker-notes="The bridge into arch I. The usual story says quantum is NOT statistics — it runs on mysterious new numbers, the amplitudes. Our narrative agrees quantum is about amplitudes, but claims they are nothing mysterious: just statistics without the details thrown away. The tutorial's creed: quantum is not statistics plus magic — it is statistics with the details kept. Ordinary statistics is in the habit of throwing details away: it keeps one number for a coin and forgets where the uncertainty came from, whether it can be learned away, which recipe produced a belief. Arch I simply refuses to forget. Keep those details and the space of states grows by itself — from two dots, to an interval, to a circle, to a ball. That richer data structure is exactly where the electron's wave behavior lives. Nothing will be added along the way — only detail kept." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Just statistics" data-speaker-notes="The bridge into arch I:
+— the usual story says quantum is NOT statistics — it runs on mysterious new numbers, the amplitudes.
+— Our narrative agrees quantum is about amplitudes,
+— but claims they are nothing mysterious: just statistics without the details thrown away.
+— The creed: quantum is not statistics plus magic — it is statistics with the details kept.
+
+Ordinary statistics throws details away:
+— it keeps one number for a coin
+— and forgets where the uncertainty came from, whether it can be learned away, which recipe produced a belief.
+
+Arch I simply refuses to forget:
+— keep those details and the space of states grows by itself
+— from two dots, to an interval, to a circle, to a ball.
+— That richer data structure is exactly where the electron's wave behavior lives.
+— Nothing will be added along the way — only detail kept." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>PROLOGUE · 5 — THE ROAD AHEAD</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Not statistics plus magic — statistics with the details kept</span></h2>
@@ -211,13 +278,21 @@
     </div>
   </section>
 
-  <section data-label="Arch I divider" data-speaker-notes="Arch one starts fully classical — a coin flip — and ends at the full qubit: disk, dial and ball. The driving idea: not all uncertainty is alike, and taking that seriously forces a bigger space of states." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
+  <section data-label="Arch I divider" data-speaker-notes="Arch one:
+— starts fully classical — a coin flip —
+— and ends at the full qubit: disk, dial and ball.
+
+The driving idea:
+— not all uncertainty is alike,
+— and taking that seriously forces a bigger space of states." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
     <div style="font-family:'IBM Plex Mono', monospace; font-size:26px; letter-spacing:4px; color:#EE7203; font-weight:600;"><span>ARCH I</span></div>
     <h2 style="font-size:88px; font-weight:700; margin:0; letter-spacing:-1.5px; text-align:center;"><span>Not all uncertainty is alike</span></h2>
     <p style="font-family:'IBM Plex Mono', monospace; font-size:28px; color:#AFE0F7; margin:0; text-align:center;"><span>starts statistical · ends at the qubit, ball and all</span></p>
   </section>
 
-  <section data-label="From certainty to chance" data-speaker-notes="Classical measurement reports a definite fact: heads or tails, never both. At small scales the honest statement before looking is a bet: heads with probability p. Every belief becomes one point on the interval from 0 to 1." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="From certainty to chance" data-speaker-notes="— Classical measurement reports a definite fact: heads or tails, never both.
+— At small scales the honest statement before looking is a bet: heads with probability p.
+— Every belief becomes one point on the interval from 0 to 1." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 1 — FROM CERTAINTY TO CHANCE</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Definite answers give way to bets</span></h2>
@@ -249,7 +324,13 @@
     </div>
   </section>
 
-  <section data-label="Two uncertainties" data-speaker-notes="Key distinction. Fair coin: randomness lives in the coin, flips never remove it — statistical. Mystery deterministic coin: already decided, one peek cures your ignorance — systematic. Before the first flip both are 50/50: on the interval they collapse to the same point. One number cannot tell them apart." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Two uncertainties" data-speaker-notes="Key distinction:
+— fair coin: randomness lives in the coin, flips never remove it — statistical.
+— Mystery deterministic coin: already decided, one peek cures your ignorance — systematic.
+
+Before the first flip both are 50/50:
+— on the interval they collapse to the same point.
+— One number cannot tell them apart." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 2 — TWO KINDS OF NOT-KNOWING</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>One number hides where the uncertainty comes from</span></h2>
@@ -282,7 +363,12 @@
     </div>
   </section>
 
-  <section data-label="Semicircle and half-disk" data-speaker-notes="Fix: score every coin with two numbers — average and spread. Definite coins land on an arc, the upper half of the Bernoulli circle; the fair coin at the top, the averaged mystery coin at the center. Blends of candidates slide along chords and fill the whole half-disk: rim = chance that stays, interior = doubt you can learn away." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Semicircle and half-disk" data-speaker-notes="The fix:
+— score every coin with two numbers — average and spread.
+— Definite coins land on an arc: the upper half of the Bernoulli circle;
+— the fair coin at the top, the averaged mystery coin at the center.
+— Blends of candidates slide along chords and fill the whole half-disk:
+— rim = chance that stays, interior = doubt you can learn away." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 3 — THE BERNOULLI CIRCLE</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>A second number opens the half-disk</span></h2>
@@ -302,7 +388,22 @@
     </div>
   </section>
 
-  <section data-label="Thales lift" data-speaker-notes="Two school theorems hiding in the picture. Pick any belief on the semicircle and connect it to the two corners. Thales: a diameter is always seen at a right angle — the two chords are perpendicular. Their lengths are exactly √p and √(1−p). Pythagoras: legs squared add to the hypotenuse squared, and T–H has length 1 — so p + (1−p) = 1. The coin's arithmetic is literally a right triangle. Use the two lengths as coordinates of their own and the pair (√p, √(1−p)) lives on the unit circle: the amplitudes, at angle α. Nothing invented — the unit circle appears when you measure each state's two distances. Key parameterization: the Bernoulli point sits at angle 2α, so one lap on the unit circle walks the Bernoulli circle twice — a double cover. Two amplitude points per belief: the hidden twin of the next slide is already waiting. This square-root embedding, chord to arc, returns throughout the deck." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Thales lift" data-speaker-notes="Two school theorems hiding in the picture:
+— pick any belief on the semicircle and connect it to the two corners.
+— Thales: a diameter is always seen at a right angle — the two chords are perpendicular.
+— Their lengths are exactly √p and √(1−p).
+— Pythagoras: legs squared add to the hypotenuse squared, and T–H has length 1 — so p + (1−p) = 1.
+— The coin's arithmetic is literally a right triangle.
+
+Use the two lengths as coordinates:
+— the pair (√p, √(1−p)) lives on the unit circle: the amplitudes, at angle α.
+— Nothing invented — the unit circle appears when you measure each state's two distances.
+
+Key parameterization:
+— the Bernoulli point sits at angle 2α,
+— so one lap on the unit circle walks the Bernoulli circle twice — a double cover.
+— Two amplitude points per belief: the hidden twin of the next slide is already waiting.
+— This square-root embedding, chord to arc, returns throughout the deck." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 4 — TWO SCHOOL THEOREMS</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Thales and Pythagoras hide inside the coin</span></h2>
@@ -320,7 +421,15 @@
     </div>
   </section>
 
-  <section data-label="Square-root embedding" data-speaker-notes="The lift is a map, not just a picture: p goes to the amplitude pair (√p, √(1−p)) — the square-root embedding. Sweep the angle α once around the unit circle and watch the coin: the Bernoulli point runs around its circle TWICE — the Bernoulli angle is 2α. The first quarter of the unit circle, where both amplitudes are honest positive square roots, already covers every coin once. So the amplitude circle is a finer dial than the coin it describes: two amplitude points, α and −α, sit over each coin. Hold that — the next slide finds the second one." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Square-root embedding" data-speaker-notes="The lift is a map, not just a picture:
+— p goes to the amplitude pair (√p, √(1−p)) — the square-root embedding.
+— Sweep the angle α once around the unit circle and watch the coin:
+— the Bernoulli point runs around its circle TWICE — the Bernoulli angle is 2α.
+— The first quarter of the unit circle, where both amplitudes are honest positive square roots, already covers every coin once.
+
+So the amplitude circle is a finer dial than the coin it describes:
+— two amplitude points, α and −α, sit over each coin.
+— Hold that — the next slide finds the second one." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 5 — THE SQUARE-ROOT EMBEDDING</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>One turn of the dial, two laps of the coin</span></h2>
@@ -340,7 +449,16 @@
     </div>
   </section>
 
-  <section data-label="Twin and full disk" data-speaker-notes="A half-circle is half of something. Mirror any point below the line: identical odds, no flip separates them — but the triangle T-state-H circles one way above, the other way below. Keep orientation and the twins are distinct: the full circle, the full disk. This is exactly the real slice of a qubit's state space. Epilogue framing: our instrument, the bare flip, is blind by symmetry to the lower half — classical probability contents itself with the upper half-disk; nature is more INCLUSIVE: same lengths, opposite turning count for her as two different states." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Twin and full disk" data-speaker-notes="A half-circle is half of something:
+— mirror any point below the line: identical odds, no flip separates them —
+— but the triangle T–state–H circles one way above, the other way below.
+— Keep orientation and the twins are distinct: the full circle, the full disk.
+— This is exactly the real slice of a qubit's state space.
+
+Epilogue framing:
+— our instrument, the bare flip, is blind by symmetry to the lower half —
+— classical probability contents itself with the upper half-disk;
+— nature is more INCLUSIVE: same lengths, opposite turning count for her as two different states." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 6 — THE HIDDEN TWIN</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Orientation completes the circle — the real part of a qubit</span></h2>
@@ -358,7 +476,12 @@
     </div>
   </section>
 
-  <section data-label="The complex dial" data-speaker-notes="The twin was a two-position switch: above or below the line. Nature upgrades the switch to a continuous dial phi: at every set of odds a whole wheel of twins stands upright on the T-H axle, and the disk inflates into the Bloch ball — the full state space of a qubit. Definite states on the surface, mixed beliefs inside, total ignorance at the center. Arch I gave the real slice; the dial fills in the rest." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="The complex dial" data-speaker-notes="— The twin was a two-position switch: above or below the line.
+— Nature upgrades the switch to a continuous dial phi:
+— at every set of odds a whole wheel of twins stands upright on the T–H axle,
+— and the disk inflates into the Bloch ball — the full state space of a qubit.
+— Definite states on the surface, mixed beliefs inside, total ignorance at the center.
+— Arch I gave the real slice; the dial fills in the rest." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 7 — THE COMPLEX DIAL</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>The switch becomes a dial, the disk becomes a ball</span></h2>
@@ -378,7 +501,13 @@
     </div>
   </section>
 
-  <section data-label="Rotate the question" data-speaker-notes="A bit has one non-trivial move: swap. On the ball every diameter is an axis and every angle is allowed — and tilting a question is real hardware: rotate the whole system, then flip; that is all an interferometer or polarizer does. The plain flip is symmetric under the mirror so it never sees the twins; any tilted axle splits P from P-prime. These continuous rotations are the gates of a quantum computer." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Rotate the question" data-speaker-notes="— A bit has one non-trivial move: swap.
+— On the ball every diameter is an axis and every angle is allowed —
+— and tilting a question is real hardware: rotate the whole system, then flip;
+— that is all an interferometer or polarizer does.
+— The plain flip is symmetric under the mirror so it never sees the twins;
+— any tilted axle splits P from P-prime.
+— These continuous rotations are the gates of a quantum computer." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 8 — ROTATIONS</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>A bit swaps; a qubit rotates</span></h2>
@@ -396,7 +525,13 @@
     </div>
   </section>
 
-  <section data-label="Power of quantum" data-speaker-notes="Close arch I with the payoff. The build-up: bit → interval → circle → ball. More information in the state, more ways to steer it — but the real power is the third point: nobody manufactures qubits from scratch. Electrons, photons, atoms ARE qubits — nature provides them in the wild; a quantum computer just tames them. That is why this data structure matters: it is not our invention, it is nature's native format." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Power of quantum" data-speaker-notes="Close arch I with the payoff:
+— the build-up: bit → interval → circle → ball.
+— More information in the state, more ways to steer it —
+— but the real power is the third point: nobody manufactures qubits from scratch.
+— Electrons, photons, atoms ARE qubits — nature provides them in the wild;
+— a quantum computer just tames them.
+— This data structure is not our invention, it is nature's native format." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>I · 9 — WHY IT MATTERS</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>A richer data structure — living in the wild</span></h2>
@@ -447,13 +582,21 @@
     <p style="margin:10px auto 0; max-width:1340px; font-size:32px; line-height:1.55; text-align:center;"><span>Electrons, photons, atoms </span><em>are</em><span> qubits — nature provides them; we only need to tame them.</span></p>
   </section>
 
-  <section data-label="Arch II divider" data-speaker-notes="Arch two starts with a purely statistical question — how far apart are two coins? — and its honest answer will hand us, unasked, the exact distance quantum information theory uses today." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
+  <section data-label="Arch II divider" data-speaker-notes="Arch two:
+— starts with a purely statistical question — how far apart are two coins?
+— Its honest answer will hand us, unasked, the exact distance quantum information theory uses today." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
     <div style="font-family:'IBM Plex Mono', monospace; font-size:26px; letter-spacing:4px; color:#EE7203; font-weight:600;"><span>ARCH II</span></div>
     <h2 style="font-size:88px; font-weight:700; margin:0; letter-spacing:-1.5px; text-align:center;"><span>How far apart are two coins?</span></h2>
     <p style="font-family:'IBM Plex Mono', monospace; font-size:28px; color:#AFE0F7; margin:0; text-align:center;"><span>starts statistical · ends at the ruler of quantum information</span></p>
   </section>
 
-  <section data-label="The flat ruler lies" data-speaker-notes="Natural first answer: distance = gap on the interval. Test it: a 0.50-coin vs a 0.60-coin, and a 0.00-coin vs a 0.10-coin — the same gap of 0.10. But telling the first pair apart takes about 140 flips; the second pair, about 20 — one head from the 0.10-coin ends the game. Same ruler-gap, tenfold difference in real cost. The flat ruler lies." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="The flat ruler lies" data-speaker-notes="Natural first answer: distance = gap on the interval.
+Test it:
+— a 0.50-coin vs a 0.60-coin, and a 0.00-coin vs a 0.10-coin — the same gap of 0.10.
+— But telling the first pair apart takes about 140 flips;
+— the second pair, about 20 — one head from the 0.10-coin ends the game.
+— Same ruler-gap, tenfold difference in real cost.
+— The flat ruler lies." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>II · 1 — A NATURAL ANSWER, TESTED</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>The flat ruler lies about distance</span></h2>
@@ -486,7 +629,13 @@
     </div>
   </section>
 
-  <section data-label="Walk the arc" data-speaker-notes="The cure arch I already built: lift each coin to its place on the Bernoulli circle and walk the arc between them, not the chord below. Near the edges the arc stretches — exactly where flips are most telling. This arc has a classical name: the Bhattacharyya angle. And it is the honest ruler: the number of flips you need grows as one over the arc squared. Equal arcs cost equal flips, wherever they sit." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Walk the arc" data-speaker-notes="The cure arch I already built:
+— lift each coin to its place on the Bernoulli circle
+— and walk the arc between them, not the chord below.
+— Near the edges the arc stretches — exactly where flips are most telling.
+— Classical name: the Bhattacharyya angle.
+— It is the honest ruler: the number of flips you need grows as one over the arc squared.
+— Equal arcs cost equal flips, wherever they sit." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>II · 2 — THE HONEST RULER</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Lift to the circle, walk the arc</span></h2>
@@ -520,7 +669,14 @@
     </div>
   </section>
 
-  <section data-label="Bend every diameter" data-speaker-notes="One distance is still missing: fair coin vs mystery coin — same odds, different beliefs, both inside the disk. The flat disk fails just like the flat interval did. The cure, applied everywhere: every diameter of the disk is a fresh copy of the interval — bend each one into its own Bernoulli semicircle. They agree wherever they cross and share one summit; together they form the Bernoulli hemisphere. The mystery coin rides the center up to the top." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Bend every diameter" data-speaker-notes="One distance is still missing:
+— fair coin vs mystery coin — same odds, different beliefs, both inside the disk.
+— The flat disk fails just like the flat interval did.
+
+The cure, applied everywhere:
+— every diameter of the disk is a fresh copy of the interval — bend each one into its own Bernoulli semicircle.
+— They agree wherever they cross and share one summit; together they form the Bernoulli hemisphere.
+— The mystery coin rides the center up to the top." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>II · 3 — INTO THE DISK</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Bend every diameter: the disk becomes a bowl</span></h2>
@@ -556,7 +712,11 @@
     </div>
   </section>
 
-  <section data-label="Bures distance" data-speaker-notes="On the bowl, distance means the geodesic — the shortest walk along the surface. Fair coin on the rim to mystery coin at the summit: exactly pi over 4. This distance has an official name: the Bures distance — and it is precisely the distance quantum information theory uses today between density matrices, the quantum states you met as the disk. A purely statistical question, answered honestly, produced quantum's own ruler." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Bures distance" data-speaker-notes="— On the bowl, distance means the geodesic — the shortest walk along the surface.
+— Fair coin on the rim to mystery coin at the summit: exactly pi over 4.
+— Official name: the Bures distance —
+— precisely the distance quantum information theory uses today between density matrices, the quantum states you met as the disk.
+— A purely statistical question, answered honestly, produced quantum's own ruler." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>II · 4 — THE RULER OF QUANTUM INFORMATION</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>The walk on the bowl is the Bures distance</span></h2>
@@ -591,13 +751,24 @@
     </div>
   </section>
 
-  <section data-label="Arch III divider" data-speaker-notes="Arch three asks what that distance means — and the answer is quantum information's own way of measuring: never ask a state where it is; pick an axle, and ask which end. This arch is the keystone joining the other two." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
+  <section data-label="Arch III divider" data-speaker-notes="Arch three:
+— asks what that distance means.
+— The answer is quantum information's own way of measuring:
+— never ask a state where it is; pick an axle, and ask which end.
+— This arch is the keystone joining the other two." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
     <div style="font-family:'IBM Plex Mono', monospace; font-size:26px; letter-spacing:4px; color:#EE7203; font-weight:600;"><span>ARCH III</span></div>
     <h2 style="font-size:88px; font-weight:700; margin:0; letter-spacing:-1.5px; text-align:center;"><span>What does the distance mean?</span></h2>
     <p style="font-family:'IBM Plex Mono', monospace; font-size:28px; color:#AFE0F7; margin:0; text-align:center;"><span>the keystone — where arch I's states meet arch II's ruler</span></p>
   </section>
 
-  <section data-label="Ask which end" data-speaker-notes="Rule of the quantum game: you may never ask a state where it is. Pick a diameter of the disk — read it as an axle — and ask: which end? The odds are geometry: the chance of each answer is the squared distance to the opposite end. Every state is fully certain about exactly one axle — its own diameter. Randomness is a mismatch between state and question. And the answer is not sitting there waiting: it comes into being at the moment you ask — that is what makes the mystery coin classical and the qubit not." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Ask which end" data-speaker-notes="Rule of the quantum game:
+— you may never ask a state where it is.
+— Pick a diameter of the disk — read it as an axle — and ask: which end?
+— The odds are geometry: the chance of each answer is the squared distance to the opposite end.
+— Every state is fully certain about exactly one axle — its own diameter.
+— Randomness is a mismatch between state and question.
+— The answer is not sitting there waiting: it comes into being at the moment you ask —
+— that is what makes the mystery coin classical and the qubit not." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>III · 1 — MEASURING, THE QUANTUM WAY</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Never ask where — pick an axle, ask which end</span></h2>
@@ -629,7 +800,12 @@
     </div>
   </section>
 
-  <section data-label="Cashing in" data-speaker-notes="Now join the arches. Build a tester for 'are you the fair coin?' — that is just the axle through the fair coin and the anti-coin. A candidate passes with probability cos-squared of its Bures distance to the fair coin. Check: the mystery coin sits pi/4 away, cos-squared pi/4 is one half — it passes half the time. Flatten the triangle: base = the test axle, candidate above on the semicircle, legs root-P-pass and root-P-fail. Arch II's distance predicts arch III's odds — measuring IS judging how far apart states sit." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Cashing in" data-speaker-notes="Now join the arches:
+— build a tester for 'are you the fair coin?' — just the axle through the fair coin and the anti-coin.
+— A candidate passes with probability cos-squared of its Bures distance to the fair coin.
+— Check: the mystery coin sits pi/4 away, cos-squared pi/4 is one half — it passes half the time.
+— Flatten the triangle: base = the test axle, candidate above on the semicircle, legs root-P-pass and root-P-fail.
+— Arch II's distance predicts arch III's odds — measuring IS judging how far apart states sit." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>III · 2 — THE ARCHES MEET</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Distance cashes in as probability</span></h2>
@@ -670,7 +846,11 @@
     </div>
   </section>
 
-  <section data-label="Three arches, one stage" data-speaker-notes="Step back. Two statistical questions — what is a state, and how far apart are two states — contained no quantum physics at all. Answering them honestly forced the circle, the disk, the bowl and the axles into existence. Quantum mechanics is the discovery that nature actually performs on this whole stage — lower half, dial and all. That is the closing thought before the bonus." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Three arches, one stage" data-speaker-notes="Step back:
+— two statistical questions — what is a state, and how far apart are two states — contained no quantum physics at all.
+— Answering them honestly forced the circle, the disk, the bowl and the axles into existence.
+— Quantum mechanics is the discovery that nature actually performs on this whole stage — lower half, dial and all.
+— That is the closing thought before the bonus." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>III · 3 — THE KEYSTONE</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Two honest questions built the quantum stage</span></h2>
@@ -707,13 +887,27 @@
 
   <sc-if value="{{ includeBonus }}" hint-placeholder-val="{{ true }}">
 
-  <section data-label="Bonus divider" data-speaker-notes="The tutorial calls this the evidence room: is it a nice story, or an actual construction? It is a construction — the professionals' machinery (density matrices, spectral decomposition, statistical distances) fits the picture without leaving a remainder. We pay arch II's debt by counting the flips, discover why the arc is the only honest ruler, peek at the matrix under the hood, and meet the state's own axes." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
+  <section data-label="Bonus divider" data-speaker-notes="The evidence room:
+— is it a nice story, or an actual construction? It is a construction —
+— the professionals' machinery (density matrices, spectral decomposition, statistical distances) fits the picture without leaving a remainder.
+
+The plan:
+— pay arch II's debt by counting the flips,
+— discover why the arc is the only honest ruler,
+— peek at the matrix under the hood,
+— and meet the state's own axes." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
     <div style="font-family:'IBM Plex Mono', monospace; font-size:26px; letter-spacing:4px; color:#EE7203; font-weight:600;"><span>BONUS</span></div>
     <h2 style="font-size:88px; font-weight:700; margin:0; letter-spacing:-1.5px; text-align:center;"><span>The evidence room</span></h2>
     <p style="font-family:'IBM Plex Mono', monospace; font-size:28px; color:#AFE0F7; margin:0; text-align:center;"><span>a nice story, or an actual construction? — the proof, room by room</span></p>
   </section>
 
-  <section data-label="The race" data-speaker-notes="Arch II promised the circle predicts how many flips you need — let's collect. Referee: Wald's sequential test. Every flip adds its evidence to a running total; the moment the total crosses a wall (set for 5% error either way) the verdict is called. Duel A (0.50 vs 0.60) wanders for about 140 flips. Duel B (0.00 vs 0.10) plods through tails until one head ends the game instantly — about 20 flips. Same flat gap, tenfold difference, exactly as promised." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="The race" data-speaker-notes="Arch II promised the circle predicts how many flips you need — let's collect.
+— Referee: Wald's sequential test.
+— Every flip adds its evidence to a running total;
+— the moment the total crosses a wall (set for 5% error either way) the verdict is called.
+— Duel A (0.50 vs 0.60) wanders for about 140 flips.
+— Duel B (0.00 vs 0.10) plods through tails until one head ends the game instantly — about 20 flips.
+— Same flat gap, tenfold difference, exactly as promised." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 1 · COUNTING THE FLIPS</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Race the two duels — with an honest referee</span></h2>
@@ -744,7 +938,16 @@
     </div>
   </section>
 
-  <section data-label="By hand" data-speaker-notes="The same numbers by hand. Duel A: after n flips the head-fraction wobbles about 0.5 over root n; demand the wobble shrink below the half-gap 0.05 with 5% error and you need roughly 270 flips fixed-length — the thrifty sequential referee averages about 140, same order. Duel B: the 0.00-coin cannot produce a head, so a single H ends the game; the only possible error is the 0.10-coin sulking through all tails, 0.9 to the n, and demanding that below 5% gives 29 flips worst case. Same flat gap of 0.10 — a factor of ten in flips." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="By hand" data-speaker-notes="The same numbers by hand.
+Duel A:
+— after n flips the head-fraction wobbles about 0.5 over root n;
+— demand the wobble shrink below the half-gap 0.05 with 5% error: roughly 270 flips fixed-length —
+— the thrifty sequential referee averages about 140, same order.
+Duel B:
+— the 0.00-coin cannot produce a head, so a single H ends the game;
+— the only possible error is the 0.10-coin sulking through all tails, 0.9 to the n,
+— demanding that below 5% gives 29 flips worst case.
+— Same flat gap of 0.10 — a factor of ten in flips." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 2 · BY HAND</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Both flip counts, on the back of an envelope</span></h2>
@@ -764,7 +967,12 @@
     <p style="margin:64px auto 0; max-width:1300px; font-size:32px; line-height:1.55; text-align:center;"><span>Same gap of 0.10 — a factor of </span><strong>ten</strong><span> in flips. The envelope agrees with the race.</span></p>
   </section>
 
-  <section data-label="One law" data-speaker-notes="One law behind both numbers. For the best possible test, the error shrinks like the n-th power of the overlap between the two coins. Lift each coin to its angle on the circle and that overlap is simply the cosine of the arc between them. So the flip budget grows as one over the arc squared. Check: duel A spans an arc of 0.101, duel B an arc of 0.322 — the circle predicts a ratio of about ten, the race delivers about ten, and the flat ruler predicted one." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="One law" data-speaker-notes="One law behind both numbers:
+— for the best possible test, the error shrinks like the n-th power of the overlap between the two coins.
+— Lift each coin to its angle on the circle: that overlap is simply the cosine of the arc between them.
+— So the flip budget grows as one over the arc squared.
+— Check: duel A spans an arc of 0.101, duel B an arc of 0.322 —
+— the circle predicts a ratio of about ten, the race delivers about ten, and the flat ruler predicted one." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 3 · ONE LAW BEHIND BOTH</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>The overlap of two coins is the cosine of their arc</span></h2>
@@ -793,7 +1001,17 @@
     </div>
   </section>
 
-  <section data-label="The only ruler" data-speaker-notes="Why is the arc not just a good ruler but the ruler? Three escalating reasons. Local: the information in one flip explodes near the edges — exactly the flat ruler's blind spot; ask for the coordinate where every flip buys equal progress and you are forced onto the circle (statisticians know it as the arcsine transformation). Global: over any separation the cost is set by cos(arc) — equal arcs cost equal flips, anywhere. Unique: Čencov's theorem — an honest distance may only shrink when you post-process data, and this arc is the only ruler with that property, up to scale. The same cosine returns as the quantum overlap: the Bures walk of arch II, and the cos²(π/4) = ½ of arch III." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="The only ruler" data-speaker-notes="Why is the arc not just a good ruler but THE ruler? Three escalating reasons.
+Local:
+— the information in one flip explodes near the edges — exactly the flat ruler's blind spot;
+— ask for the coordinate where every flip buys equal progress and you are forced onto the circle
+— (statisticians know it as the arcsine transformation).
+Global:
+— over any separation the cost is set by cos(arc) — equal arcs cost equal flips, anywhere.
+Unique:
+— Čencov's theorem: an honest distance may only shrink when you post-process data,
+— and this arc is the only ruler with that property, up to scale.
+— The same cosine returns as the quantum overlap: the Bures walk of arch II, and the cos²(π/4) = ½ of arch III." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 4 · WHY THE ARC, OF ALL RULERS</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Not just a good ruler — the only honest one</span></h2>
@@ -816,7 +1034,12 @@
     <p style="margin:8px auto 0; max-width:1400px; font-size:32px; line-height:1.55; text-align:center;"><span>the Bures walk of arch II, and the cos²(π/4) = ½ of arch III.</span></p>
   </section>
 
-  <section data-label="Under the hood" data-speaker-notes="Last peek under the hood: the disk you have been drawing is, cell for cell, a 2-by-2 table — the density matrix. Top row: your two coordinates, average and orientation. Mixing beliefs averages tables — that is why blends were straight chords. And the Bures distance of arch II is exactly the textbook distance between these matrices. Everything in the talk was matrix arithmetic wearing a coin costume." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Under the hood" data-speaker-notes="Last peek under the hood:
+— the disk you have been drawing is, cell for cell, a 2-by-2 table — the density matrix.
+— Top row: your two coordinates, average and orientation.
+— Mixing beliefs averages tables — that is why blends were straight chords.
+— The Bures distance of arch II is exactly the textbook distance between these matrices.
+— Everything in the talk was matrix arithmetic wearing a coin costume." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 5 · UNDER THE HOOD</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Your disk was a density matrix all along</span></h2>
@@ -849,7 +1072,18 @@
     </div>
   </section>
 
-  <section data-label="The state's own axes" data-speaker-notes="The last room: spectral decomposition, in pictures. Step 5's mixer left an ambiguity — many chords pass through one interior point; many ensembles, one belief. The matrix breaks the tie: every state carries one distinguished chord, its own diameter. The quantum dictionary is shorter than its reputation: a question is an observable; the diameter's endpoints are its eigen-states — the only states answering with certainty; eigenvalues are the measured values on the endpoints, or for the state's own matrix the weights λ±. And the move 'find the object's own axes' is what data science does daily as PCA: the density matrix is a covariance table for a belief, so its spectral decomposition IS PCA applied to a belief. Whenever a physicist says eigen-something: picture a diameter with its two endpoints — nothing more." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="The state's own axes" data-speaker-notes="The last room: spectral decomposition, in pictures.
+— Step 5's mixer left an ambiguity: many chords pass through one interior point; many ensembles, one belief.
+— The matrix breaks the tie: every state carries one distinguished chord, its own diameter.
+
+The quantum dictionary is shorter than its reputation:
+— a question is an observable;
+— the diameter's endpoints are its eigen-states — the only states answering with certainty;
+— eigenvalues are the measured values on the endpoints, or for the state's own matrix the weights λ±.
+
+'Find the object's own axes' is what data science does daily as PCA:
+— the density matrix is a covariance table for a belief, so its spectral decomposition IS PCA applied to a belief.
+— Whenever a physicist says eigen-something: picture a diameter with its two endpoints — nothing more." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>BONUS 6 · THE STATE'S OWN AXES</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Every state chooses its own diameter</span></h2>
@@ -881,13 +1115,26 @@
     </div>
   </section>
 
-  <section data-label="Bonus ⊗ Bonus divider" data-speaker-notes="The finale: two bonuses multiplied, not added. The mystery coin's uncertainty could always be learned away — but the summit still carries the biggest lift of all. Can that uncertainty be traded away too? Not inside one qubit. The answer lies sideways: entanglement." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
+  <section data-label="Bonus ⊗ Bonus divider" data-speaker-notes="The finale: two bonuses multiplied, not added.
+— The mystery coin's uncertainty could always be learned away —
+— but the summit still carries the biggest lift of all.
+— Can that uncertainty be traded away too? Not inside one qubit.
+— The answer lies sideways: entanglement." style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; background:#002157; background-image:repeating-linear-gradient(to right, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px), repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1.5px, transparent 1.5px 48px); color:#FFFFFF; font-family:'Fraunces', Georgia, serif; box-sizing:border-box; padding:100px;">
     <div style="font-family:'IBM Plex Mono', monospace; font-size:26px; letter-spacing:4px; color:#EE7203; font-weight:600;"><span>BONUS ⊗ BONUS</span></div>
     <h2 style="font-size:88px; font-weight:700; margin:0; letter-spacing:-1.5px; text-align:center;"><span>The summit needs a partner</span></h2>
     <p style="font-family:'IBM Plex Mono', monospace; font-size:28px; color:#AFE0F7; margin:0; text-align:center;"><span>not two bonuses side by side — their tensor product: entanglement</span></p>
   </section>
 
-  <section data-label="Sideways" data-speaker-notes="Look at the mystery coin with both tools. On the disk: the flattest point, only ignorance. On the bowl: the summit, the biggest lift of all. The tutorial's main trade — uncertainty ABOUT a coin becomes uncertainty INSIDE a state — worked for the fair coin. For the summit there is no room left inside the qubit: sign and dial are spent. The only direction left is sideways: give the coin a partner. And you already own one — every coin is a pair of faces, glued in disagreement by the mint: 2×2 = 4 options cut down to 2. Perfect correlation is cheap." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Sideways" data-speaker-notes="Look at the mystery coin with both tools:
+— on the disk: the flattest point, only ignorance.
+— On the bowl: the summit, the biggest lift of all.
+— The tutorial's main trade — uncertainty ABOUT a coin becomes uncertainty INSIDE a state — worked for the fair coin.
+— For the summit there is no room left inside the qubit: sign and dial are spent.
+— The only direction left is sideways: give the coin a partner.
+
+And you already own one:
+— every coin is a pair of faces, glued in disagreement by the mint: 2×2 = 4 options cut down to 2.
+— Perfect correlation is cheap." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>⊗ 1 — ONLY ONE DIRECTION LEFT</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>No room inside the qubit — go sideways</span></h2>
@@ -917,7 +1164,21 @@
     </div>
   </section>
 
-  <section data-label="Two factories" data-speaker-notes="Build the partner. A factory welds two whole coins in AGREEMENT — halves you can carry to different rooms. Glued factory: each pair secretly HH or secretly TT, 50/50 — a mixture. Introduce the notebook here: the choice is a fact fixed at preparation, so someone at the factory could write it down and ship it along — whether anyone actually does is irrelevant; the record is possible, and that is what makes the state a mixture. Physicists say hidden variable. Bell factory ships (HH+TT)/√2 — a superposition, amplitudes added before squaring; no fact was ever created, so no notebook exists, not even a blank one. Tester: ask both halves the same δ-rotated question. The one-sided bars never move from 50% — each half alone is the mystery coin, at every angle, for both factories. But agreement separates: glued drops to a coin flip at δ = 90°; the Bell pair agrees always. Certain as a pair, maximally uncertain in each half." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Two factories" data-speaker-notes="Build the partner:
+— a factory welds two whole coins in AGREEMENT — halves you can carry to different rooms.
+— Glued factory: each pair secretly HH or secretly TT, 50/50 — a mixture.
+
+Introduce the notebook here:
+— the choice is a fact fixed at preparation, so someone at the factory could write it down and ship it along;
+— whether anyone actually does is irrelevant: the record is possible, and that makes the state a mixture.
+— Physicists say hidden variable.
+— Bell factory ships (HH+TT)/√2 — a superposition, amplitudes added before squaring;
+— no fact was ever created, so no notebook exists, not even a blank one.
+
+Tester: ask both halves the same δ-rotated question.
+— The one-sided bars never move from 50% — each half alone is the mystery coin, at every angle, for both factories.
+— But agreement separates: glued drops to a coin flip at δ = 90°; the Bell pair agrees always.
+— Certain as a pair, maximally uncertain in each half." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>⊗ 2 — TWO FACTORIES, ONE TESTER</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Certain as a pair, uncertain in each half</span></h2>
@@ -946,7 +1207,17 @@
     </div>
   </section>
 
-  <section data-label="The corner disk" data-speaker-notes="Step back and look at the arena: every state in the contest lives in the span of HH and TT — the agreement corner. Two dimensions means, by this tutorial's own construction, a Bernoulli disk. Same picture, new labels: the glued mixture N sits at the center — the corner's mystery coin; the Bell pair Φ at the top of the rim — the corner's fair coin; Φ⁻ waits at the bottom. The other two Bell states are the fair coins of the disagreement corner, where the coin's own faces have lived since step 1. Distance N to Φ: each branch overlaps Φ with probability ½, so P(pass) = ½ and distance = arccos √½ = π/4 — the old mystery-fair number, one floor up. But one-sided instruments read only lengths along the polar diameter — the corner's plain flip; only a joint measurement, both coins in one apparatus, can turn the dial." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="The corner disk" data-speaker-notes="Step back and look at the arena:
+— every state in the contest lives in the span of HH and TT — the agreement corner.
+— Two dimensions means, by this tutorial's own construction, a Bernoulli disk.
+
+Same picture, new labels:
+— the glued mixture N sits at the center — the corner's mystery coin;
+— the Bell pair Φ at the top of the rim — the corner's fair coin; Φ⁻ waits at the bottom.
+— The other two Bell states are the fair coins of the disagreement corner, where the coin's own faces have lived since step 1.
+— Distance N to Φ: each branch overlaps Φ with probability ½, so P(pass) = ½ and distance = arccos √½ = π/4 — the old mystery-fair number, one floor up.
+— But one-sided instruments read only lengths along the polar diameter — the corner's plain flip;
+— only a joint measurement, both coins in one apparatus, can turn the dial." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>⊗ 3 — A DISK YOU HAVE SEEN BEFORE</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>The Bell pair is the fair coin of a joint disk</span></h2>
@@ -986,7 +1257,12 @@
     </div>
   </section>
 
-  <section data-label="Purification" data-speaker-notes="Now the partner for ANY state, not just the summit. Three moves you already know. One: read the state spectrally — with weight λ+ it is eigen-coin e+, with weight λ− it is e−; a state prepared and then forgotten. Two: make the forgetting physical — the glued factory ships e+e+ on one branch, e−e− on the other; covering the right coin already returns the original, but this is still a notebook someone could peek at. Three: the lift, one floor up — superpose the same shipments with amplitudes √λ+ and √λ−. Rank one, rim point, no notebook. That is purification." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Purification" data-speaker-notes="Now the partner for ANY state, not just the summit. Three moves you already know:
+— One: read the state spectrally — with weight λ+ it is eigen-coin e+, with weight λ− it is e−; a state prepared and then forgotten.
+— Two: make the forgetting physical — the glued factory ships e+e+ on one branch, e−e− on the other;
+— covering the right coin already returns the original, but this is still a notebook someone could peek at.
+— Three: the lift, one floor up — superpose the same shipments with amplitudes √λ+ and √λ−.
+— Rank one, rim point, no notebook. That is purification." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>⊗ 4 — BUILD THE PARTNER</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Purify any state in three familiar moves</span></h2>
@@ -1013,7 +1289,19 @@
     <p style="margin:8px auto 0; max-width:1350px; font-size:30px; line-height:1.55; text-align:center; color:#5C6E8F;"><span>Only questions that touch </span><em>both halves at once</em><span> see the difference.</span></p>
   </section>
 
-  <section data-label="Concurrence" data-speaker-notes="Draw the recipe in its own arena, the eigen-corner disk: the notebook N on the floor at λ+, and Ψ directly above on the rim. The climb between them is the lift of step 6, one floor up. Height h = √(λ+λ−) = √(det ρ). And the concurrence — the standard measure of entanglement — is exactly twice the lift height. The vertical coordinate drawn since the bowl was built IS entanglement with the purifying partner. Slide to the rim: C = 0, pure states purify themselves. Slide to the center: C = 1, amplitudes (1/√2, 0, 0, 1/√2) — the mystery coin, honestly purified, IS the Bell pair. The ladder: 'about' becomes 'inside', floor by floor, each rung a square root; classically the chain never ends, quantum lets it stop — at a pure pair. That stopping point is entanglement." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Concurrence" data-speaker-notes="Draw the recipe in its own arena, the eigen-corner disk:
+— the notebook N on the floor at λ+, and Ψ directly above on the rim.
+— The climb between them is the lift of step 6, one floor up.
+— Height h = √(λ+λ−) = √(det ρ).
+— The concurrence — the standard measure of entanglement — is exactly twice the lift height.
+— The vertical coordinate drawn since the bowl was built IS entanglement with the purifying partner.
+— Slide to the rim: C = 0, pure states purify themselves.
+— Slide to the center: C = 1, amplitudes (1/√2, 0, 0, 1/√2) — the mystery coin, honestly purified, IS the Bell pair.
+
+The ladder:
+— 'about' becomes 'inside', floor by floor, each rung a square root;
+— classically the chain never ends, quantum lets it stop — at a pure pair.
+— That stopping point is entanglement." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>⊗ 5 — WHAT THE LIFT HEIGHT REALLY WAS</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>The lift height is the entanglement</span></h2>
@@ -1047,7 +1335,17 @@
     </div>
   </section>
 
-  <section data-label="Bell's test" data-speaker-notes="One objection survives, and it is correct: the glued coins lost only because they carried a single shared fact. The cleverest classical factory ships each pair a complete ANSWER SHEET — a pre-agreed answer for every question, identical in both halves. It beats the same-question tester: 100% agreement at every δ. The sharper tester asks the two halves DIFFERENT questions — the CHSH game: three combinations win on agreement, the fourth on disagreement. Algebra: any answer sheet lands S on ±2, winning at most 75% — Bell's inequality; no notebook factory can pass the wall. The Bell pair, answering with the cosine ruler, reaches S = 2√2: 85.4%, through the wall. Aspect, Clauser and Zeilinger ran this game in the lab — Nobel Prize 2022. Nature carries no answer sheet." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+  <section data-label="Bell's test" data-speaker-notes="One objection survives, and it is correct:
+— the glued coins lost only because they carried a single shared fact.
+— The cleverest classical factory ships each pair a complete ANSWER SHEET — a pre-agreed answer for every question, identical in both halves.
+— It beats the same-question tester: 100% agreement at every δ.
+
+The sharper tester asks the two halves DIFFERENT questions — the CHSH game:
+— three combinations win on agreement, the fourth on disagreement.
+— Algebra: any answer sheet lands S on ±2, winning at most 75% — Bell's inequality; no notebook factory can pass the wall.
+— The Bell pair, answering with the cosine ruler, reaches S = 2√2: 85.4%, through the wall.
+— Aspect, Clauser and Zeilinger ran this game in the lab — Nobel Prize 2022.
+— Nature carries no answer sheet." style="display:flex; flex-direction:column; padding:90px 100px 80px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
     <div style="display:flex; flex-direction:column; gap:14px;">
       <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>⊗ 6 — THE CLEVEREST FACTORY</span></div>
       <h2 style="font-size:64px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Bell's test: no answer sheet passes the wall</span></h2>

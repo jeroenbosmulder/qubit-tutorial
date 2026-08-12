@@ -85,8 +85,8 @@ function FigMix() {
   const A = (q) => ({ x: 150 + 600 * q, y: 430 - 600 * Math.sqrt(Math.max(0, q * (1 - q))) });
   const P1 = A(q1), P2 = A(q2);
   const f = useFig((id, pt) => {
-    if (id === "q1") setSt((s) => ({ ...s, q1: clamp((pt.x - 150) / 600, 0.03, 0.97) }));
-    else if (id === "q2") setSt((s) => ({ ...s, q2: clamp((pt.x - 150) / 600, 0.03, 0.97) }));
+    if (id === "q1") setSt((s) => ({ ...s, q1: clamp((pt.x - 150) / 600, 0, 1) }));
+    else if (id === "q2") setSt((s) => ({ ...s, q2: clamp((pt.x - 150) / 600, 0, 1) }));
     else {
       const dx = P1.x - P2.x, dy = P1.y - P2.y, L2 = dx * dx + dy * dy || 1;
       setSt((s) => ({ ...s, lam: clamp(((pt.x - P2.x) * dx + (pt.y - P2.y) * dy) / L2, 0, 1) }));
@@ -144,6 +144,8 @@ function FigThales() {
       <Txt x={midH.x} y={midH.y} size={25} fill={GOLD} bold transform={`rotate(${angH.toFixed(1)} ${midH.x.toFixed(1)} ${midH.y.toFixed(1)})`}>length √(1−p)</Txt>
       <Txt x={P.x} y={P.y - 36} size={26} fill={INK} bold>your belief</Txt>
       <Grab x={P.x} y={P.y} r={12} fill={GOLD} onDown={f.down("p")} />
+      <circle cx={60} cy={62} r={11} fill={GOLD} stroke={INK} strokeWidth="3" />
+      <Txt x={84} y={70} anchor="start" size={25} fill={INK}>{`(p, √(p(1−p))) = (${p.toFixed(2)}, ${Math.sqrt(p * (1 - p)).toFixed(2)})`}</Txt>
       <Txt x={850} y={70} anchor="end" size={25} fill={TEAL} bold>{`√p = ${Math.sqrt(p).toFixed(2)}`}</Txt>
       <Txt x={850} y={106} anchor="end" size={25} fill={GOLD} bold>{`√(1−p) = ${Math.sqrt(1 - p).toFixed(2)}`}</Txt>
       <Txt x={450} y={548} size={25} fill={INK}>{`p + (1−p) = ${p.toFixed(2)} + ${(1 - p).toFixed(2)} = 1 — Pythagoras, on a coin`}</Txt>
@@ -178,6 +180,8 @@ function FigEmbed() {
       <circle cx="450" cy="300" r="230" fill="none" stroke={TEAL} strokeWidth="4" />
       <circle cx="565" cy="300" r="115" fill="none" stroke={GOLD} strokeWidth="4" strokeDasharray="9 8" />
       <line x1="450" y1="300" x2={U.x} y2={U.y} stroke={INK} strokeWidth="3" />
+      <line x1="450" y1="300" x2={B.x} y2={B.y} stroke={TEAL} strokeWidth="4" />
+      <line x1="680" y1="300" x2={B.x} y2={B.y} stroke={GOLD} strokeWidth="4" />
       <line x1="565" y1="300" x2={B.x} y2={B.y} stroke={GOLD} strokeWidth="3" />
       <path d={arcPath(450, 300, 55, 0, alpha)} fill="none" stroke={INK} strokeWidth="2.5" />
       <path d={arcPath(565, 300, 48, 0, norm360(two))} fill="none" stroke={GOLD} strokeWidth="2.5" />
@@ -240,20 +244,38 @@ function FigTwin() {
 
 // ── slide I·7 : the Bloch ball ──
 function FigBloch() {
-  const [st, setSt] = useSynced("bloch", { s: { x: 559, y: 140 }, phi: 70 });
-  const { s, phi } = st;
+  const [st, setSt] = useSynced("bloch", { p: 0.73, phi: 0 });
+  const { p, phi } = st;
+  // true orthographic view: yaw + slight elevation — all circles project as real ellipses
+  const sb = -50 / 240, cb = Math.sqrt(1 - sb * sb), se = 62 / 240, ce = Math.sqrt(1 - se * se);
+  const X = 240 * (2 * p - 1);
+  const Rw = Math.sqrt(240 * 240 - X * X);
+  const pr = phi / DEG;
+  // wheel point at angle φ (φ = 0 → back crossing P, φ = 180 → front crossing P′)
+  const wpt = (a) => ({
+    x: 450 + X * cb - Rw * sb * Math.cos(a),
+    y: 300 - Rw * ce * Math.sin(a) - X * sb * se - Rw * cb * se * Math.cos(a),
+  });
+  const S = wpt(pr), P = wpt(0), Q = wpt(Math.PI);
+  const T = { x: 450 - 240 * cb, y: 300 + 240 * sb * se }, H = { x: 450 + 240 * cb, y: 300 - 240 * sb * se };
+  const knob = { x: 450 + X * cb, y: 300 + X * sb * se * -1 };
   const f = useFig((id, pt) => {
-    if (id === "s") {
-      let dx = pt.x - 450, dy = pt.y - 300;
-      const r = Math.hypot(dx, dy);
-      if (r > 238) { dx *= 238 / r; dy *= 238 / r; }
-      setSt((prev) => ({ ...prev, s: { x: 450 + dx, y: 300 + dy } }));
+    if (id === "phi") {
+      setSt((prev) => {
+        const X2 = 240 * (2 * prev.p - 1), R2 = Math.sqrt(240 * 240 - X2 * X2);
+        const c = clamp((pt.x - 450 - X2 * cb) / (-sb * R2), -1, 1);
+        const s = (300 - pt.y - X2 * sb * se - R2 * cb * se * c) / (R2 * ce);
+        return { ...prev, phi: norm360(Math.atan2(s, c) * DEG) };
+      });
     } else {
-      setSt((prev) => ({ ...prev, phi: norm360(Math.atan2((300 - pt.y) / 229, (pt.x - 522) / 52) * DEG) }));
+      setSt((prev) => ({ ...prev, p: clamp(((pt.x - 450) / cb / 240 + 1) / 2, 0.01, 0.99) }));
     }
   });
-  const rr = Math.hypot(s.x - 450, s.y - 300) / 238;
-  const W = { x: 522 + 52 * Math.cos(phi / DEG), y: 300 - 229 * Math.sin(phi / DEG) };
+  let wh = "";
+  for (let t = 0; t <= 360; t += 4) {
+    const w = wpt(t / DEG);
+    wh += `${w.x.toFixed(1)},${w.y.toFixed(1)} `;
+  }
   return (
     <svg ref={f.ref} viewBox="0 0 900 620" onPointerMove={f.move} onPointerUp={f.up} style={svgStyle}>
       <defs>
@@ -266,22 +288,25 @@ function FigBloch() {
       </defs>
       <circle cx="450" cy="300" r="240" fill="url(#figball)" stroke={LBLUE} strokeWidth="2.5" />
       <ellipse cx="450" cy="300" rx="240" ry="62" fill="none" stroke={GOLD} strokeWidth="3" strokeDasharray="9 8" />
-      <line x1="210" y1="300" x2="690" y2="300" stroke={SOFT} strokeWidth="2" strokeDasharray="4 5" />
-      <ellipse cx="522" cy="300" rx="52" ry="229" fill="none" stroke={TEAL} strokeWidth="3.5" />
-      <circle cx="210" cy="300" r="8" fill={INK} />
-      <circle cx="690" cy="300" r="8" fill={INK} />
-      <Txt x={185} y={306} anchor="end" fill={INK}>always T</Txt>
-      <Txt x={715} y={306} anchor="start" fill={INK}>always H</Txt>
-      <line x1="450" y1="300" x2={s.x} y2={s.y} stroke={INK} strokeWidth="2.5" />
+      <line x1={T.x} y1={T.y} x2={H.x} y2={H.y} stroke={SOFT} strokeWidth="2" strokeDasharray="4 5" />
+      <polyline points={wh} fill="none" stroke={TEAL} strokeWidth="3.5" />
+      <circle cx={T.x} cy={T.y} r="8" fill={INK} />
+      <circle cx={H.x} cy={H.y} r="8" fill={INK} />
+      <Txt x={T.x - 25} y={T.y + 6} anchor="end" fill={INK}>always T</Txt>
+      <Txt x={H.x + 25} y={H.y + 6} anchor="start" fill={INK}>always H</Txt>
+      <line x1="450" y1="300" x2={S.x} y2={S.y} stroke={INK} strokeWidth="2.5" />
       <circle cx="450" cy="300" r="6" fill={SOFT} />
-      <Txt x={s.x} y={s.y - 32} size={26} fill={INK} bold>state</Txt>
-      <Txt x={W.x + (W.y < 300 ? 34 : 34)} y={W.y + 8} anchor="start" size={25} fill={TEAL} bold>φ</Txt>
-      <Grab x={s.x} y={s.y} r={12} fill={GOLD} onDown={f.down("s")} />
-      <Grab x={W.x} y={W.y} r={10} fill={TEAL} onDown={f.down("phi")} />
-      <Txt x={595} y={62} anchor="start" size={25} fill={TEAL} bold>φ spins the wheel</Txt>
-      <Txt x={180} y={568} anchor="start" size={24} fill={GOLD}>gold: your Bernoulli circle, lying flat</Txt>
+      <circle cx={P.x} cy={P.y} r="7" fill={INK} />
+      <circle cx={Q.x} cy={Q.y} r="7" fill={INK} />
+      <Txt x={P.x + 24} y={P.y + 8} anchor="start" size={26} fill={INK} bold>P</Txt>
+      <Txt x={Q.x - 20} y={Q.y + 34} anchor="end" size={26} fill={INK} bold>P′</Txt>
+      <Txt x={S.x} y={S.y - 32} size={26} fill={INK} bold>state</Txt>
+      <Grab x={knob.x} y={knob.y} r={10} fill="#FFFFFF" onDown={f.down("p")} />
+      <Grab x={S.x} y={S.y} r={12} fill={GOLD} onDown={f.down("phi")} />
+      <Txt x={850} y={62} anchor="end" size={25} fill={TEAL} bold>φ spins the state</Txt>
+      <Txt x={180} y={568} anchor="start" size={24} fill={GOLD}>the wheel crosses the gold circle at P and P′</Txt>
       <Txt x={450} y={606} size={24} fill={INK}>
-        {`state radius = ${rr.toFixed(2)}${rr > 0.97 ? " — pure, on the surface" : " — mixed, inside"} · φ = ${Math.round(phi)}°`}
+        {`p = ${p.toFixed(2)} · φ = ${Math.round(norm360(phi))}° — drag the state or the axle knob`}
       </Txt>
     </svg>
   );
