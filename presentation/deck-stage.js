@@ -1596,7 +1596,10 @@
       // the [rw, innerWidth] stage region.
       if (this._overlay) this._overlay.style.marginLeft = (rw / 2) + 'px';
       const vw = window.innerWidth - rw;
-      const vh = window.innerHeight;
+      // Space reserved at the bottom by the page (e.g. a speaker-notes panel).
+      const rb = (typeof window.__deckReservedBottom === 'number' && isFinite(window.__deckReservedBottom)) ? Math.max(0, window.__deckReservedBottom) : 0;
+      if (stage) stage.style.bottom = rb + 'px';
+      const vh = window.innerHeight - rb;
       const s = Math.min(vw / this.designWidth, vh / this.designHeight);
       this._canvas.style.transform = `scale(${s})`;
     }
