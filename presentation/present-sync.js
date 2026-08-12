@@ -30,7 +30,7 @@
     var edits = {};
     try { edits = JSON.parse(localStorage.getItem(EKEY)) || {}; } catch (err) {}
     var curSlide = null, curKey = null;
-    var open = localStorage.getItem(KEY) !== '0';
+    var open = false; // notes panel starts hidden — toggle with N
     var panelH = Math.max(90, Math.min(window.innerHeight * 0.6, parseInt(localStorage.getItem(HKEY), 10) || 190));
     var panel, head, body;
     function ensurePanel() {
@@ -97,7 +97,7 @@
       var left = document.createElement('span');
       left.textContent = 'notes \u00b7 slide ' + (d.index + 1) + (d.total ? '/' + d.total : '') + (label ? ' \u2014 ' + label : '');
       var right = document.createElement('span');
-      right.textContent = 'click to edit \u00b7 drag top edge to resize \u00b7 N to hide \u00b7 P for mirror';
+      right.textContent = 'click to edit · drag top edge to resize · N to hide · P for mirror';
       right.style.color = '#5C6E8F';
       head.appendChild(left); head.appendChild(right);
       body.textContent = note;
@@ -122,7 +122,6 @@
       if (e.key === 'p' || e.key === 'P') window.openPresenterWindow();
       else if (e.key === 'n' || e.key === 'N') {
         open = !open;
-        localStorage.setItem(KEY, open ? '1' : '0');
         applyOpen();
       }
     });

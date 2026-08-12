@@ -78,6 +78,32 @@ function arcPath(cx, cy, r, a0, a1) {
 
 const svgStyle = { width: "100%", display: "block", touchAction: "none", userSelect: "none" };
 
+// ── slide I·1 : the interval [0,1] ──
+function FigInterval() {
+  const [st, setSt] = useSynced("interval", { p: 0.7 });
+  const p = st.p;
+  const f = useFig((id, pt) => setSt({ p: clamp((pt.x - 100) / 700, 0, 1) }));
+  const x = 100 + 700 * p;
+  return (
+    <svg ref={f.ref} viewBox="0 0 900 460" onPointerMove={f.move} onPointerUp={f.up} style={svgStyle}>
+      <circle cx="330" cy="120" r="72" fill="#FFFFFF" stroke={LBLUE} strokeWidth="4" />
+      <text x="330" y="142" textAnchor="middle" fontFamily={MONO} fontSize="60" fontWeight="600" fill={INK}>T</text>
+      <circle cx="570" cy="120" r="72" fill={GOLD} stroke={INK} strokeWidth="4" />
+      <text x="570" y="142" textAnchor="middle" fontFamily={MONO} fontSize="60" fontWeight="600" fill="#FFFFFF">H</text>
+      <Txt x={450} y={135} size={32}>or</Txt>
+      <line x1="100" y1="330" x2="800" y2="330" stroke={INK} strokeWidth="4" />
+      <line x1="100" y1="314" x2="100" y2="346" stroke={INK} strokeWidth="4" />
+      <line x1="800" y1="314" x2="800" y2="346" stroke={INK} strokeWidth="4" />
+      <line x1="450" y1="318" x2="450" y2="342" stroke={SOFT} strokeWidth="3" />
+      <Txt x={x} y={288} size={26} fill={GOLD} bold>{`your coin · p = ${p.toFixed(2)}`}</Txt>
+      <Grab x={x} y={330} r={13} fill={GOLD} onDown={f.down("p")} />
+      <Txt x={60} y={390} anchor="start" size={25}>0 · always tails</Txt>
+      <Txt x={450} y={390} size={25}>½</Txt>
+      <Txt x={840} y={390} anchor="end" size={25}>1 · always heads</Txt>
+    </svg>
+  );
+}
+
 // ── slide I·3 : semicircle + blends ──
 function FigMix() {
   const [st, setSt] = useSynced("mix", { q1: 0.9, q2: 0.2, lam: 0.45 });
@@ -314,15 +340,50 @@ function FigBloch() {
 
 // ── slide I·8 : a bit swaps, a qubit rotates ──
 function FigRotate() {
-  const [st, setSt] = useSynced("rotate", { del: 28 });
-  const del = st.del;
-  const f = useFig((id, pt) => {
-    const a = norm360(Math.atan2(270 - pt.y, pt.x - 620) * DEG);
-    setSt({ del: id === "e2" ? norm360(a + 180) : a });
-  });
+  const [st, setSt] = useSynced("rotate", { a: { x: 0.45, y: 0.55, z: 0.7 }, del: 55 });
+  const { a, del } = st;
+  const R = 145, CX = 620, CY = 270;
+  const dot = (p, q) => p.x * q.x + p.y * q.y + p.z * q.z;
+  const cross = (p, q) => ({ x: p.y * q.z - p.z * q.y, y: p.z * q.x - p.x * q.z, z: p.x * q.y - p.y * q.x });
+  const nrm = (p) => { const l = Math.hypot(p.x, p.y, p.z) || 1; return { x: p.x / l, y: p.y / l, z: p.z / l }; };
+  const basis = (ax) => {
+    let u = cross(ax, { x: 0, y: 0, z: 1 });
+    if (Math.hypot(u.x, u.y, u.z) < 1e-3) u = { x: 1, y: 0, z: 0 };
+    u = nrm(u);
+    return [u, nrm(cross(ax, u))];
+  };
+  const A = nrm(a), [U, V] = basis(A);
+  const toScr = (w) => ({ x: CX + R * w.x, y: CY - R * w.y });
   const dr = del / DEG;
-  const E1 = { x: 620 + 145 * Math.cos(dr), y: 270 - 145 * Math.sin(dr) };
-  const E2 = { x: 620 - 145 * Math.cos(dr), y: 270 + 145 * Math.sin(dr) };
+  const M3 = { x: U.x * Math.cos(dr) + V.x * Math.sin(dr), y: U.y * Math.cos(dr) + V.y * Math.sin(dr), z: U.z * Math.cos(dr) + V.z * Math.sin(dr) };
+  const E1 = toScr(A), E2 = toScr({ x: -A.x, y: -A.y, z: -A.z }), M = toScr(M3);
+  const toSphere = (pt) => {
+    let nx = (pt.x - CX) / R, ny = (CY - pt.y) / R;
+    const r2 = nx * nx + ny * ny;
+    if (r2 > 1) { const r = Math.sqrt(r2); return { x: nx / r, y: ny / r, z: 0 }; }
+    return { x: nx, y: ny, z: Math.sqrt(1 - r2) };
+  };
+  const f = useFig((id, pt) => {
+    const s = toSphere(pt);
+    if (id === "a1") setSt((prev) => ({ ...prev, a: s }));
+    else if (id === "a2") setSt((prev) => ({ ...prev, a: { x: -s.x, y: -s.y, z: -s.z } }));
+    else setSt((prev) => {
+      const ax = nrm(prev.a), [u, v] = basis(ax);
+      return { ...prev, del: norm360(Math.atan2(dot(s, v), dot(s, u)) * DEG) };
+    });
+  });
+  // the rotation circle ⊥ axis, split into front (z≥0) and back segments
+  let front = [], back = [], cf = "", cbk = "";
+  for (let t = 0; t <= 360; t += 4) {
+    const tr = t / DEG;
+    const w = { x: U.x * Math.cos(tr) + V.x * Math.sin(tr), y: U.y * Math.cos(tr) + V.y * Math.sin(tr), z: U.z * Math.cos(tr) + V.z * Math.sin(tr) };
+    const sp = toScr(w), seg = `${sp.x.toFixed(1)},${sp.y.toFixed(1)} `;
+    if (w.z >= 0) { cf += seg; if (cbk) { back.push(cbk); cbk = ""; } }
+    else { cbk += seg; if (cf) { front.push(cf); cf = ""; } }
+  }
+  if (cf) front.push(cf);
+  if (cbk) back.push(cbk);
+  const backEnd = -A.z < 0; // is the white end behind the ball?
   return (
     <svg ref={f.ref} viewBox="0 0 900 560" onPointerMove={f.move} onPointerUp={f.up} style={svgStyle}>
       <defs>
@@ -338,16 +399,18 @@ function FigRotate() {
       <text x="300" y="286" textAnchor="middle" fontFamily={MONO} fontSize="42" fontWeight="600" fill={INK}>T</text>
       <text x="235" y="185" textAnchor="middle" fontSize="58" fill={SOFT}>⇄</text>
       <Txt x={235} y={420} size={25}>the bit: swap — that's all</Txt>
-      <circle cx="620" cy="270" r="145" fill="url(#figball2)" stroke={LBLUE} strokeWidth="2.5" />
-      <ellipse cx="620" cy="270" rx="145" ry="38" fill="none" stroke={GOLD} strokeWidth="3" strokeDasharray="7 6" />
-      <ellipse cx="620" cy="270" rx="38" ry="145" fill="none" stroke={TEAL} strokeWidth="3" strokeDasharray="7 6" />
-      <line x1={E2.x} y1={E2.y} x2={E1.x} y2={E1.y} stroke={INK} strokeWidth="3.5" />
-      <Grab x={E1.x} y={E1.y} fill={GOLD} onDown={f.down("e1")} />
-      <Grab x={E2.x} y={E2.y} r={10} fill="#FFFFFF" onDown={f.down("e2")} />
-      <Txt x={450} y={490} size={25} fill={INK} bold>{`the qubit: any axis, any angle — δ = ${Math.round(del)}°`}</Txt>
-      <Txt x={450} y={526} size={24}>drag an end of the axis</Txt>
+      <circle cx={CX} cy={CY} r={R} fill="url(#figball2)" stroke={LBLUE} strokeWidth="2.5" />
+      {back.map((pts, i) => <polyline key={"b" + i} points={pts} fill="none" stroke={TEAL} strokeWidth="2.5" strokeDasharray="3 7" opacity="0.45" />)}
+      {backEnd && <circle cx={E2.x} cy={E2.y} r="8" fill="#FFFFFF" stroke={SOFT} strokeWidth="2.5" opacity="0.55" style={{ cursor: "grab" }} onPointerDown={f.down("a2")} />}
+      <line x1={E2.x} y1={E2.y} x2={E1.x} y2={E1.y} stroke={INK} strokeWidth="3.5" opacity={backEnd ? 0.75 : 1} />
+      {front.map((pts, i) => <polyline key={"f" + i} points={pts} fill="none" stroke={TEAL} strokeWidth="3" />)}
+      {!backEnd && <Grab x={E2.x} y={E2.y} r={10} fill="#FFFFFF" onDown={f.down("a2")} />}
+      <Grab x={E1.x} y={E1.y} fill={GOLD} onDown={f.down("a1")} />
+      <Grab x={M.x} y={M.y} r={10} fill={TEAL} stroke="#FFFFFF" onDown={f.down("m")} />
+      <Txt x={450} y={490} size={25} fill={INK} bold>{`the qubit: any axis, any angle — δ = ${Math.round(norm360(del))}°`}</Txt>
+      <Txt x={450} y={526} size={24}>drag the gold end anywhere · spin the teal state</Txt>
     </svg>
   );
 }
 
-module.exports = { FigMix, FigThales, FigEmbed, FigTwin, FigBloch, FigRotate };
+module.exports = { FigInterval, FigMix, FigThales, FigEmbed, FigTwin, FigBloch, FigRotate };
