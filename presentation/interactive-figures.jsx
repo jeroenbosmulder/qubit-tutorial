@@ -106,7 +106,7 @@ function FigInterval() {
 
 // ── slide I·3 : semicircle + blends ──
 function FigMix() {
-  const [st, setSt] = useSynced("mix", { q1: 0.9, q2: 0.2, lam: 0.45 });
+  const [st, setSt] = useSynced("mix", { q1: 0, q2: 1, lam: 0.5 });
   const { q1, q2, lam } = st;
   const A = (q) => ({ x: 150 + 600 * q, y: 430 - 600 * Math.sqrt(Math.max(0, q * (1 - q))) });
   const P1 = A(q1), P2 = A(q2);
@@ -120,6 +120,7 @@ function FigMix() {
   });
   const B = { x: P2.x + lam * (P1.x - P2.x), y: P2.y + lam * (P1.y - P2.y) };
   const m = lam * q1 + (1 - lam) * q2;
+  const spread = (430 - B.y) / 600;
   return (
     <svg ref={f.ref} viewBox="0 0 900 520" onPointerMove={f.move} onPointerUp={f.up} style={svgStyle}>
       <path d="M 150 430 A 300 300 0 0 1 750 430 Z" fill={PEACH} fillOpacity="0.5" />
@@ -136,7 +137,7 @@ function FigMix() {
       <Grab x={P1.x} y={P1.y} fill={TEAL} onDown={f.down("q1")} />
       <Grab x={P2.x} y={P2.y} fill={RED} onDown={f.down("q2")} />
       <Grab x={B.x} y={B.y} fill={GOLD} onDown={f.down("lam")} />
-      <Txt x={450} y={510} size={25} fill={INK}>{`λ = ${lam.toFixed(2)} · blend average = ${m.toFixed(2)} — drag the three points`}</Txt>
+      <Txt x={450} y={510} size={25} fill={INK}>{`λ = ${lam.toFixed(2)} · average = ${m.toFixed(2)} · spread = ${spread.toFixed(2)}`}</Txt>
     </svg>
   );
 }
