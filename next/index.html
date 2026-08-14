@@ -1066,6 +1066,163 @@ function AnalyzerDemo() {
   );
 }
 
+// Turnable Poincaré ball: the three polarization pairs as three perpendicular diameters
+function PolarBall() {
+  const [rot, setRot] = useState({ yaw: -0.7, pitch: 0.35 });
+  const dragRef = useRef(null);
+  const W = 340, H = 290, cx = 170, cy = 145, R = 112;
+  const proj = (v) => {
+    const [x, y, z] = v;
+    const cy1 = Math.cos(rot.yaw), sy1 = Math.sin(rot.yaw);
+    const x1 = x * cy1 - y * sy1, y1 = x * sy1 + y * cy1, z1 = z;
+    const cp = Math.cos(rot.pitch), sp = Math.sin(rot.pitch);
+    const depth = y1 * cp - z1 * sp, up = y1 * sp + z1 * cp;
+    return { X: cx + R * x1, Y: cy - R * up, front: depth <= 0 };
+  };
+  const circleSegs = (fn, color) => {
+    const segs = [];
+    const N = 60;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * 2 * Math.PI, b = ((i + 1) / N) * 2 * Math.PI;
+      const p1 = proj(fn(a)), p2 = proj(fn(b));
+      segs.push(
+        <line key={color + i} x1={p1.X} y1={p1.Y} x2={p2.X} y2={p2.Y}
+          stroke={color} strokeWidth={1.6}
+          opacity={p1.front && p2.front ? 0.85 : 0.18} />
+      );
+    }
+    return segs;
+  };
+  const axis = (v, color) => {
+    const p1 = proj(v), p2 = proj([-v[0], -v[1], -v[2]]);
+    return <line x1={p1.X} y1={p1.Y} x2={p2.X} y2={p2.Y} stroke={color} strokeWidth={1.2} strokeDasharray="4 4" opacity={0.5} />;
+  };
+  const marks = [
+    { v: [1, 0, 0], c: C.ink, t: "H-pol · always H" },
+    { v: [-1, 0, 0], c: C.ink, t: "V-pol · always T" },
+    { v: [0, 1, 0], c: C.gold, t: "+45° · coin" },
+    { v: [0, -1, 0], c: C.gold, t: "−45° · anti-coin" },
+    { v: [0, 0, 1], c: C.teal, t: "L-circular · φ=+90°" },
+    { v: [0, 0, -1], c: C.teal, t: "R-circular · φ=−90°" },
+  ];
+  const onDown = (e) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { x: e.clientX, y: e.clientY, yaw: rot.yaw, pitch: rot.pitch };
+  };
+  const onMove = (e) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const pitch = Math.max(-1.35, Math.min(1.35, d.pitch + (e.clientY - d.y) * 0.008));
+    setRot({ yaw: d.yaw + (e.clientX - d.x) * 0.008, pitch });
+  };
+  const onUp = () => { dragRef.current = null; };
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`}
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+      style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block", touchAction: "none", cursor: "grab" }}>
+      <circle cx={cx} cy={cy} r={R} fill="#fff" stroke={C.gridBold} strokeWidth={1.5} />
+      {circleSegs((a) => [Math.cos(a), Math.sin(a), 0], C.inkSoft)}
+      {circleSegs((a) => [Math.cos(a), 0, Math.sin(a)], C.teal)}
+      {axis([1, 0, 0], C.ink)}
+      {axis([0, 1, 0], C.gold)}
+      {axis([0, 0, 1], C.teal)}
+      {marks.map((m, i) => {
+        const p = proj(m.v);
+        return (
+          <g key={i} opacity={p.front ? 1 : 0.3}>
+            <circle cx={p.X} cy={p.Y} r={6.5} fill={p.front ? m.c : "#fff"} stroke={m.c} strokeWidth={2} />
+            <text x={p.X + (p.X > cx ? 10 : -10)} y={p.Y + 3.5} textAnchor={p.X > cx ? "start" : "end"}
+              fontFamily={mono} fontSize="9" fontWeight="600" fill={m.c}>{m.t}</text>
+          </g>
+        );
+      })}
+      <text x={10} y={H - 10} fontFamily={mono} fontSize="9" fill={C.inkSoft}>drag to turn · grey wheel: the table circle · teal wheel: the standing wheel</text>
+    </svg>
+  );
+}
+
+// The interferometer's flight recorder: the state's trajectory on the ball of routes
+function MZBall({ phi = 0, bs2 = true, mix = false }) {
+  const [rot, setRot] = useState({ yaw: -0.7, pitch: 0.35 });
+  const dragRef = useRef(null);
+  const W = 340, H = 290, cx = 170, cy = 145, R = 112;
+  const proj = (v) => {
+    const [x, y, z] = v;
+    const cy1 = Math.cos(rot.yaw), sy1 = Math.sin(rot.yaw);
+    const x1 = x * cy1 - y * sy1, y1 = x * sy1 + y * cy1, z1 = z;
+    const cp = Math.cos(rot.pitch), sp = Math.sin(rot.pitch);
+    const depth = y1 * cp - z1 * sp, up = y1 * sp + z1 * cp;
+    return { X: cx + R * x1, Y: cy - R * up, front: depth <= 0 };
+  };
+  const seg = (fn, t0, t1, color, wdt, N) => {
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const a = t0 + ((t1 - t0) * i) / N, b = t0 + ((t1 - t0) * (i + 1)) / N;
+      const p1 = proj(fn(a)), p2 = proj(fn(b));
+      out.push(
+        <line key={color + wdt + i} x1={p1.X} y1={p1.Y} x2={p2.X} y2={p2.Y}
+          stroke={color} strokeWidth={wdt}
+          opacity={p1.front && p2.front ? 0.9 : 0.18} />
+      );
+    }
+    return out;
+  };
+  const ph = (phi * Math.PI) / 180;
+  const q = Math.PI / 2;
+  // trajectory: gate 1 (about vertical axis), dial (about the axle), gate 2 (back)
+  const arcGate1 = (t) => [Math.cos(t), Math.sin(t), 0];                       // t: 0→90°
+  const arcDial = (u) => [0, Math.cos(u), Math.sin(u)];                        // u: 0→φ
+  const arcGate2 = (s) => [Math.cos(ph) * Math.sin(s), Math.cos(ph) * Math.cos(s), Math.sin(ph)]; // s: 0→90°
+  const state = mix ? [0, 0, 0] : !bs2 ? arcDial(ph) : arcGate2(q);
+  const pState = proj(state);
+  const marks = [
+    { v: [1, 0, 0], c: C.ink, t: "certainly route A" },
+    { v: [-1, 0, 0], c: C.ink, t: "certainly route B" },
+  ];
+  const onDown = (e) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { x: e.clientX, y: e.clientY, yaw: rot.yaw, pitch: rot.pitch };
+  };
+  const onMove = (e) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const pitch = Math.max(-1.35, Math.min(1.35, d.pitch + (e.clientY - d.y) * 0.008));
+    setRot({ yaw: d.yaw + (e.clientX - d.x) * 0.008, pitch });
+  };
+  const onUp = () => { dragRef.current = null; };
+  const start = proj([1, 0, 0]);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`}
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+      style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block", touchAction: "none", cursor: "grab" }}>
+      <circle cx={cx} cy={cy} r={R} fill="#fff" stroke={C.gridBold} strokeWidth={1.5} />
+      {seg((a) => [Math.cos(a), Math.sin(a), 0], 0, 2 * Math.PI, C.inkSoft, 1.2, 60)}
+      {seg((a) => [0, Math.cos(a), Math.sin(a)], 0, 2 * Math.PI, C.gridBold, 1.2, 60)}
+      {!mix && seg(arcGate1, 0, q, C.teal, 3, 24)}
+      {!mix && Math.abs(ph) > 0.02 && seg(arcDial, 0, ph, C.gold, 3, 24)}
+      {!mix && bs2 && seg(arcGate2, 0, q, C.teal, 3, 24)}
+      {marks.map((m, i) => {
+        const p = proj(m.v);
+        return (
+          <g key={i} opacity={p.front ? 1 : 0.3}>
+            <circle cx={p.X} cy={p.Y} r={5.5} fill={p.front ? m.c : "#fff"} stroke={m.c} strokeWidth={2} />
+            <text x={p.X + (p.X > cx ? 9 : -9)} y={p.Y + 3.5} textAnchor={p.X > cx ? "start" : "end"}
+              fontFamily={mono} fontSize="9" fontWeight="600" fill={m.c}>{m.t}</text>
+          </g>
+        );
+      })}
+      <g opacity={pState.front || mix ? 1 : 0.35}>
+        <circle cx={pState.X} cy={pState.Y} r={8} fill={mix ? C.inkSoft : C.gold} stroke={C.ink} strokeWidth={2} />
+        <text x={pState.X} y={pState.Y - 13} textAnchor="middle" fontFamily={mono} fontSize="9" fontWeight="600" fill={mix ? C.inkSoft : C.ink}>
+          {mix ? "mixture: pinned at the center" : "the state"}
+        </text>
+      </g>
+      <circle cx={start.X} cy={start.Y} r={9} fill="none" stroke={C.gold} strokeWidth={1.5} strokeDasharray="3 3" opacity={0.7} />
+      <text x={10} y={H - 10} fontFamily={mono} fontSize="9" fill={C.inkSoft}>drag to turn · teal arcs: half-mirror quarter-turns · gold arc: the dial φ</text>
+    </svg>
+  );
+}
+
 function StepHands() {
   const [midIn, setMidIn] = useState(false);
   const [bs2, setBs2] = useState(false);
@@ -1085,6 +1242,15 @@ function StepHands() {
         ball. (The fine print of this dictionary — angle-doubling, and what perpendicular diameters
         mean — waits in the evidence room.)
       </p>
+      <p>
+        Here is that dictionary drawn on the ball itself — <em>drag it around</em>. The three
+        pairs sit at the ends of three perpendicular diameters: the T–H axle (ink), the
+        coin/anti-coin diameter across the table (gold), and the circular pair on the standing
+        wheel's own axis (teal). History has a name for this picture of light, drawn in 1892: the{" "}
+        <strong>Poincaré sphere</strong> — your ball, discovered from the other side (Exhibit I
+        tells that story).
+      </p>
+      <PolarBall />
       <p>
         Now the first piece of evidence: an experiment you can run at the kitchen table with three
         sunglass lenses. Cross two polarizers, 0° and 90°: darkness — always-H is asked
@@ -1115,11 +1281,17 @@ function StepHands() {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "10px 0 4px" }}>
         <Btn onClick={() => setBs2((v) => !v)}>{bs2 ? "remove second half-mirror" : "insert second half-mirror"}</Btn>
       </div>
+      <MZBall phi={0} bs2={bs2} />
       <p style={{ marginTop: 14 }}>
         Insert a <em>second</em> half-mirror where the routes cross — and chance snaps into{" "}
-        <em>certainty</em>: one detector now clicks always, the other never. Two 50/50 mirrors in a
-        row should give 50/50; instead the routes' two contributions to the silent detector —
-        opposite in sign, step&nbsp;6's negative lengths once more — cancel to nothing. And here
+        <em>certainty</em>: one detector now clicks always, the other never. The ball above is the
+        interferometer's flight recorder, and it shows why. The first half-mirror is a{" "}
+        <strong>quarter-turn</strong> that lays "certainly route A" onto the equator — where the
+        route-question reads 50/50, the randomness you saw. The second half-mirror is another
+        quarter-turn, and the two compose: the state rides straight back up to a pole, and the
+        flip is certain again. Two 50/50 mirrors in a row "should" give 50/50; instead the routes'
+        two contributions to the silent detector — opposite in sign, step&nbsp;6's negative
+        lengths once more — cancel to nothing. And here
         is the quantum part: dim the source to <strong>single photons</strong> and nothing fades
         into noise. Each photon travels <em>both</em> routes as amplitudes, answers as one click,
         and the certainty survives, click by click — a particle behaving the way no particle we
@@ -2060,6 +2232,13 @@ function StepTwoPaths() {
         <Btn onClick={() => setMix((v) => !v)}>{mix ? "source: mystery mixture — switch back" : "source: qubit — switch to mystery mixture"}</Btn>
       </div>
       <ProbBars title="DETECTOR ODDS" probs={[pPlus, 1 - pPlus]} labels={["D⊕ clicks", "D⊖ clicks"]} dim={mix} />
+      <p style={{ marginTop: 14 }}>
+        And the same run, drawn on the ball — the interferometer's flight recorder. Quarter-turn to
+        the equator, a gold walk of φ around the standing wheel, quarter-turn back; the final
+        point's position along the axle <em>is</em> the detector odds. Switch to the mystery
+        mixture and the recorder has nothing to record: the center is fixed by every rotation.
+      </p>
+      <MZBall phi={phi} bs2={true} mix={mix} />
       <p style={{ marginTop: 14 }}>
         Set φ = 0: two 50/50 mirrors in a row, and yet one detector clicks <em>always</em>. The
         routes' two contributions to the other detector are equal and opposite — step 6's
