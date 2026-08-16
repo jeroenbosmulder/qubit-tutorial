@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The kitchen lab — build your own qubit, in hardware</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="apple-touch-icon.png" />
+<meta name="theme-color" content="#FFFFFF" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+  :root{
+    --paper:#FFFFFF; --grid:#E1F3FC; --gridBold:#AFE0F7; --ink:#002157;
+    --inkSoft:#5C6E8F; --gold:#EE7203; --goldSoft:#FDE9D3; --red:#F71D25;
+    --redSoft:#FDE0E1; --teal:#00A1E4;
+    --serif:'Fraunces',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--serif)}
+  .wrap{max-width:660px;margin:0 auto;padding:28px 18px 60px}
+  p{line-height:1.6;font-size:15px}
+  header{text-align:center;margin-bottom:22px}
+  .coin{width:46px;height:46px;border-radius:50%;margin:0 auto 10px;
+    background:radial-gradient(circle at 35% 30%, #FFAE5E, var(--gold));
+    border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:600;color:#fff}
+  h1{font-size:30px;font-weight:700;margin:0;letter-spacing:-.5px}
+  .sub{font-family:var(--mono);font-size:12px;color:var(--inkSoft);margin-top:4px}
+  h2{font-size:21px;font-weight:600;margin:34px 0 10px}
+  h2 .tag{font-family:var(--mono);font-size:13px;color:var(--gold);margin-right:8px}
+  .notice{margin-top:16px;padding:10px 14px;border-left:3px solid var(--gold);
+    background:#FFF4E8;font-size:14px;line-height:1.55}
+  .notice b.k{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--gold);font-weight:600}
+  a{color:var(--teal)}
+  /* ---- requisition slip (shopping list) ---- */
+  .slip{background:#fff;border:1.5px solid var(--gridBold);border-radius:8px;
+    padding:14px 16px;margin:14px 0;
+    background-image:linear-gradient(var(--grid) 1px, transparent 1px);
+    background-size:100% 28px;background-position:0 10px}
+  .slip h3{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--inkSoft);
+    margin:0 0 8px;font-weight:600}
+  .slip h3 .sum{float:right;color:var(--gold)}
+  .item{display:flex;align-items:baseline;gap:10px;padding:5px 0;font-size:14.5px;line-height:1.45}
+  .item input{accent-color:var(--gold);transform:translateY(2px);flex:0 0 auto}
+  .item .what{flex:1 1 auto}
+  .item .what small{display:block;color:var(--inkSoft);font-size:12.5px}
+  .item .eur{font-family:var(--mono);font-size:12px;white-space:nowrap;color:var(--ink);font-weight:600}
+  .slip .total{border-top:1.5px solid var(--gridBold);margin-top:8px;padding-top:8px;
+    display:flex;justify-content:space-between;font-family:var(--mono);font-size:12.5px;font-weight:600}
+  /* ---- bench cards ---- */
+  .card{background:#fff;border:1.5px solid var(--gridBold);border-radius:8px;
+    padding:12px 14px;margin:14px 0}
+  .card .head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .badge{flex:0 0 auto;min-width:26px;height:26px;border-radius:50%;padding:0 6px;
+    border:1.5px solid var(--gridBold);background:var(--goldSoft);
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;font-weight:600}
+  .card .head b{font-size:16px}
+  .step{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--gold);margin-left:auto}
+  .card p{margin:8px 0;font-size:14.5px}
+  svg.sketch{width:100%;display:block;background:#fff;border:1.5px solid var(--gridBold);
+    border-radius:8px;margin:8px 0}
+  table.read{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:8px 0}
+  table.read th{color:var(--inkSoft);font-weight:600;letter-spacing:.5px;text-align:left;
+    border-bottom:1.5px solid var(--gridBold);padding:4px 6px}
+  table.read td{padding:4px 6px;border-bottom:1px solid var(--grid)}
+  table.read td.n{text-align:right}
+  .safety{border-left-color:var(--red);background:var(--redSoft)}
+  .safety b.k{color:var(--red)}
+  footer{margin-top:36px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--inkSoft)}
+  footer a{color:var(--inkSoft)}
+  @media print{
+    .wrap{max-width:none;padding:0 6mm}
+    body{font-size:12px}
+    .card,.slip{break-inside:avoid}
+    a{color:inherit;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="coin">H</div>
+  <h1>The kitchen lab</h1>
+  <div class="sub">build your own qubit, in hardware — a shopping list and seven bench cards</div>
+</header>
+
+<p>
+  The tutorial's ball is not a diagram waiting for a quantum computer: everything up to and
+  including step&nbsp;13 runs on bright, everyday light, and the equipment is sold as toys. This
+  page is the companion for a physical demonstration table. Buy the core kit, cut and mount the
+  film, and every claim the tutorial makes about polarized light —
+  Malus's odds, the twin test, the state that isn't there, light resurrected by an obstacle —
+  becomes a measurement your audience performs themselves. Prices are typical for Amazon /
+  AliExpress / educational suppliers; search terms are given per item.
+</p>
+
+<!-- ================= SHOPPING LIST ================= -->
+<h2><span class="tag">PART 1</span>The shopping list</h2>
+
+<div class="slip">
+  <h3>CORE KIT <span class="sum">≈ €35–55 · covers steps 6–13</span></h3>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>Linear polarizing film</b>, one A4 sheet — cut into 6 squares of ~6×6&nbsp;cm
+    <small>search: "linear polarizing film sheet" · fallback: lenses from polarized sunglasses or cinema 3D glasses · used in every demo</small></span>
+    <span class="eur">€10–20</span></div>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>Quarter-wave retarder film</b>, one small sheet — the step-11 "crystal plate"
+    <small>search: "1/4 wave retarder film" or "quarter wave plate film" · budget trick: two pairs of RealD 3D cinema glasses (€2–5) are a QWP glued to a polarizer</small></span>
+    <span class="eur">€10–15</span></div>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>Your phone</b>, twice over — a free lux-meter app is the light meter; the white screen is a strong <em>linearly polarized</em> lamp
+    <small>install e.g. "Lux Light Meter" · check the screen's polarization axis once with a film square (phones vary: often 45°)</small></span>
+    <span class="eur">€0</span></div>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>LED or incandescent lamp</b> — the unpolarized bulb: the center of the ball
+    <small>any desk lamp; frosted is best (even glow, no hot spot)</small></span>
+    <span class="eur">€0–10</span></div>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>Cardboard, binder clips, glue stick, printed 360° protractor dials</b> — mounts
+    <small>frame each film square in cardboard on a printed dial so every angle is readable; this is what turns demos into measurements</small></span>
+    <span class="eur">€5</span></div>
+  <div class="total"><span>CORE KIT TOTAL</span><span>≈ €35–55</span></div>
+</div>
+
+<div class="slip">
+  <h3>NICE EXTRAS <span class="sum">≈ €25–45 · steps 8, 12, 14</span></h3>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>Laser pointer</b> (red, class&nbsp;2) + <b>DIY double slit</b> — step-14 fringes and the quantum eraser
+    <small>slit: two pencil leads side by side, a single hair, or two scratches in blackened foil</small></span>
+    <span class="eur">€5–10</span></div>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>Roll of clear tape</b> — birefringence colors between crossed polarizers: the delay dial φ, painted in wavelengths
+    <small>ordinary office tape; layer 1–5 strips at varying angles on glass or stiff plastic</small></span>
+    <span class="eur">€1</span></div>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>Calcite crystal</b> ("Iceland spar") — double images that a rotating polarizer switches between
+    <small>mineral shops / online; a clear rhomb ~2–3&nbsp;cm</small></span>
+    <span class="eur">€10–15</span></div>
+  <div class="item"><input type="checkbox"><span class="what">
+    <b>2× CPL camera filters</b> (any thread size, e.g. 58&nbsp;mm) — smoothly rotatable mounts
+    <small>the threaded ring is a free rotation stage; a CPL is itself a polarizer + QWP sandwich</small></span>
+    <span class="eur">€8–16</span></div>
+  <div class="total"><span>EXTRAS TOTAL</span><span>≈ €25–45</span></div>
+</div>
+
+<div class="notice">
+  <b class="k">BUILD NOTE — </b>
+  Cut the polarizing film with scissors, mark each square's transmission axis (rotate it against
+  your phone screen: the darkest orientation is <em>crossed</em> with the screen's axis), and glue
+  each square into a cardboard frame over a printed dial. Mark the QWP film's fast axis the same
+  way: between crossed polarizers, the plate goes darkest when its axis lines up with either one.
+  For metering, fix the lamp–phone distance, dim the room, and read <em>ratios</em>, not absolute
+  lux — the tutorial's percentages are ratios.
+</div>
+
+<!-- ================= BENCH CARDS ================= -->
+<h2><span class="tag">PART 2</span>Seven bench cards</h2>
+<p>
+  Each card names the tutorial step it demonstrates, sketches the optical train, and states the
+  reading the theory predicts — so the audience can check the geometry against the meter.
+</p>
+
+<!-- CARD 1 -->
+<div class="card">
+  <div class="head"><span class="badge">1</span><b>Malus's law — odds as brightness</b><span class="step">STEP 6</span></div>
+  <svg class="sketch" viewBox="0 0 340 110">
+    <line x1="14" y1="55" x2="60" y2="55" stroke="#002157" stroke-width="7" stroke-linecap="round" opacity=".85"/>
+    <text x="16" y="38" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">lamp</text>
+    <line x1="66" y1="55" x2="160" y2="55" stroke="#EE7203" stroke-width="9" stroke-linecap="round" opacity=".9"/>
+    <rect x="160" y="16" width="10" height="78" rx="4" fill="#fff" stroke="#00A1E4" stroke-width="2.5"/>
+    <text x="165" y="106" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">P1 · β</text>
+    <line x1="172" y1="55" x2="242" y2="55" stroke="#EE7203" stroke-width="6" stroke-linecap="round" opacity=".75"/>
+    <rect x="242" y="16" width="10" height="78" rx="4" fill="#fff" stroke="#002157" stroke-width="2.5"/>
+    <text x="247" y="106" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">P2 · θ</text>
+    <line x1="254" y1="55" x2="296" y2="55" stroke="#EE7203" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+    <rect x="298" y="34" width="26" height="44" rx="5" fill="#fff" stroke="#AFE0F7" stroke-width="2"/>
+    <text x="311" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#5C6E8F">lux</text>
+  </svg>
+  <p>
+    Lamp → sheet P1 (prepares the beam at β) → sheet P2 (asks the question θ) → phone meter.
+    Take the reading behind P1 alone as 100%, then step P2 through the dial:
+  </p>
+  <table class="read">
+    <tr><th>θ − β</th><td class="n">0°</td><td class="n">30°</td><td class="n">45°</td><td class="n">60°</td><td class="n">90°</td></tr>
+    <tr><th>meter (cos²)</th><td class="n">100%</td><td class="n">75%</td><td class="n">50%</td><td class="n">25%</td><td class="n">0%</td></tr>
+  </table>
+  <p>
+    Then remove P1 and point the meter at the bare bulb through one rotating sheet: a stubborn,
+    flat ~50% at every angle — the center of the disk, on sale at every supermarket.
+  </p>
+</div>
+
+<!-- CARD 2 -->
+<div class="card">
+  <div class="head"><span class="badge">2</span><b>The twin test — 45° is not 135°</b><span class="step">STEPS 6–9</span></div>
+  <p>
+    Prepare two beams: P1 at 45°, then P1 at 135°. Test each with the second sheet, first at 0°,
+    then at 45°:
+  </p>
+  <table class="read">
+    <tr><th>test sheet</th><th>beam at 45° (coin)</th><th>beam at 135° (anti-coin)</th></tr>
+    <tr><td>θ = 0° — "the coin flip"</td><td class="n">50%</td><td class="n">50%</td></tr>
+    <tr><td>θ = 45° — the tilted question</td><td class="n">100%</td><td class="n">0%</td></tr>
+  </table>
+  <p>
+    Identical to the flip, opposite to the tilted question — the mirror twins of step&nbsp;7,
+    told apart in hardware. This ten-second table is the whole reason the half-disk had to grow.
+  </p>
+</div>
+
+<!-- CARD 3 -->
+<div class="card">
+  <div class="head"><span class="badge">3</span><b>The state that isn't there</b><span class="step">STEP 11</span></div>
+  <svg class="sketch" viewBox="0 0 340 110">
+    <rect x="14" y="24" width="34" height="62" rx="5" fill="#fff" stroke="#002157" stroke-width="2"/>
+    <text x="31" y="59" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="#5C6E8F">screen</text>
+    <text x="31" y="102" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">phone · white</text>
+    <line x1="52" y1="55" x2="118" y2="55" stroke="#EE7203" stroke-width="7" stroke-linecap="round" opacity=".85"/>
+    <rect x="118" y="16" width="10" height="78" rx="4" fill="#fff" stroke="#EE7203" stroke-width="2.5"/>
+    <text x="123" y="106" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">QWP · 45°</text>
+    <line x1="130" y1="55" x2="196" y2="55" stroke="#EE7203" stroke-width="7" stroke-linecap="round" opacity=".75" stroke-dasharray="8 5"/>
+    <rect x="196" y="16" width="10" height="78" rx="4" fill="#fff" stroke="#00A1E4" stroke-width="2.5" stroke-dasharray="4 3"/>
+    <text x="201" y="106" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">(2nd QWP)</text>
+    <line x1="208" y1="55" x2="252" y2="55" stroke="#EE7203" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+    <rect x="252" y="16" width="10" height="78" rx="4" fill="#fff" stroke="#002157" stroke-width="2.5"/>
+    <text x="257" y="106" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">sheet · θ</text>
+    <line x1="264" y1="55" x2="296" y2="55" stroke="#EE7203" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+    <rect x="298" y="34" width="26" height="44" rx="5" fill="#fff" stroke="#AFE0F7" stroke-width="2"/>
+    <text x="311" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#5C6E8F">lux</text>
+  </svg>
+  <p>
+    Make circular light: the phone's white screen (a linear source) + QWP with its fast axis at
+    45° to the screen's axis. Sweep the test sheet: <b>flat ~50% at every θ</b> — the detective
+    kit says "dead center, same as the bulb". Now insert the <em>second</em> QWP (dashed) before
+    the test sheet: full breathing returns, 100%/0% — a pure diagonal beam recovered from
+    "total ignorance", with no light lost. Repeat with the bulb instead of the screen: the plate
+    changes nothing. A blend has no timing to adjust; this beam was never a blend.
+  </p>
+  <p>
+    Party version: put on RealD 3D glasses and look at yourself in a mirror — one eye goes dark,
+    because reflection flips the corkscrew's handedness (left-circular becomes right-circular).
+  </p>
+</div>
+
+<!-- CARD 4 -->
+<div class="card">
+  <div class="head"><span class="badge">4</span><b>Light resurrected — three sheets</b><span class="step">STEP 13</span></div>
+  <svg class="sketch" viewBox="0 0 340 110">
+    <line x1="14" y1="55" x2="52" y2="55" stroke="#002157" stroke-width="7" stroke-linecap="round" opacity=".85"/>
+    <text x="16" y="38" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">lamp</text>
+    <line x1="58" y1="55" x2="120" y2="55" stroke="#EE7203" stroke-width="9" stroke-linecap="round" opacity=".9"/>
+    <rect x="120" y="16" width="10" height="78" rx="4" fill="#fff" stroke="#002157" stroke-width="2.5"/>
+    <text x="125" y="106" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">P1 · 0°</text>
+    <line x1="132" y1="55" x2="186" y2="55" stroke="#EE7203" stroke-width="6" stroke-linecap="round" opacity=".75"/>
+    <rect x="186" y="16" width="10" height="78" rx="4" fill="#fff" stroke="#00A1E4" stroke-width="2.5" stroke-dasharray="4 3"/>
+    <text x="191" y="106" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">(P · 45°)</text>
+    <line x1="198" y1="55" x2="252" y2="55" stroke="#EE7203" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+    <rect x="252" y="16" width="10" height="78" rx="4" fill="#fff" stroke="#002157" stroke-width="2.5"/>
+    <text x="257" y="106" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">P2 · 90°</text>
+    <line x1="264" y1="55" x2="296" y2="55" stroke="#EE7203" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+    <rect x="298" y="34" width="26" height="44" rx="5" fill="#fff" stroke="#AFE0F7" stroke-width="2"/>
+    <text x="311" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#5C6E8F">lux</text>
+  </svg>
+  <p>
+    Cross P1 (0°) and P2 (90°): darkness. Slide the third sheet <em>between</em> them at 45°
+    (dashed): light returns. With the reading behind P1 as 100%:
+  </p>
+  <table class="read">
+    <tr><th>configuration</th><th>meter (vs. behind P1)</th></tr>
+    <tr><td>P1 → P2 crossed</td><td class="n">0%</td></tr>
+    <tr><td>P1 → 45° → P2</td><td class="n">25%</td></tr>
+  </table>
+  <p>
+    An added obstacle produced more light — interference, the sign doing real work, at the
+    kitchen table. Slowly rotate the middle sheet from 0° to 90° and watch the output rise to
+    its 25% maximum at 45° and die at both ends (cos²θ·sin²θ).
+  </p>
+</div>
+
+<!-- CARD 5 -->
+<div class="card">
+  <div class="head"><span class="badge">5</span><b>The delay dial, painted — tape art</b><span class="step">STEP 12</span></div>
+  <p>
+    Layer strips of clear tape at assorted angles on a piece of glass or stiff plastic. Place it
+    between crossed polarizers against the lamp: the invisible sandwich explodes into color. Tape
+    is birefringent — each layer delays one wiggle relative to the other, and the delay depends
+    on wavelength, so each thickness turns the dial φ by a different amount per color. Rotate the
+    back sheet by 90° and every color jumps to its complement. This is the tutorial's dial made
+    visible: a delay you can laminate.
+  </p>
+</div>
+
+<!-- CARD 6 -->
+<div class="card">
+  <div class="head"><span class="badge">6</span><b>Measuring is asking — calcite</b><span class="step">STEP 8</span></div>
+  <p>
+    Set the calcite rhomb on printed text: every letter appears twice — the crystal splits light
+    into two perpendicular polarizations that take different paths. Look through a rotating
+    polarizer: at one angle only the first image survives, a quarter-turn later only the second,
+    in between both with cos²-traded brightness. One object, performing "pick a diameter, answer
+    with an endpoint" — the double image is the question's two answers, physically separated.
+  </p>
+</div>
+
+<!-- CARD 7 -->
+<div class="card">
+  <div class="head"><span class="badge">7</span><b>Fringes and the eraser — two paths</b><span class="step">STEP 14</span></div>
+  <svg class="sketch" viewBox="0 0 340 110">
+    <line x1="14" y1="55" x2="66" y2="55" stroke="#F71D25" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+    <text x="16" y="38" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">laser</text>
+    <rect x="66" y="20" width="8" height="70" rx="3" fill="#fff" stroke="#002157" stroke-width="2.5"/>
+    <line x1="70" y1="44" x2="70" y2="50" stroke="#002157" stroke-width="3"/>
+    <line x1="70" y1="60" x2="70" y2="66" stroke="#002157" stroke-width="3"/>
+    <text x="70" y="103" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">2 slits</text>
+    <line x1="76" y1="52" x2="250" y2="30" stroke="#F71D25" stroke-width="2" opacity=".55"/>
+    <line x1="76" y1="58" x2="250" y2="80" stroke="#F71D25" stroke-width="2" opacity=".55"/>
+    <line x1="76" y1="55" x2="250" y2="55" stroke="#F71D25" stroke-width="2" opacity=".55"/>
+    <rect x="252" y="14" width="8" height="82" rx="3" fill="#fff" stroke="#AFE0F7" stroke-width="2"/>
+    <text x="256" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">wall (≥2 m)</text>
+    <g font-family="IBM Plex Mono" font-size="8" fill="#F71D25">
+      <rect x="268" y="22" width="14" height="6" rx="2" opacity=".9"/>
+      <rect x="268" y="36" width="14" height="6" rx="2" opacity=".5"/>
+      <rect x="268" y="50" width="14" height="6" rx="2" opacity=".9"/>
+      <rect x="268" y="64" width="14" height="6" rx="2" opacity=".5"/>
+      <rect x="268" y="78" width="14" height="6" rx="2" opacity=".9"/>
+    </g>
+    <text x="290" y="58" font-family="IBM Plex Mono" font-size="8.5" fill="#5C6E8F">fringes</text>
+  </svg>
+  <p>
+    Tape two pencil leads side by side (or use a single hair) and shine the laser through the gap
+    onto a wall a few meters away: bands of light and dark — two routes, adding and cancelling.
+    Then the <b>eraser</b>, with three small film pieces: cover one slit with 0° film and the
+    other with 90° film — the fringes vanish (the routes are now labeled, and labeled routes
+    cannot cancel). Hold a third piece at 45° in the beam after the slits — the fringes return,
+    dimmer. The label is erased; the routes cancel again. This bench, run one photon at a time in
+    a real lab, gives identical curves — step 14's claim.
+  </p>
+</div>
+
+<div class="notice safety">
+  <b class="k">SAFETY — </b>
+  Use a class-2 laser pointer (&lt;1&nbsp;mW), never aim it at eyes or reflective surfaces at eye
+  height, and keep it pointed at the wall. Everything else on this page is film, tape, cardboard
+  and lamplight.
+</div>
+
+<div class="notice">
+  <b class="k">HONESTY NOTE — </b>
+  Every card above runs on bright, classical light, and that is exactly the point of steps 6–13:
+  the ball, the odds, the sign and the dial are all measurable classically. What this table
+  cannot show is step&nbsp;14's genuinely quantum half — single photons, one click at a time.
+  That takes a university lab (a photon-pair source and single-photon detectors, thousands of
+  euros). The honest framing works in your favor: the kitchen bench draws the curves
+  <em>exactly</em>, and quantum mechanics is the discovery that the same curves survive when the
+  light arrives as indivisible clicks.
+</div>
+
+<footer>
+  companion to <a href="index.html">build your own qubit</a> — fourteen steps from a coin flip, via light, to a qubit
+</footer>
+
+</div>
+</body>
+</html>
