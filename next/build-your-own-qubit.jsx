@@ -544,15 +544,189 @@ function StepMix() {
   );
 }
 
-// ================= STEP 6 : THE SAME DISK, IN GLASS =================
+// ================= STEP 6 : A COIN MADE OF LIGHT =================
+// Animated two-component wave. Sizes from beta; delta is the relative timing (0 = in step,
+// 180 = opposite step, 90 = quarter-beat delay -> circle). Steps own the controls.
+function WaveLab({ beta, delta }) {
+  const [t, setT] = useState(0);
+  const [run, setRun] = useState(true);
+  useEffect(() => {
+    if (!run) return;
+    let id;
+    const loop = () => {
+      setT((x) => x + 0.045);
+      id = requestAnimationFrame(loop);
+    };
+    id = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(id);
+  }, [run]);
+  const br = (beta * Math.PI) / 180;
+  const a = Math.cos(br), b = Math.sin(br);
+  const d = (delta * Math.PI) / 180;
+  const N = 44, x0 = 12, x1 = 206, yH = 42, yV = 108, amp = 24;
+  const pts = (A, ph) =>
+    Array.from({ length: N + 1 }, (_, i) => {
+      const x = x0 + (i * (x1 - x0)) / N;
+      const y = -A * amp * Math.sin(i * 0.32 - t - ph);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+  // front view: trail of recent tip positions
+  const fcx = 273, fcy = 75, fr = 44;
+  const trail = Array.from({ length: 34 }, (_, k) => {
+    const tt = t - k * 0.13;
+    return [fcx + fr * a * Math.sin(tt), fcy - fr * b * Math.sin(tt - d), 1 - k / 36];
+  });
+  const grid = [];
+  for (let x = 20; x <= 320; x += 30) grid.push(<line key={"v" + x} x1={x} y1={0} x2={x} y2={150} stroke={C.grid} strokeWidth={0.8} />);
+  for (let y = 15; y <= 145; y += 30) grid.push(<line key={"h" + y} x1={0} y1={y} x2={340} y2={y} stroke={C.grid} strokeWidth={0.8} />);
+  return (
+    <div>
+      <svg viewBox="0 0 340 150" style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+        {grid}
+        <line x1={x0} y1={yH} x2={x1} y2={yH} stroke={C.gridBold} strokeWidth={1} />
+        <line x1={x0} y1={yV} x2={x1} y2={yV} stroke={C.gridBold} strokeWidth={1} />
+        <g transform={`translate(0 ${yH})`}>
+          <polyline points={pts(a, 0)} fill="none" stroke={C.gold} strokeWidth={2.5} strokeLinejoin="round" />
+        </g>
+        <g transform={`translate(0 ${yV})`}>
+          <polyline points={pts(b, d)} fill="none" stroke={C.teal} strokeWidth={2.5} strokeLinejoin="round" />
+        </g>
+        <text x={x0} y={14} fontFamily={mono} fontSize="9.5" fill={C.gold}>H wiggle · size a = {a.toFixed(2)}</text>
+        <text x={x0} y={80} fontFamily={mono} fontSize="9.5" fill={C.teal}>V wiggle · size b = {b.toFixed(2)}</text>
+        <text x={x0} y={146} fontFamily={mono} fontSize="9" fill={C.inkSoft}>the wave, flying to the right →</text>
+        <rect x={fcx - fr - 6} y={fcy - fr - 6} width={2 * fr + 12} height={2 * fr + 12} rx={8} fill="#fff" stroke={C.gridBold} strokeWidth={1.5} />
+        <line x1={fcx - fr} y1={fcy} x2={fcx + fr} y2={fcy} stroke={C.grid} strokeWidth={1.2} />
+        <line x1={fcx} y1={fcy - fr} x2={fcx} y2={fcy + fr} stroke={C.grid} strokeWidth={1.2} />
+        {trail.map(([x, y, o], k) => (
+          <circle key={k} cx={x} cy={y} r={k === 0 ? 4.5 : 2.2} fill={C.ink} opacity={k === 0 ? 1 : 0.28 * o} />
+        ))}
+        <text x={fcx} y={fcy + fr + 16} textAnchor="middle" fontFamily={mono} fontSize="9" fill={C.inkSoft}>front view — what the tip draws</text>
+      </svg>
+      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+        <Btn kind="ghost" onClick={() => setRun((v) => !v)}>{run ? "pause" : "play"}</Btn>
+      </div>
+    </div>
+  );
+}
+
+// Single-photon clicker: the coin flip made of light. Pass chance = cos^2(beta).
+function PhotonCounter({ beta }) {
+  const [log, setLog] = useState([]);
+  useEffect(() => setLog([]), [beta]);
+  const pPass = Math.cos((beta * Math.PI) / 180) ** 2;
+  const fire = (n) =>
+    setLog((L) => [...L, ...Array.from({ length: n }, () => (Math.random() < pPass ? 1 : 0))].slice(-400));
+  const nT = log.filter((v) => v).length;
+  const shown = log.slice(-50);
+  return (
+    <div style={{ background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, padding: "10px 12px" }}>
+      <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 8 }}>
+        DIM THE LAMP — ONE PHOTON AT A TIME THROUGH THE HORIZONTAL SHEET
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+        <Btn onClick={() => fire(1)}>send 1 photon</Btn>
+        <Btn onClick={() => fire(25)}>send 25</Btn>
+        <Btn kind="ghost" onClick={() => setLog([])}>reset</Btn>
+      </div>
+      <div style={{ display: "flex", gap: 3, flexWrap: "wrap", minHeight: 14, marginBottom: 8 }}>
+        {shown.map((v, i) => (
+          <span key={i} style={{
+            width: 10, height: 10, borderRadius: "50%",
+            background: v ? C.gold : "#fff",
+            border: `1.5px solid ${v ? C.gold : C.inkSoft}`,
+            opacity: v ? 1 : 0.55,
+          }} />
+        ))}
+        {shown.length === 0 && (
+          <span style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft }}>…the detector is waiting…</span>
+        )}
+      </div>
+      <div style={{ fontFamily: mono, fontSize: 12, color: C.ink }}>
+        through: {nT}/{log.length}
+        {log.length > 0 && <> = {((100 * nT) / log.length).toFixed(0)}%</>}
+        {" · "}predicted a² = {(100 * pPass).toFixed(0)}%
+      </div>
+    </div>
+  );
+}
+
+function Step6Light() {
+  const [beta, setBeta] = useState(30);
+  const [flip, setFlip] = useState(false);
+  return (
+    <div>
+      <p>
+        Everything so far lived on paper. Time for hardware — and the first piece of hardware is
+        light itself. Light is a <strong>wave</strong>, like the wave that runs along a shaken
+        rope: as it flies forward it <em>wiggles sideways</em>. It can wiggle horizontally, it can
+        wiggle vertically — and in general it does both at once: an H&nbsp;wiggle of size{" "}
+        <strong>a</strong> and a V&nbsp;wiggle of size <strong>b</strong>, riding together in
+        step. Fix the brightness and the two sizes are locked together — a² + b² = 1 — so one
+        knob sets them both: a tilt angle β, with a = cos&nbsp;β and b = sin&nbsp;β. Seen
+        head-on, the two wiggles add up, and the wave's tip draws a single tilted line. Play:
+      </p>
+      <WaveLab beta={beta} delta={flip ? 180 : 0} />
+      <Slider value={beta} min={0} max={90} step={1} onChange={setBeta}
+        label="β — the wave's tilt (sets both wiggle sizes)"
+        readout={`β=${beta}° → a=${Math.cos((beta * Math.PI) / 180).toFixed(2)}, b=${flip ? "−" : "+"}${Math.sin((beta * Math.PI) / 180).toFixed(2)}`} />
+      <div style={{ display: "flex", gap: 8, margin: "2px 0 10px" }}>
+        <Btn onClick={() => setFlip((v) => !v)}>{flip ? "wiggles: opposite step → put in step" : "wiggles: in step → flip one"}</Btn>
+      </div>
+      <p>
+        Try the switch. It turns the V&nbsp;wiggle upside down — every peak becomes a dip — so the
+        pair runs in <em>opposite</em> step: b becomes −b, and the front-view line tilts the
+        other way. Same two wiggle <em>sizes</em>, a genuinely different wave. Park that switch in
+        the back of your mind; it has a starring role two steps from now.
+      </p>
+      <p>
+        Now the second piece of hardware, a few euros at any drugstore. A <strong>polarizer</strong>{" "}
+        is a plastic sheet — the lens of polarizing sunglasses — that acts like a picket fence
+        for light: it keeps the wiggle that runs <em>along its slots</em> and absorbs the other
+        one. Hold the sheet with its slots horizontal and the wave above loses its V&nbsp;wiggle:
+        what comes out is the H&nbsp;wiggle, size a. And a wave's brightness — the punch it
+        packs — goes as its size <em>squared</em>. So the sheet passes the fraction{" "}
+        <strong>a²</strong> of the brightness: 100% for a horizontal wave, 0% for a vertical one,
+        exactly 50% at β = 45°. Étienne-Louis Malus measured this law in 1808, with a crystal and
+        a sunset.
+      </p>
+      <p>
+        So far, brightness — no probability anywhere. Here is the turn. In 1905 Einstein showed
+        that light arrives in indivisible grains: <strong>photons</strong>. Turn the lamp down,
+        far enough down, and light reaches the sheet one grain at a time, with a detector behind
+        it going <em>click… click…</em>. And a grain cannot 30%-pass a sheet: each photon comes
+        through <em>whole</em>, or is swallowed <em>whole</em>. There is only one way the
+        bright-light books can still balance: each photon passes with <strong>chance a²</strong>.
+        The brightness fraction was a probability in disguise all along. A beam, a sheet, and a
+        click: that is a coin flip — step&nbsp;1's coin, made of light.
+      </p>
+      <PhotonCounter beta={beta} />
+      <p style={{ marginTop: 14 }}>
+        Read the tally against the prediction: the clicks scatter, the fraction settles — your
+        step&nbsp;1 experience, run on grains of light. And notice what the beam physically{" "}
+        <em>is</em>: a flying pair of numbers (a, b) whose squares are odds. The wave is
+        square-roots-of-probabilities, traveling through the room. Hold on to that pair — it
+        returns in step&nbsp;11 under its official name, the <em>amplitudes</em>.
+      </p>
+      <Notice>
+        One definite wave is one fully specified state — nothing about it is unknown, and still
+        the clicks come out random. That is step&nbsp;5's first kind of not-knowing (the
+        statistical kind, the rim) in its purest form. The next step adds the second kind — beams
+        that are <em>blends</em> — and with it builds your entire half-disk out of glass, sheet by
+        sheet.
+      </Notice>
+    </div>
+  );
+}
+
+// ================= STEP 7 : THE SAME DISK, IN GLASS =================
 // One prepared beam, one rotating sheet, one meter — Malus's law read as answer odds.
-function LightBench({ beta, theta }) {
+function LightBench({ beta, theta, mix = 1 }) {
   const W = 340, H = 150;
   const grid = [];
   for (let x = 20; x <= 320; x += 30) grid.push(<line key={"v" + x} x1={x} y1={0} x2={x} y2={H} stroke={C.grid} strokeWidth={0.8} />);
   for (let y = 15; y <= 145; y += 30) grid.push(<line key={"h" + y} x1={0} y1={y} x2={W} y2={y} stroke={C.grid} strokeWidth={0.8} />);
   const beamY = 75;
-  const frac = Math.cos(((theta - beta) * Math.PI) / 180) ** 2;
+  const frac = mix * Math.cos(((theta - beta) * Math.PI) / 180) ** 2 + (1 - mix) * 0.5;
   const sheet = (x, angDeg, color, label) => {
     const a = ((angDeg - 90) * Math.PI) / 180;
     return (
@@ -580,7 +754,7 @@ function LightBench({ beta, theta }) {
       <line x1={14} y1={beamY} x2={94} y2={beamY} stroke={C.ink} strokeWidth={7} strokeLinecap="round" opacity={0.85} />
       {seg(100, 214, 1)}
       {seg(226, 306, frac)}
-      {sheet(97, beta, C.teal, `beam · ${beta}°`)}
+      {sheet(97, beta, C.teal, mix < 1 ? `beam+bulb · ${beta}°` : `beam · ${beta}°`)}
       {sheet(220, theta, C.ink, `sheet · ${theta}°`)}
       <text x={322} y={beamY - 14} textAnchor="end" fontFamily={mono} fontSize="10" fontWeight="600" fill={frac > 0.004 ? C.gold : C.inkSoft}>
         {(100 * frac).toFixed(0)}%
@@ -593,74 +767,79 @@ function LightBench({ beta, theta }) {
 function StepLightDisk() {
   const [beta, setBeta] = useState(0);
   const [theta, setTheta] = useState(30);
+  const [mix, setMix] = useState(100);
+  const V = mix / 100;
   const br = (beta * Math.PI) / 180;
   const p = Math.cos(br) ** 2;
   const w = Math.sin(br) * Math.cos(br);
-  const frac = Math.cos(((theta - beta) * Math.PI) / 180) ** 2;
+  const frac = V * Math.cos(((theta - beta) * Math.PI) / 180) ** 2 + (1 - V) * 0.5;
   return (
     <div>
       <p>
-        Everything so far lived on paper. Time for hardware — and the hardware costs a few euros.
-        Light is a wave, and a light wave <em>waves in a direction</em>: sideways, up-and-down, or
-        any tilt in between. Light that waves in one definite direction is called{" "}
-        <strong>polarized</strong>. A <strong>polarizer</strong> is a plastic sheet — the lens of
-        polarizing sunglasses — that acts like a picket fence: it passes the part of the light
-        that waves along its slots and absorbs the rest. Two sheets are all this step needs. The
-        first one <em>prepares</em> a beam waving at some angle β. The second one, turned to an
-        angle θ of your choice, <em>tests</em> it: behind the sheet sits a light meter.
+        Two sheets and a meter are enough to rebuild your whole drawing. The first sheet{" "}
+        <em>prepares</em>: whatever the lamp sends, what leaves the sheet is one definite wave at
+        the sheet's angle β. The second sheet, at an angle θ of your choice, <em>asks</em> — and
+        by step&nbsp;6, its meter fraction is the odds that each photon answers "yes". Malus's
+        law says the odds depend only on the angle <em>between</em> them: cos²(θ−β). Aligned:
+        100%, certainty. Crossed at 90°: 0%, the other certainty. 45° apart: exactly 50/50 — a
+        fair coin, asked of light.
       </p>
-      <p>
-        In 1808 Étienne-Louis Malus measured what the meter shows, and his law is the bridge to
-        everything you have built. The fraction of the beam that passes depends only on the angle{" "}
-        <em>between</em> beam and sheet — and here is the reading that matters:{" "}
-        <strong>the meter's fraction is an answer's odds</strong>. The sheet asks the beam a yes/no
-        question — "do you wave <em>my</em> way?" — and the beam answers "yes" with exactly that
-        fraction. A sheet lined up with the beam: 100%, certainty. Crossed at 90°: 0%, the other
-        certainty. At 45°: exactly 50/50 — a fair coin, made of light.
-      </p>
-      <LightBench beta={beta} theta={theta} />
+      <LightBench beta={beta} theta={theta} mix={V} />
       <Slider value={beta} min={0} max={180} step={1} onChange={setBeta}
-        label="β — the beam's waving direction (first sheet)"
+        label="β — the prepared beam (first sheet)"
         readout={`β=${beta}°`} />
       <Slider value={theta} min={0} max={180} step={1} onChange={setTheta}
-        label="θ — the testing sheet"
+        label="θ — the asking sheet"
         readout={`θ=${theta}° → passes ${(100 * frac).toFixed(0)}%`} />
+      <Slider value={mix} min={0} max={100} step={1} onChange={setMix}
+        label="blend — share of steady beam vs. plain bulb light"
+        readout={`${mix}% beam · ${100 - mix}% bulb`} />
       <p>
         Now the dictionary. Call a horizontal beam (β=0°) "always&nbsp;H" and a vertical beam
-        (β=90°) "always&nbsp;T", and let the horizontal sheet play the coin flip. Then every beam
-        gets a seat on your drawing: its heads-odds p is what the horizontal sheet reads, and its
-        band width follows from p as always. Slide β from 0° to 90° and watch the beam's seat walk
-        the <em>entire upper arc</em> — always-H, through the fair coin at β=45°, to always-T.
-        Note one curiosity for later: a <em>quarter</em> turn of the lab dial walks <em>half</em>
-        the circle. Lab angles count double on the drawing. (Why, exactly, is a beautiful piece of
-        geometry — step 10 derives it.)
+        (β=90°) "always&nbsp;T", and let the horizontal sheet play the coin flip. Then every pure
+        beam gets a seat on your drawing: its heads-odds p is what the horizontal sheet reads, and
+        its band width follows from p as always. Keep the blend at 100% and slide β from 0° to
+        90°: the beam's seat walks the <em>entire upper arc</em> — always-H, through the fair
+        coin at β=45°, to always-T. Note one curiosity for later: a <em>quarter</em> turn of the
+        lab dial walks <em>half</em> the circle. Lab angles count double on the drawing. (Why,
+        exactly, is a beautiful piece of geometry — step 11 derives it.)
       </p>
-      <StatePlot point={[p, w]} showLower showFullCircle labels={false} />
+      <StatePlot point={[0.5 + V * (p - 0.5), V * w]} showLower showFullCircle labels={false} />
       <p>
-        The interior is in the lab too. Blend two beams and the meter readings blend with the same
-        weights — a mixed beam sits inside the arc, exactly like a mixed belief on a chord. And an
-        ordinary <strong>bulb</strong> — a hot, jittering crowd of atoms, each waving its own way —
-        is the total blend: its meter reads a stubborn, flat 50% at <em>every</em> θ. That is the
-        dead center of the disk, total ignorance, sold at every supermarket. In 1852 George Stokes
-        showed that a handful of sheet-and-meter readings pins down any beam's seat exactly — pure
-        beams on the rim, blends inside. Your half-disk of beliefs, standing on a lab bench,
-        reading odds as brightness.
+        And the interior is in the lab too — that is the third slider. A pure belief was one
+        definite state held with certainty; a pure beam is one definite wave: the rim. A mixed
+        belief was a blend of candidates; a mixed beam is a blend of waves — and real lamps are
+        exactly that: a hot crowd of atoms, each firing its own tilt, the meter averaging over the
+        flicker. Averaged readings blend with the blend's weights — the chords of step&nbsp;5,
+        drawn by a light meter. Slide the blend down and watch both effects at once: the meter's
+        breathing gets shallower, and the marker slides straight down its radius toward the
+        center. At 0% beam you hold the plain <strong>bulb</strong>: a stubborn, flat 50% at{" "}
+        <em>every</em> θ — the dead center, total ignorance, sold at every supermarket. Partly
+        blended light — <em>partially polarized</em>, the physicists say — fills the interior,
+        and the distance from the center, which they call the <em>degree of polarization</em>, is
+        precisely your confidence score, measured in glass. In 1852 George Stokes showed a
+        handful of sheet-and-meter readings pins down any beam's seat exactly. Even your two
+        kinds of not-knowing are both here: the rim's clicks stay random with the wave fully
+        known (statistical), and the blend adds ignorance of <em>which wave</em> (systematic) —
+        the two scores of step&nbsp;3, running on lamplight.
       </p>
       <p>
-        And now turn the beam's mount <em>past</em> 90° — nothing stops you — to β=135°. The
-        horizontal sheet still reads 50/50: same heads-odds as the fair coin at 45°. Same seat on
-        your drawing, then? Test it: set the sheet to θ=45°. The 45° beam sails through, 100%.
-        The 135° beam goes <strong>dark — 0%</strong>. Two beams, identical to the coin flip,
-        perfectly told apart by a tilted question. They are <em>not</em> the same state — yet your
-        half-disk has only one seat at 50/50 to offer. Watch the marker above as you slide β past
-        90°: it dives below the axis, into ground your bookkeeping never drew.
+        And now, blend back at 100%, turn the beam's mount <em>past</em> 90° — nothing stops you
+        — to β=135°. This is precisely the flipped wave of step&nbsp;6's switch: same wiggle
+        sizes, opposite step. The horizontal sheet still reads 50/50 — same heads-odds as the
+        fair coin at 45°. Same seat on your drawing, then? Test it: set the asking sheet to
+        θ=45°. The 45° beam sails through, 100%. The 135° beam goes <strong>dark — 0%</strong>.
+        Two beams, identical to the coin flip, perfectly told apart by a tilted question. They
+        are <em>not</em> the same state — yet your half-disk has only one seat at 50/50 to offer.
+        Watch the marker above as you slide β past 90°: it dives below the axis, into ground your
+        bookkeeping never drew.
       </p>
       <Notice>
         Light has caught the drawing being too small. For every beam on the upper arc there is a
-        second beam — its mirror twin across the axis — with identical heads-odds but opposite
-        answers to tilted sheets. Nature runs a <em>full</em> circle of pure states; our coin
-        bookkeeping kept half. The next step finds out what, in coin language, we silently threw
-        away.
+        second beam — its mirror twin across the axis, the flip switch made real — with identical
+        heads-odds but opposite answers to tilted sheets. Nature runs a <em>full</em> circle of
+        pure states; our coin bookkeeping kept half. The next step finds out what, in coin
+        language, we silently threw away.
       </Notice>
     </div>
   );
@@ -745,26 +924,26 @@ function StepFrame() {
         <text x={Fx + 9} y={Fy + 15} fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>state</text>
       </svg>
       <p style={{ marginTop: 14 }}>
-        Where did the sign of step 7 go? Run the construction for a state <em>below</em> the axis: the chord lengths are the same, so the center sits at the same (√p, √(1−p))/2 — frame coordinates are twin-blind, like every length. The difference hides in the frame itself: above the axis the ordered pair of axes (toward-T, toward-H) is right-handed, below it left-handed — the handedness <em>is</em> the triangle orientation of step 7, met from inside. Now insist, as physicists always do, that your frame keep a <em>fixed</em> handedness. Crossing always-H or always-T — exactly where one chord shrinks to zero — one axis must then reverse, pointing <em>away</em> from its corner, and the coordinate along it comes out <strong>negative</strong>. A "negative length" is nothing mysterious: an ordinary coordinate along an axis that happens to face the other way. The doubled center-vector now reads the <em>signed</em> amplitude pair (a, b), produced by bookkeeping alone.
+        Where did the sign of step 8 go? Run the construction for a state <em>below</em> the axis: the chord lengths are the same, so the center sits at the same (√p, √(1−p))/2 — frame coordinates are twin-blind, like every length. The difference hides in the frame itself: above the axis the ordered pair of axes (toward-T, toward-H) is right-handed, below it left-handed — the handedness <em>is</em> the triangle orientation of step 8, met from inside. Now insist, as physicists always do, that your frame keep a <em>fixed</em> handedness. Crossing always-H or always-T — exactly where one chord shrinks to zero — one axis must then reverse, pointing <em>away</em> from its corner, and the coordinate along it comes out <strong>negative</strong>. A "negative length" is nothing mysterious: an ordinary coordinate along an axis that happens to face the other way. The doubled center-vector now reads the <em>signed</em> amplitude pair (a, b), produced by bookkeeping alone.
       </p>
       <p>
         One more lap, and something remarkable happens. Follow the rule continuously all the way around: crossing H flips one axis, crossing T flips the other — so you come home with <em>both</em> axes reversed and coordinates <strong>−(a, b)</strong>. Same state, opposite amplitude vector; only a <em>second</em> lap restores the frame. That is the <strong>double cover</strong>, live: a state and its overall negative are one and the same object, and only <em>relative</em> signs can ever be physical. Playground D of the evidence room shows the same fact mechanically (ψ and −ψ build the identical table). Physicists will recognize here the seed of the <em>geometric phase</em>: a sign picked up purely by traveling a closed loop.
       </p>
       <p>
-        And now the payoff that ties the last five steps together. For light, this amplitude pair
-        (a, b) is not abstract bookkeeping — <strong>it is the light itself</strong>. A wave tilted
-        at lab angle α is, quite literally, a horizontal wiggle of size cos&nbsp;α and a vertical
-        wiggle of size sin&nbsp;α, riding together: the beam physically <em>carries</em> its two
-        amplitudes, one along H, one along V. Pass it through a horizontal sheet and the sheet
-        keeps the horizontal wiggle — whose <em>squared</em> size, a² = cos²α, is Malus's meter
-        fraction. So Malus's 1808 law is the squared-chord rule of step 8, and the amplitudes are
-        hardware. Even the minus sign is on display: the 135° beam's vertical wiggle points
-        <em>opposite</em> to the 45° beam's — b = −√½ instead of +√½ — which is precisely why a
-        45° sheet, which adds the two wiggles, gets everything from one beam and nothing from the
-        other.
+        And now the payoff that closes a loop five steps wide. Step&nbsp;6 showed that a beam
+        physically carries a pair of wiggle sizes (a, b) whose squares are per-photon odds. This
+        step has just shown that every <em>state</em> carries a pair of chord lengths (√p,
+        √(1−p)) whose squares are answer odds. They are <strong>the same pair</strong>: for a
+        wave at lab angle α, the wiggles cos&nbsp;α and sin&nbsp;α are exactly the Thales chords
+        of its seat on the disk — the amplitudes are not abstract bookkeeping, they are{" "}
+        <em>the light itself</em>, and Malus's 1808 law is the squared-chord rule of step 9,
+        measured with a crystal and a sunset. Even the minus sign is on display: the 135° beam's
+        vertical wiggle points <em>opposite</em> to the 45° beam's — b = −√½ instead of +√½ —
+        which is precisely why a 45° sheet, which adds the two wiggles, gets everything from one
+        beam and nothing from the other.
       </p>
       <Notice>
-        Sweep α and watch the readout: the amplitude point turns at <em>half</em> the state's speed — the Bernoulli angle is 2α, so one lap of the state is half a lap of the amplitudes. And there is step 6's curiosity, derived: the lab angle α is the <em>amplitude's</em> angle, the state's seat on the disk turns at 2α — a quarter turn of the sheet, half a lap of the circle. Lab angles count double because the lab dial turns amplitudes, and states are their squares.
+        Sweep α and watch the readout: the amplitude point turns at <em>half</em> the state's speed — the Bernoulli angle is 2α, so one lap of the state is half a lap of the amplitudes. And there is step 7's curiosity, derived: the lab angle α is the <em>amplitude's</em> angle, the state's seat on the disk turns at 2α — a quarter turn of the sheet, half a lap of the circle. Lab angles count double because the lab dial turns amplitudes, and states are their squares.
       </Notice>
     </div>
   );
@@ -787,14 +966,14 @@ function StepTwins() {
       </p>
       <Formula>w = ±√(p(1−p))&nbsp;&nbsp;&nbsp;&nbsp;size: twice the triangle's area&nbsp;&nbsp;·&nbsp;&nbsp;sign: its orientation</Formula>
       <p>
-        So the semicircle completes to the full <strong>Bernoulli circle</strong>: every set of odds appears twice, once with each orientation. The lower twin of the fair coin, at (½, −½), we call the <strong>anti-coin</strong> — and you have already met it in the flesh: it is the 135° beam of step 6, the one that matched the fair coin's odds and then went dark behind the tilted sheet. Slide P around and watch its mirror twin P′ shadow it below:
+        So the semicircle completes to the full <strong>Bernoulli circle</strong>: every set of odds appears twice, once with each orientation. The lower twin of the fair coin, at (½, −½), we call the <strong>anti-coin</strong> — and you have already met it in the flesh: it is the 135° beam of step 7, the one that matched the fair coin's odds and then went dark behind the tilted sheet. Slide P around and watch its mirror twin P′ shadow it below:
       </p>
       <Slider value={theta} min={5} max={175} step={1} onChange={setTheta}
         label="where P sits on the upper half (P′ mirrors it below)"
         readout={`p=${p.toFixed(2)}   w=${fmt(w)} for P,  ${fmt(-w)} for P′`} />
       <MeasurePlot theta={theta} delta={0} showMirror showOrientation />
       <p style={{ marginTop: 14 }}>
-        A physicist's favorite move is a <em>change of coordinate system</em> — to the center of mass, to the rotating frame, to the falling elevator. It pays off here too. Stand at the state and use its two triangle sides as your own axes: in that private frame, the center of the Bernoulli circle hangs at the <em>same</em> spot for every state — half of (√p, √(1−p)), half of exactly the square-root pair physicists call the <strong>probability amplitudes</strong>. The twins share these numbers to the last digit; what distinguishes them is the <em>handedness</em> of their frames. Now insist — as physics always may — that your frame keep one fixed handedness, and the sign takes care of itself: for the twin, one axis must then point <em>away</em> from its corner, and the coordinate along it comes out <strong>negative</strong>. A "negative length" is nothing deeper than that: an ordinary coordinate along an axis that faces the other way. Keep this picture — it is what every minus sign in the coming steps quietly means. Step 10 completes the story (follow the frame around one full lap, and there is a surprise).
+        A physicist's favorite move is a <em>change of coordinate system</em> — to the center of mass, to the rotating frame, to the falling elevator. It pays off here too. Stand at the state and use its two triangle sides as your own axes: in that private frame, the center of the Bernoulli circle hangs at the <em>same</em> spot for every state — half of (√p, √(1−p)), half of exactly the square-root pair physicists call the <strong>probability amplitudes</strong>. The twins share these numbers to the last digit; what distinguishes them is the <em>handedness</em> of their frames. Now insist — as physics always may — that your frame keep one fixed handedness, and the sign takes care of itself: for the twin, one axis must then point <em>away</em> from its corner, and the coordinate along it comes out <strong>negative</strong>. A "negative length" is nothing deeper than that: an ordinary coordinate along an axis that faces the other way. Keep this picture — it is what every minus sign in the coming steps quietly means. Step 11 completes the story (follow the frame around one full lap, and there is a surprise).
       </p>
       <Notice>
         Is the twin a real state, or a bookkeeping fiction? The flip cannot say: the twins' triangles have identical side lengths, and side lengths are all a bet on heads-or-tails can feel. But light has already voted: the 45° and 135° beams — coin and anti-coin — were told apart by a <em>tilted sheet</em>, a question that is not heads-or-tails. What such tilted questions mean in coin language, and why the plain flip is blind to the twins forever, is what the next two steps settle.
@@ -914,10 +1093,10 @@ function StepMeasure() {
   return (
     <div>
       <p>
-        Time to say what "flipping the coin" really is — and to discover that it is only one question among many. Here is the rule of the game. You may never ask a state "where are you?". You may only pick a <strong>diameter</strong> of the circle and ask: "<em>which end?</em>" The state must answer with one of the diameter's two endpoints. The odds of each answer are already drawn in your picture: the chance of an answer is the <strong>squared distance to the opposite end</strong>. Far from "always T" means: probably answers H. (The right angle at P — Thales again, now for <em>any</em> diameter — plus Pythagoras makes the two squared chords sum to 1: the chances of the two answers add up automatically. For the horizontal diameter the chords are exactly the triangle sides √p and √(1−p) of step 7.)
+        Time to say what "flipping the coin" really is — and to discover that it is only one question among many. Here is the rule of the game. You may never ask a state "where are you?". You may only pick a <strong>diameter</strong> of the circle and ask: "<em>which end?</em>" The state must answer with one of the diameter's two endpoints. The odds of each answer are already drawn in your picture: the chance of an answer is the <strong>squared distance to the opposite end</strong>. Far from "always T" means: probably answers H. (The right angle at P — Thales again, now for <em>any</em> diameter — plus Pythagoras makes the two squared chords sum to 1: the chances of the two answers add up automatically. For the horizontal diameter the chords are exactly the triangle sides √p and √(1−p) of step 8.)
       </p>
       <p>
-        The horizontal diameter is the <em>raw</em> question, heads-or-tails: that one is the coin flip. Tilted diameters ask <em>combined</em> questions. Compare it to traffic: sometimes the revealing question is not "which weekday is it?" but "weekend or midweek?" — a contrast built out of the raw days. The vertical diameter asks exactly such a contrast: "coin or anti-coin?". And tilted questions are not a fantasy — you asked one in step 6. A polarizer sheet turned to θ <em>is</em> a tilted diameter (turned by 2θ, lab angles counting double), and Malus's meter fraction is exactly the squared-distance rule below, running on lamplight since 1808.
+        The horizontal diameter is the <em>raw</em> question, heads-or-tails: that one is the coin flip. Tilted diameters ask <em>combined</em> questions. Compare it to traffic: sometimes the revealing question is not "which weekday is it?" but "weekend or midweek?" — a contrast built out of the raw days. The vertical diameter asks exactly such a contrast: "coin or anti-coin?". And tilted questions are not a fantasy — you asked one in step 7. A polarizer sheet turned to θ <em>is</em> a tilted diameter (turned by 2θ, lab angles counting double), and Malus's meter fraction is exactly the squared-distance rule below, running on lamplight since 1808.
       </p>
       <Slider value={theta} min={0} max={360} step={1} onChange={setTheta}
         label="where the state sits on the circle" readout={`state angle ${theta}°`} />
@@ -927,7 +1106,7 @@ function StepMeasure() {
       <MeasurePlot theta={theta} delta={delta} />
       <ProbBars title="THE STATE'S ANSWER ODDS" probs={[pPlus, 1 - pPlus]} labels={[`answers ${labP}`, `answers ${labM}`]} />
       <Notice>
-        Rotate the question dial until the diameter passes straight through the state: suddenly the state answers with 100% certainty. <em>Every</em> state on the circle is completely certain about exactly one question — and spread out over all the others. The fair coin is certain too: not about heads-or-tails, but about coin-or-anti-coin. No state is "random" in itself. Randomness is a mismatch between the state and the question you happened to ask. And notice the payoff for step 7: a <em>tilted</em> diameter sees P and its mirror twin P′ at different distances from its ends — tilted questions can tell the twins apart, exactly as the 45° sheet told the two beams apart. Why the flip alone never can, and how the twins finally split, is the next step.
+        Rotate the question dial until the diameter passes straight through the state: suddenly the state answers with 100% certainty. <em>Every</em> state on the circle is completely certain about exactly one question — and spread out over all the others. The fair coin is certain too: not about heads-or-tails, but about coin-or-anti-coin. No state is "random" in itself. Randomness is a mismatch between the state and the question you happened to ask. And notice the payoff for step 8: a <em>tilted</em> diameter sees P and its mirror twin P′ at different distances from its ends — tilted questions can tell the twins apart, exactly as the 45° sheet told the two beams apart. Why the flip alone never can, and how the twins finally split, is the next step.
       </Notice>
     </div>
   );
@@ -947,7 +1126,7 @@ function StepSign() {
         Now we can finally answer the question this tutorial has been circling: why do ordinary coin flips never show the sign? Take a state P and its mirror twin P′ on the lower half. Look at the horizontal diameter: <em>both of its endpoints lie on the mirror line itself</em>. The mirror does not move them. So P and P′ are at identical distances from "always T" and from "always H" — and they give identical answer odds to the coin flip. Forever. The flip is not weak; it is <em>symmetric</em> under exactly the reflection that the sign encodes.
       </p>
       <p>
-        There is a sharper way to say it. From any state, the pair of chords to a diameter's two ends carries <em>two</em> kinds of information. First, their <strong>lengths</strong> — squared, these are the answer odds of step 8. Second, their <strong>orientation</strong>: walking end → state → end, you pass around the diameter one way or the other. The mirror keeps every length and reverses the orientation; the flip reads only lengths. Set the dial to 0° and look at the two shaded triangles below: identical side lengths, opposite turning arrows. Orientation is the <em>only</em> difference, and it is exactly what the sign stores. That is precisely the sign step 7 gave the band width: size from the lengths (twice the triangle's area), sign from the orientation. The signed band width keeps track of both; probabilities keep only the lengths.
+        There is a sharper way to say it. From any state, the pair of chords to a diameter's two ends carries <em>two</em> kinds of information. First, their <strong>lengths</strong> — squared, these are the answer odds of step 9. Second, their <strong>orientation</strong>: walking end → state → end, you pass around the diameter one way or the other. The mirror keeps every length and reverses the orientation; the flip reads only lengths. Set the dial to 0° and look at the two shaded triangles below: identical side lengths, opposite turning arrows. Orientation is the <em>only</em> difference, and it is exactly what the sign stores. That is precisely the sign step 8 gave the band width: size from the lengths (twice the triangle's area), sign from the orientation. The signed band width keeps track of both; probabilities keep only the lengths.
       </p>
       <p>
         Any tilted diameter breaks that symmetry. Turn the dial to the contrast question and watch the twins split apart: P leans toward one end, P′ toward the other. At δ=90° they disagree as strongly as possible.
@@ -975,7 +1154,7 @@ function StepSign() {
         questions to pin a state down.
       </p>
       <Notice>
-        The lower half of the circle was never hidden from physics — only from one instrument, the coin flip, which is blind to it by symmetry. Classical probability is simply the physics of owning only that one instrument; a rotating polarizer sheet is what owning <em>all</em> the diameters looks like, and step 6's twin test was exactly this picture running in glass. The full disk, with its diameters as questions, is a complete and self-consistent world: linear-polarized light explored with polarizer sheets lives entirely inside it. Before asking whether nature keeps even more, we look underneath the sign — where do those square-root chord lengths, and their minus signs, actually <em>live</em>? That is the next step.
+        The lower half of the circle was never hidden from physics — only from one instrument, the coin flip, which is blind to it by symmetry. Classical probability is simply the physics of owning only that one instrument; a rotating polarizer sheet is what owning <em>all</em> the diameters looks like, and step 7's twin test was exactly this picture running in glass. The full disk, with its diameters as questions, is a complete and self-consistent world: linear-polarized light explored with polarizer sheets lives entirely inside it. Before asking whether nature keeps even more, we look underneath the sign — where do those square-root chord lengths, and their minus signs, actually <em>live</em>? That is the next step.
       </Notice>
     </div>
   );
@@ -1015,6 +1194,8 @@ function CircularBench() {
 }
 
 function StepCircular() {
+  const [beta, setBeta] = useState(45);
+  const [delta, setDelta] = useState(90);
   return (
     <div>
       <p>
@@ -1052,14 +1233,28 @@ function StepCircular() {
         <em>no seat anywhere on the disk</em>.
       </p>
       <p>
-        What is it, physically? Step 10 said a beam carries two wiggles, one along H and one along
-        V, with sizes (a, b). This beam has both wiggles at <em>equal size</em> — that is why every
-        sheet reads 50% — but a quarter-beat <strong>out of step</strong>: when the horizontal
-        wiggle peaks, the vertical one is passing through zero. The tip of the light's arrow, run
-        forward in time, traces not a line but a <em>circle</em> — the beam corkscrews as it flies.
-        It is called <strong>circular light</strong>, and its secret is a <em>timing</em>: not the
-        size of the wiggles, not their sign, but their relative <em>delay</em>. Our amplitude pair
-        (a, b) records sizes and signs — it owns no clock.
+        What is it, physically? Step 6 gave a beam its two wiggles, one along H and one along V,
+        with sizes (a, b) — and a switch that could flip one wiggle to run in opposite step. This
+        beam has both wiggles at <em>equal size</em> — that is why every sheet reads 50% — but a
+        quarter-beat <strong>out of step</strong>: when the horizontal wiggle peaks, the vertical
+        one is passing through zero. Take the wave toy back out and unlock what was a switch into
+        a free <strong>timing dial</strong> δ:
+      </p>
+      <WaveLab beta={beta} delta={delta} />
+      <Slider value={delta} min={0} max={360} step={1} onChange={setDelta}
+        label="δ — the timing between the wiggles (was: the flip switch)"
+        readout={`δ=${delta}° ${delta === 0 || delta === 360 ? "· in step — a tilted line" : delta === 180 ? "· opposite step — the twin's line" : delta === 90 || delta === 270 ? (beta === 45 ? "· quarter beat — a circle!" : "· quarter beat — an ellipse") : "· part-way — an ellipse"}`} />
+      <Slider value={beta} min={0} max={90} step={1} onChange={setBeta}
+        label="β — the wiggle sizes, as before"
+        readout={`β=${beta}°`} />
+      <p>
+        Set β=45° and δ=90°: the front view rounds into a <em>circle</em> — the tip of the
+        light's arrow corkscrews as the beam flies. This is <strong>circular light</strong>, and
+        its secret is now on your screen: not the size of the wiggles, not their sign, but their
+        relative <em>delay</em>. Notice what else the dial shows. δ=0° is the plain tilted line;
+        δ=180° is exactly step&nbsp;6's flip switch — the mirror twin's line; and everything in
+        between is a slanted <em>ellipse</em>, a whole family of states the disk never met. Our
+        amplitude pair (a, b) records sizes and signs — it owns no clock.
       </p>
       <Notice>
         For the second time, light has caught the bookkeeping being too small — and this time the
@@ -1136,17 +1331,17 @@ function StepBloch() {
         wiggles. And here is the unifying surprise — <em>the sign was a delay all along</em>.
         Delay the vertical wiggle by <em>half</em> a beat and it points opposite at every moment:
         b becomes −b, the 45° beam becomes the 135° beam, a state becomes its mirror twin. The
-        sign of step 7 — a two-position switch — was the special case "half a beat exactly". But a
+        sign of step 8 — a two-position switch — was the special case "half a beat exactly". But a
         delay is not a switch; it is a <strong>dial</strong>, an angle φ that turns smoothly
         through a full beat: φ=0° is the state itself, φ=180° is its twin, and φ=90° — a quarter
-        beat — is precisely the corkscrewing beam of step 11, the shade <em>between</em> a state
+        beat — is precisely the corkscrewing beam of step 12, the shade <em>between</em> a state
         and its twin that the disk had no seat for. (In amplitude language: keeping a size and a
         turnable delay-angle together is exactly what mathematicians call a <em>complex
         number</em> — "complex" is nothing but a sign that has learned to turn. The picture below
         needs no coordinates at all.)
       </p>
       <p>
-        The picture first lays everything on a table. Your Bernoulli circle lies flat, exactly as you know it — always T on the left, always H on the right, the state P on the far half, its mirror twin on the near half. Read the T–H diameter as an <strong>axle</strong> lying on the table. At each set of odds, a <span style={{ color: C.teal }}>wheel</span> stands upright on that axle, and the dial φ turns the state around it: at φ=0° the state rests at the far edge of the table (that is P); at φ=180° it rests at the near edge (exactly the mirror twin of step 7); and in between it swings <em>up above the table, or down below it</em> — circular light lives at the very top and bottom of each wheel. One wheel for every p, and the circle inflates into a <strong>sphere</strong>: pure states on the glassy surface, mixed beliefs filling the ball, total ignorance at the center. Henri Poincaré drew exactly this ball for light in 1892; quantum physicists redrew it in 1946, centered at zero with radius one, and call it the <strong>Bloch sphere</strong>. Same ball.
+        The picture first lays everything on a table. Your Bernoulli circle lies flat, exactly as you know it — always T on the left, always H on the right, the state P on the far half, its mirror twin on the near half. Read the T–H diameter as an <strong>axle</strong> lying on the table. At each set of odds, a <span style={{ color: C.teal }}>wheel</span> stands upright on that axle, and the dial φ turns the state around it: at φ=0° the state rests at the far edge of the table (that is P); at φ=180° it rests at the near edge (exactly the mirror twin of step 8); and in between it swings <em>up above the table, or down below it</em> — circular light lives at the very top and bottom of each wheel. One wheel for every p, and the circle inflates into a <strong>sphere</strong>: pure states on the glassy surface, mixed beliefs filling the ball, total ignorance at the center. Henri Poincaré drew exactly this ball for light in 1892; quantum physicists redrew it in 1946, centered at zero with radius one, and call it the <strong>Bloch sphere</strong>. Same ball.
       </p>
       <Slider value={thetaDeg} min={0} max={180} step={1} onChange={setThetaDeg}
         label="θ — sets the odds (moves the wheel along the axle)" readout={`p=${p.toFixed(2)}`} />
@@ -1196,7 +1391,7 @@ function StepBloch() {
       </svg>
       <p style={{ marginTop: 14 }}>
         Questions are still diameters — there are just more of them now. The flip is the
-        T–H axle itself; the contrast question of step 9 is the table's far–near
+        T–H axle itself; the contrast question of step 10 is the table's far–near
         diameter; and the dial φ picks among the <em>infinitely many</em> tilted
         contrast questions rising out of the table. Every state on the surface is still
         perfectly certain about exactly one diameter — the one that runs through it.
@@ -1447,15 +1642,15 @@ function StepHands() {
   return (
     <div>
       <p>
-        Twelve steps, and coin and light have been building the same object from two sides. Time
+        Thirteen steps, and coin and light have been building the same object from two sides. Time
         to assemble the full dictionary — and notice that you may already own three pieces of the
         hardware, in the form of polarizing sunglasses. Horizontally and vertically polarized
         light are the two ends of the axle: always&nbsp;H and always&nbsp;T. The +45° beam is your
         fair <strong>coin</strong>; the −45° (that is, 135°) beam is the <strong>anti-coin</strong>{" "}
-        of step&nbsp;7 — same 50/50 odds, opposite sign, told apart by a tilted sheet. And a
+        of step&nbsp;8 — same 50/50 odds, opposite sign, told apart by a tilted sheet. And a
         quarter-turn of the delay dial away from both, at φ&nbsp;=&nbsp;±90° — the top and bottom
-        of step&nbsp;12's standing wheel — sit <strong>left- and right-circular</strong> light,
-        the corkscrewing beams of step&nbsp;11. Three famous pairs of opposites, three
+        of step&nbsp;13's standing wheel — sit <strong>left- and right-circular</strong> light,
+        the corkscrewing beams of step&nbsp;12. Three famous pairs of opposites, three
         perpendicular diameters of your ball. (The fine print of this dictionary — what
         perpendicular diameters mean for measurements — waits in the evidence room.)
       </p>
@@ -1464,7 +1659,7 @@ function StepHands() {
         pairs sit at the ends of three perpendicular diameters: the T–H axle (ink), the
         coin/anti-coin diameter across the table (gold), and the circular pair on the standing
         wheel's own axis (teal). This is the <strong>Poincaré sphere</strong> of 1892, and your
-        Bloch ball of step&nbsp;12, in one picture — one ball, discovered twice (Exhibit&nbsp;G
+        Bloch ball of step&nbsp;13, in one picture — one ball, discovered twice (Exhibit&nbsp;G
         tells that story).
       </p>
       <PolarBall />
@@ -1481,8 +1676,8 @@ function StepHands() {
       <p style={{ marginTop: 14 }}>
         Light comes back: you <em>added an obstacle</em> and got <em>more light</em>. No story in
         which filters merely remove light survives this; the story that survives is yours. The
-        middle sheet asks the 45° question (step&nbsp;8) and prepares its answer — and two
-        contributions of opposite sign, step&nbsp;10's opposite-pointing wiggles doing real work,
+        middle sheet asks the 45° question (step&nbsp;9) and prepares its answer — and two
+        contributions of opposite sign, step&nbsp;11's opposite-pointing wiggles doing real work,
         no longer cancel. This is <strong>interference</strong>, running here on bright,{" "}
         <em>classical</em> light: Stokes and Poincaré's world. The full bench — Fresnel–Arago's
         1819 blindness law, the angle formula, the waveplates, and the bulb-versus-glare test that
@@ -1492,7 +1687,7 @@ function StepHands() {
         Everything on this page still runs on bright, classical beams — a wave really does carry
         two wiggles at once, so nothing here is mysterious yet. And "runs" can be taken literally:
         this whole ball fits on a kitchen table for a few tens of euros —{" "}
-        <a href="lab.html">the lab companion</a> has the shopping list and seven bench cards, each
+        <a href="lab.html">the lab companion</a> has the shopping list and nine bench cards, each
         with the readings the tutorial predicts. The genuinely strange question is the next one:
         what happens when you turn the lamp <em>down</em> — so far down that light arrives one
         indivisible particle at a time? That is the final step, and it is where the ball stops
@@ -1608,7 +1803,7 @@ function StepIntro() {
         We begin as naively as possible: flip, count, bet. Plain statistics. But at every step we pause and ask the question a careful person cannot help asking. <em>Are all fifty-fifties the same fifty-fifty? Can one number really hold everything I believe? What does my bookkeeping quietly throw away?</em> Each question has one honest answer, and each answer is a door into the next room. You never leap — every step is simply the logical next one.
       </p>
       <p>
-        The coin will do the building — and light will do the checking. Twice along the way, a simple experiment with lamplight will catch our coin bookkeeping being <em>too small</em>: light will calmly display a state our drawing has no seat for, and honest bookkeeping will have to grow. Each time, the growth is not magic but the recovery of a detail we had silently thrown away — first a lost <em>sign</em>, then a hidden <em>dial</em>. After fourteen such steps the coin's plain statistics has grown, forced twice by nature's own hand, into the strange and beautiful geometry physicists call a qubit. Quantum, it turns out, is not statistics plus magic. It is statistics with the details kept.
+        The coin will do the building — and light will do the checking. Twice along the way, a simple experiment with lamplight will catch our coin bookkeeping being <em>too small</em>: light will calmly display a state our drawing has no seat for, and honest bookkeeping will have to grow. Each time, the growth is not magic but the recovery of a detail we had silently thrown away — first a lost <em>sign</em>, then a hidden <em>dial</em>. After fifteen such steps the coin's plain statistics has grown, forced twice by nature's own hand, into the strange and beautiful geometry physicists call a qubit. Quantum, it turns out, is not statistics plus magic. It is statistics with the details kept.
       </p>
       <Notice>
         This is a laboratory, not a lecture. Every step has coins to flip, guesses to commit to, and sliders to turn — the page is your lab bench. Flip first, guess second, read third: the geometry lands much harder when your own data drew it.
@@ -1628,7 +1823,7 @@ function StepEpilogue({ openExtra }) {
         Notice the shape of both crises: each time, our instrument was the limit, not the world. The bare coin flip is blind by symmetry to everything below the mirror line, so classical probability contents itself with the upper half-disk. A rotating sheet sees the sign but is blind to the delay. Nature is more <strong>inclusive</strong> than any one instrument: she keeps same-lengths-opposite-turning as two different states, and she keeps every intermediate shade of the dial between them. And the final step showed whose bookkeeping this really is: one photon at a time, the amplitudes — sizes, signs, and dial — travel with the particle itself. The ball is not a picture of light; light was the teacher. The ball is a picture of <em>probability with every detail kept</em>.
       </p>
       <p>
-        And here is the part that turns mathematics into physics: this ball is not a construction that lives only on paper — it <strong>lives in the wild</strong>. An electron's spin, a photon's polarization — the ball you held in step 13 — two energy levels of an atom: each one <em>is</em> this ball, dial and all. Nature provides the qubits; we only need to tame them. And taming means exactly the moves you learned: every diameter is an axis, every rotation a possible operation — these rotations are the <em>gates</em> of a quantum computer, and you ran your first sequence of them in step 14. More information in the state, and more ways to steer it. (Should you want the ball on your own table: <a href="lab.html">the lab companion</a> turns steps 6–14 into seven kitchen-bench experiments, for under a hundred euros.)
+        And here is the part that turns mathematics into physics: this ball is not a construction that lives only on paper — it <strong>lives in the wild</strong>. An electron's spin, a photon's polarization — the ball you held in step 14 — two energy levels of an atom: each one <em>is</em> this ball, dial and all. Nature provides the qubits; we only need to tame them. And taming means exactly the moves you learned: every diameter is an axis, every rotation a possible operation — these rotations are the <em>gates</em> of a quantum computer, and you ran your first sequence of them in step 15. More information in the state, and more ways to steer it. (Should you want the ball on your own table: <a href="lab.html">the lab companion</a> turns steps 6–15 into nine kitchen-bench experiments, for under a hundred euros.)
       </p>
       <Roadmap />
       <p>
@@ -2032,7 +2227,7 @@ function StepBures() {
         One distance is still missing — the one the tutorial opened with. The fair coin and the mystery deterministic coin give the same odds, yet they are different beliefs: one on the rim, one at the center of the disk. So we need distances <em>inside</em> the disk. The flat disk fails for the same reason the flat interval did: on its rim it must reproduce the arcs of playground A, which straight lines on a flat sheet cannot do; and near the rim, tiny steps are again statistically enormous.
       </p>
       <p>
-        The cure is the same as before — and here is exactly <em>why</em> it produces a hemisphere. Take any point in the disk and draw the diameter through it and the center. That diameter runs from rim to rim, so it has <strong>length 1</strong>: it is a fresh copy of the interval [0, 1], and your point sits on it at some position λ. But a diameter is a <em>measurement</em> (step 8), and the states along it are the mixtures of its two endpoint states — a Bernoulli family in λ (λ is even the probability of that measurement's ⊕ answer). Playground A told us what to do with a Bernoulli family: lift it by <strong>√(λ(1−λ))</strong>. Now do that to <em>every</em> diameter at once. Each one bends into its own Bernoulli semicircle; they all agree wherever they cross; they share one summit above the center (each has λ = ½ there); and together they form the <strong>Bernoulli hemisphere</strong> — the previous step's cure, applied to every direction of the disk at the same time. On this bowl, distance means the geodesic: the shortest walk along the surface. (Its official name: the <strong>Bures distance</strong>.)
+        The cure is the same as before — and here is exactly <em>why</em> it produces a hemisphere. Take any point in the disk and draw the diameter through it and the center. That diameter runs from rim to rim, so it has <strong>length 1</strong>: it is a fresh copy of the interval [0, 1], and your point sits on it at some position λ. But a diameter is a <em>measurement</em> (step 9), and the states along it are the mixtures of its two endpoint states — a Bernoulli family in λ (λ is even the probability of that measurement's ⊕ answer). Playground A told us what to do with a Bernoulli family: lift it by <strong>√(λ(1−λ))</strong>. Now do that to <em>every</em> diameter at once. Each one bends into its own Bernoulli semicircle; they all agree wherever they cross; they share one summit above the center (each has λ = ½ there); and together they form the <strong>Bernoulli hemisphere</strong> — the previous step's cure, applied to every direction of the disk at the same time. On this bowl, distance means the geodesic: the shortest walk along the surface. (Its official name: the <strong>Bures distance</strong>.)
       </p>
       <p>
         Below, your Bernoulli disk lies flat in space, exactly as you know it — always T on the left, always H on the right, the gold coin-half toward the back, the red anti-coin-half toward the front, and the purity circles drawn around the mystery coin at the center. Pull the <em>raise</em> slider and watch the construction happen: the teal T–H route <em>is</em> the base diameter bending into its Bernoulli semicircle, the purity circles rise into latitude rings, and the mystery coin climbs to the shared summit. The flat straight routes inflate into arcs, and their lengths grow into the true statistical distances.
@@ -2075,7 +2270,7 @@ function StepBures() {
         <span style={{ color: C.teal }}>H ↔ T route = {dHT.toFixed(3)}{raise === 1 ? " = π/2" : ""}</span>
       </div>
       <Notice>
-        Here is the result the whole tutorial was waiting for: fully raised, the fair coin and the mystery deterministic coin — which give identical odds — sit exactly <strong>π/4 ≈ 0.785</strong> apart, while the flat disk would have claimed ½. Notice also that the shortest road from certain-heads to certain-tails now runs <em>over the summit</em>: through total ignorance. And spin the bowl: rotating the measurement basis turns everything rigidly, so every distance stays exactly the same. You have measured how different two beliefs are <em>without choosing any measurement at all</em>. That basis-independence is the strong hint that these distances belong to the beliefs themselves. (One caution: this bowl is the flat disk <em>bent into the right ruler</em> — its height is an aid for measuring, not the delay dial of step 12.)
+        Here is the result the whole tutorial was waiting for: fully raised, the fair coin and the mystery deterministic coin — which give identical odds — sit exactly <strong>π/4 ≈ 0.785</strong> apart, while the flat disk would have claimed ½. Notice also that the shortest road from certain-heads to certain-tails now runs <em>over the summit</em>: through total ignorance. And spin the bowl: rotating the measurement basis turns everything rigidly, so every distance stays exactly the same. You have measured how different two beliefs are <em>without choosing any measurement at all</em>. That basis-independence is the strong hint that these distances belong to the beliefs themselves. (One caution: this bowl is the flat disk <em>bent into the right ruler</em> — its height is an aid for measuring, not the delay dial of step 13.)
       </Notice>
     </div>
   );
@@ -2122,7 +2317,7 @@ function StepMatrix() {
         <Btn kind="outline" onClick={() => setFlipped(!flipped)}>flip the sign of ψ</Btn>
       </div>
       <p>
-        The pipeline is really three <em>readings</em> of this one table. Read only the diagonal, (a², b²): that is the interval — the coin flip, blind to everything else. Read the highlighted <strong>top row, (a², ab) = (p, w)</strong>: that is the Bernoulli point — the diagonal <em>plus</em> the off-diagonal ab, which is exactly the band width (and nothing more is needed, since b² = 1−a²). So the Bernoulli circle is what you get by refusing to forget the off-diagonal. And press the sign button: ψ and −ψ produce the <em>identical</em> table — a table cannot remember a global sign, only relative ones. The double cover of step 10, finally explained mechanically. (Official names, for the curious: the table map is the degree-2 <em>Veronese map</em> into Sym², the space of symmetric tensors — and any degree-2 map, coordinate-squaring included, must factor through it.)
+        The pipeline is really three <em>readings</em> of this one table. Read only the diagonal, (a², b²): that is the interval — the coin flip, blind to everything else. Read the highlighted <strong>top row, (a², ab) = (p, w)</strong>: that is the Bernoulli point — the diagonal <em>plus</em> the off-diagonal ab, which is exactly the band width (and nothing more is needed, since b² = 1−a²). So the Bernoulli circle is what you get by refusing to forget the off-diagonal. And press the sign button: ψ and −ψ produce the <em>identical</em> table — a table cannot remember a global sign, only relative ones. The double cover of step 11, finally explained mechanically. (Official names, for the curious: the table map is the degree-2 <em>Veronese map</em> into Sym², the space of symmetric tensors — and any degree-2 map, coordinate-squaring included, must factor through it.)
       </p>
       <p>
         <strong>Second, the disk was matrix-space all along.</strong> Mix beliefs, and the tables average entry by entry. The result is always a symmetric table whose diagonal sums to 1 — so it carries exactly two free numbers, its top row (p, w). Your Bernoulli disk <em>is</em> the space of these tables. Physicists call them <strong>density matrices</strong>. The tutorial has been doing matrix arithmetic in disguise: mixing = averaging tables (which is linear, hence the chords); superposition = adding vectors <em>before</em> squaring (hence a different floor).
@@ -2204,14 +2399,14 @@ function StepSpectral() {
       </div>
       <StatePlot showLower showFullCircle labels={false} segment={[Np, Nm]} point={[pp, ww]} />
       <p>
-        Now the <strong>quantum dictionary</strong>, and it is shorter than its reputation. In quantum speech, a question — a diameter, step 8 — is called an <em>observable</em>. Its <strong>eigen-states</strong> are the diameter's two endpoints: the only states that answer that question with certainty. Its <strong>eigenvalues</strong> are the <em>measured values</em> — the numbers you attach to the two answers, say +1 for one end and −1 for the other; every measurement outcome is such an eigenvalue. The state's own matrix ρ uses the same word differently: <em>its</em> eigenvalues are the <strong>weights</strong> λ± with which the two outcomes appear when you ask the state its own diameter. One geometric object, two readings: the question's matrix stores the <em>values</em> on the endpoints, the state's matrix stores the <em>probabilities</em> over them. Whenever a physicist says "eigen-something," picture a diameter with its two endpoints — nothing more.
+        Now the <strong>quantum dictionary</strong>, and it is shorter than its reputation. In quantum speech, a question — a diameter, step 9 — is called an <em>observable</em>. Its <strong>eigen-states</strong> are the diameter's two endpoints: the only states that answer that question with certainty. Its <strong>eigenvalues</strong> are the <em>measured values</em> — the numbers you attach to the two answers, say +1 for one end and −1 for the other; every measurement outcome is such an eigenvalue. The state's own matrix ρ uses the same word differently: <em>its</em> eigenvalues are the <strong>weights</strong> λ± with which the two outcomes appear when you ask the state its own diameter. One geometric object, two readings: the question's matrix stores the <em>values</em> on the endpoints, the state's matrix stores the <em>probabilities</em> over them. Whenever a physicist says "eigen-something," picture a diameter with its two endpoints — nothing more.
       </p>
       <p>
         And if this "find the object's own axes" move feels familiar, it should — data science performs it daily under the name <strong>PCA</strong>, principal component analysis. A cloud of data points has a covariance table: second moments, exactly the kind of table this room is built from. PCA diagonalizes it: the eigenvectors are the cloud's <em>own axes</em>, and the eigenvalues are the spread along each. The density matrix is such a table for a belief, so its spectral decomposition <em>is</em> PCA applied to a belief: the state's diameter is its principal axis, and λ± say how the belief's weight distributes along it. The sliders above steer this cloud too — same t, same β:
       </p>
       <CloudPlot beta={beta} tt={tt} />
       <Notice>
-        Ensemble ambiguity is real — many chords through one point — but every state carries one distinguished chord: its own diameter. It is the measurement the state answers most decisively (step 8), the axis of its hemisphere lift (playground C), the eigen-basis of its matrix, and the principal axis of its cloud. Spectral decomposition is not exotic quantum machinery; it is the oldest move in data analysis — let the object choose its own axes — applied to a belief instead of a data set.
+        Ensemble ambiguity is real — many chords through one point — but every state carries one distinguished chord: its own diameter. It is the measurement the state answers most decisively (step 9), the axis of its hemisphere lift (playground C), the eigen-basis of its matrix, and the principal axis of its cloud. Spectral decomposition is not exotic quantum machinery; it is the oldest move in data analysis — let the object choose its own axes — applied to a belief instead of a data set.
       </Notice>
     </div>
   );
@@ -2223,10 +2418,10 @@ function StepEvidenceRoom({ openExtra }) {
   return (
     <div>
       <p>
-        Is the tutorial a nice story, or an actual construction? It is a construction — and this room holds the proof: the professionals' machinery fits into your picture without leaving a remainder. The <strong>density matrix</strong>, quantum theory's standard bookkeeping object, turns out to be exactly the disk you drew, hiding inside the coordinates (p, w) you have plotted since step 3. Its <strong>spectral decomposition</strong> is geometry you already own: the diameter through a state, the two opposite endpoints as eigen-states, their weights as eigenvalues. And the statisticians' honest rulers — the <strong>Bhattacharyya angle</strong> between two coins, the <strong>Bures distance</strong> between two beliefs — are nothing but arc length on your circle and on the bowl it bends into; they even predict how many flips a duel takes. And the <strong>probability amplitudes</strong> — quantum theory's square-root coordinates — you have already seen as visible geometry, in step 10: the center of the Bernoulli circle, seen from the private frame Thales hands every state. None of this was smuggled into the fourteen steps. All of it was waiting inside them.
+        Is the tutorial a nice story, or an actual construction? It is a construction — and this room holds the proof: the professionals' machinery fits into your picture without leaving a remainder. The <strong>density matrix</strong>, quantum theory's standard bookkeeping object, turns out to be exactly the disk you drew, hiding inside the coordinates (p, w) you have plotted since step 3. Its <strong>spectral decomposition</strong> is geometry you already own: the diameter through a state, the two opposite endpoints as eigen-states, their weights as eigenvalues. And the statisticians' honest rulers — the <strong>Bhattacharyya angle</strong> between two coins, the <strong>Bures distance</strong> between two beliefs — are nothing but arc length on your circle and on the bowl it bends into; they even predict how many flips a duel takes. And the <strong>probability amplitudes</strong> — quantum theory's square-root coordinates — you have already seen as visible geometry, in step 11: the center of the Bernoulli circle, seen from the private frame Thales hands every state. None of this was smuggled into the fifteen steps. All of it was waiting inside them.
       </p>
       <p>
-        To hold that evidence in your own hands, six playgrounds are waiting, and two history exhibits close the room. They are heavier than the fourteen steps — take them in any dose, or not at all.
+        To hold that evidence in your own hands, six playgrounds are waiting, and two history exhibits close the room. They are heavier than the fifteen steps — take them in any dose, or not at all.
       </p>
       {[
         { d: "How far apart are two coins? The flat ruler fails; the arc — the Bhattacharyya angle — is the honest one." },
@@ -2259,7 +2454,7 @@ function StepEvidenceRoom({ openExtra }) {
         </button>
       ))}
       <Notice>
-        Each playground stands on its own, but they read best in order: first the ruler between coins (A), then its price in flips (B), then the ruler between beliefs (C), then the machinery under the hood (D), then the state's own axes (E) — where the quantum words <em>eigen-state</em> and <em>eigenvalue</em> turn out to be old acquaintances from data analysis — and finally the polarizer bench in full (F), the fine print behind steps 6, 11 and 13. Exhibits G and H are reading rather than play: the ball's double history, before and after quantum. The navigation at the top always brings you back to the main tutorial.
+        Each playground stands on its own, but they read best in order: first the ruler between coins (A), then its price in flips (B), then the ruler between beliefs (C), then the machinery under the hood (D), then the state's own axes (E) — where the quantum words <em>eigen-state</em> and <em>eigenvalue</em> turn out to be old acquaintances from data analysis — and finally the polarizer bench in full (F), the fine print behind steps 7, 12 and 14. Exhibits G and H are reading rather than play: the ball's double history, before and after quantum. The navigation at the top always brings you back to the main tutorial.
       </Notice>
     </div>
   );
@@ -2275,17 +2470,17 @@ function StepPolarBench() {
   return (
     <div>
       <p>
-        Step 13 pulled the aha; this bench supplies the machinery and the dictionary's fine print —
+        Step 14 pulled the aha; this bench supplies the machinery and the dictionary's fine print —
         all of it still <em>classical</em>: bright light, the ball of Stokes and Poincaré.
       </p>
       <p>
-        The fine print first. Physical angles <strong>double</strong> on the ball (step 10 derives it — its readout
+        The fine print first. Physical angles <strong>double</strong> on the ball (step 11 derives it — its readout
         literally says Bernoulli angle = 2α). So polarizer axes 90° apart in the lab are <em>antipodal</em> on the ball, and
         antipodal means <strong>perfectly distinguishable</strong>: one question separates them
         without fail. Perpendicular <em>diameters</em>, by contrast, mean{" "}
         <strong>mutually unbiased questions</strong> — certainty on one is a plain 50/50 on the
-        others: step 12's uncertainty trade-off, wearing lab clothes. And note that <em>two</em>
-        orientations appear in step 13's dictionary, not one. The sign you kept in step 7 was the
+        others: step 13's uncertainty trade-off, wearing lab clothes. And note that <em>two</em>
+        orientations appear in step 14's dictionary, not one. The sign you kept in step 8 was the
         turning direction of a triangle in the picture plane — it separates the two{" "}
         <em>diagonals</em>. The handedness of circular light is a turning direction in{" "}
         <em>time</em> — it separates the two <em>circulars</em>, one dial quarter-turn away. Two
@@ -2296,14 +2491,14 @@ function StepPolarBench() {
         Which brings us to the 1819 blindness in full. Fresnel and Arago overlapped H- and V-polarized beams at every relative
         phase and found the brightness simply <em>adds</em> — never a fringe. What does change
         with the phase is the <em>polarization state</em> of the sum: diagonal, then circular,
-        then the other diagonal — a walk once around step 12's standing wheel. The dial turns in
-        plain sight; brightness, the plain flip, registers nothing — exactly the blindness steps 9
-        and 12 predicted, on a lab bench two centuries ago.
+        then the other diagonal — a walk once around step 13's standing wheel. The dial turns in
+        plain sight; brightness, the plain flip, registers nothing — exactly the blindness steps 10
+        and 13 predicted, on a lab bench two centuries ago.
       </p>
       <p>
         Now the bench, with the middle sheet's angle set free. A polarizer is a{" "}
         <strong>flip along a diameter, followed by preparation at the surviving end</strong> —
-        step 8's "measuring is asking", plus the note that the state jumps to the answer it gave.
+        step 9's "measuring is asking", plus the note that the state jumps to the answer it gave.
         The middle sheet asks the θ-question; the always-H state passes with probability cos²θ and
         leaves <em>prepared at angle θ</em> — a state that finally has an always-T component for
         the last sheet to find:
@@ -2334,7 +2529,7 @@ function StepPolarBench() {
       <AnalyzerDemo />
       <p style={{ marginTop: 14 }}>
         (One honest bookkeeping note: a polarizer is a <em>question</em>, not a rotation — it
-        collapses and prepares. The pure rotations of step 12 also exist as hardware: a{" "}
+        collapses and prepares. The pure rotations of step 13 also exist as hardware: a{" "}
         <strong>waveplate</strong>, a slab of crystal that delays one component and simply turns
         the dial, measuring nothing. Optics labs are built from exactly these two parts: waveplates
         to rotate the ball, polarizers to flip it.)
@@ -2342,7 +2537,7 @@ function StepPolarBench() {
       <Notice>
         Everything on this bench runs on bright classical light: Stokes measured these very
         quantities in 1852, Poincaré drew their sphere in 1892 — the ball at work decades before
-        quantum mechanics (Exhibits G and H tell that story). The quantum entrance is step 14 of
+        quantum mechanics (Exhibits G and H tell that story). The quantum entrance is step 15 of
         the main tutorial: the same curves, drawn one click at a time.
       </Notice>
     </div>
@@ -2414,7 +2609,7 @@ function StepTwoPaths() {
         short. "Certainly route A" and "certainly route B" are the two ends of an axle; the
         half-mirror is a quarter-turn that carries "certainly A" to the fair coin of the routes;
         extra path length in one arm turns the <strong>delay dial</strong> φ — the same dial as
-        step&nbsp;12, now made of nothing but distance; and bringing the routes back together on a
+        step&nbsp;13, now made of nothing but distance; and bringing the routes back together on a
         second half-mirror in front of two detectors is the <strong>flip</strong>. Two routes, one
         qubit — this is the famous double-slit experiment, stripped to its skeleton.
       </p>
@@ -2435,7 +2630,7 @@ function StepTwoPaths() {
       <MZBall phi={phi} bs2={true} mix={mix} />
       <p style={{ marginTop: 14 }}>
         Set φ = 0: two 50/50 mirrors in a row, and yet one detector clicks <em>always</em>. The
-        routes' two contributions to the other detector are equal and opposite — step 7's
+        routes' two contributions to the other detector are equal and opposite — step 8's
         "negative lengths" again — and cancel to nothing. Sweep φ and the odds trace{" "}
         <strong>cos²(φ/2)</strong>: fringes, the dial made visible. Then press the source button.
         A mystery-mixture source sends each particle definitely down <em>one</em> route — you just
@@ -2450,7 +2645,7 @@ function StepTwoPaths() {
         one indivisible click at one detector; nothing ever registers "half a photon" in each arm.
         Yet no story in which the photon took <em>one</em> route survives: the mixture source is
         exactly that story, and its fringes never come. Each particle travels both routes <em>as
-        amplitudes</em> — the two square-root numbers of step 10, signs, delay dial and all — and
+        amplitudes</em> — the two square-root numbers of step 11, signs, delay dial and all — and
         answers as one particle. The amplitude pair is not our description of the photon; as far as
         any experiment can tell, it is <em>what the photon is</em>.
       </p>
@@ -2501,11 +2696,11 @@ function StepBallBefore() {
       <p>
         Two of your own discoveries hang in this exhibit. First, the <strong>double cover</strong>:
         turn a polarizer by θ in the lab and the state moves by <em>2θ</em> on the sphere — a 90°
-        physical turn lands on the antipode. Step 10's angle-doubling, running in glass and brass. Second, the <strong>signed band width</strong>. Compute the ball's three axes
+        physical turn lands on the antipode. Step 11's angle-doubling, running in glass and brass. Second, the <strong>signed band width</strong>. Compute the ball's three axes
         from amplitudes (a, b·e<sup>iφ</sup>): a²−b², 2ab·cosφ, 2ab·sinφ — and these are, up to a
         factor of two, exactly Stokes's three balances. With real amplitudes your band width a·b is
         half the diagonal balance: not a resemblance but a <em>coordinate</em>, a measurable
-        number, read off by precisely the 45° sheet of step&nbsp;6 — and measured by Stokes forty
+        number, read off by precisely the 45° sheet of step&nbsp;7 — and measured by Stokes forty
         years before Poincaré drew the sphere.
       </p>
       <Notice>
@@ -2543,7 +2738,7 @@ function StepBallAfter() {
         So what, in the end, is genuinely quantum? Not the ball. Two things, and it pays to name
         them exactly. First, the <em>individual event</em>: a bright beam's place on the ball is
         classical bookkeeping, but a single photon clicking through with cos² odds — and the state
-        <em>jumping</em> to its answer, though a pure state had nothing left to learn (step 9) —
+        <em>jumping</em> to its answer, though a pure state had nothing left to learn (step 10) —
         is quantum proper. Second, and deeper: <em>composition</em>. One honest clause first: your
         construction shows that statistics <em>permits</em> the sign and the dial; it does not{" "}
         <em>force</em> them — keeping only the sign gives a disk, and that nature runs exactly{" "}
@@ -2580,20 +2775,21 @@ function StepBallAfter() {
 // ================= APP =================
 const STEPS = [
   { title: "Just statistics — at first", comp: StepIntro, tag: "i", shape: "bra", label: "INTRODUCTION" },
-  { title: "Flip a fair coin", comp: Step1, tag: "1", label: "STEP 1/14" },
-  { title: "Three mystery coins", comp: Step2, tag: "2", label: "STEP 2/14" },
-  { title: "Two numbers per run", comp: Step3, tag: "3", label: "STEP 3/14" },
-  { title: "The semicircle", comp: Step4, tag: "4", label: "STEP 4/14" },
-  { title: "Mixing beliefs", comp: StepMix, tag: "5", label: "STEP 5/14" },
-  { title: "The same disk, in glass", comp: StepLightDisk, tag: "6", label: "STEP 6/14" },
-  { title: "The mirror twins", comp: StepTwins, tag: "7", label: "STEP 7/14" },
-  { title: "Measuring is asking", comp: StepMeasure, tag: "8", label: "STEP 8/14" },
-  { title: "Why the sign hides", comp: StepSign, tag: "9", label: "STEP 9/14" },
-  { title: "The view from the state", comp: StepFrame, tag: "10", label: "STEP 10/14" },
-  { title: "The state that isn't there", comp: StepCircular, tag: "11", label: "STEP 11/14" },
-  { title: "The delay dial — disk to ball", comp: StepBloch, tag: "12", label: "STEP 12/14" },
-  { title: "The ball, in your hands", comp: StepHands, tag: "13", label: "STEP 13/14" },
-  { title: "One photon at a time", comp: StepTwoPaths, tag: "14", label: "STEP 14/14" },
+  { title: "Flip a fair coin", comp: Step1, tag: "1", label: "STEP 1/15" },
+  { title: "Three mystery coins", comp: Step2, tag: "2", label: "STEP 2/15" },
+  { title: "Two numbers per run", comp: Step3, tag: "3", label: "STEP 3/15" },
+  { title: "The semicircle", comp: Step4, tag: "4", label: "STEP 4/15" },
+  { title: "Mixing beliefs", comp: StepMix, tag: "5", label: "STEP 5/15" },
+  { title: "A coin made of light", comp: Step6Light, tag: "6", label: "STEP 6/15" },
+  { title: "The same disk, in glass", comp: StepLightDisk, tag: "7", label: "STEP 7/15" },
+  { title: "The mirror twins", comp: StepTwins, tag: "8", label: "STEP 8/15" },
+  { title: "Measuring is asking", comp: StepMeasure, tag: "9", label: "STEP 9/15" },
+  { title: "Why the sign hides", comp: StepSign, tag: "10", label: "STEP 10/15" },
+  { title: "The view from the state", comp: StepFrame, tag: "11", label: "STEP 11/15" },
+  { title: "The state that isn't there", comp: StepCircular, tag: "12", label: "STEP 12/15" },
+  { title: "The delay dial — disk to ball", comp: StepBloch, tag: "13", label: "STEP 13/15" },
+  { title: "The ball, in your hands", comp: StepHands, tag: "14", label: "STEP 14/15" },
+  { title: "One photon at a time", comp: StepTwoPaths, tag: "15", label: "STEP 15/15" },
   { title: "The ball in the wild", comp: StepEpilogue, tag: "e", shape: "ket", label: "EPILOGUE" },
 ];
 
@@ -2638,7 +2834,7 @@ export default function BuildYourOwnQubit() {
             Build your own qubit
           </h1>
           <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, marginTop: 4 }}>
-            an introduction, fourteen steps, and an epilogue — from a coin flip, via light, to a qubit
+            an introduction, fifteen steps, and an epilogue — from a coin flip, via light, to a qubit
           </div>
         </header>
 

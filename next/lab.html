@@ -85,12 +85,12 @@
 <header>
   <div class="coin">H</div>
   <h1>The kitchen lab</h1>
-  <div class="sub">build your own qubit, in hardware — a shopping list and seven bench cards</div>
+  <div class="sub">build your own qubit, in hardware — a shopping list and nine bench cards</div>
 </header>
 
 <p>
   The tutorial's ball is not a diagram waiting for a quantum computer: everything up to and
-  including step&nbsp;13 runs on bright, everyday light, and the equipment is sold as toys. This
+  including step&nbsp;14 runs on bright, everyday light, and the equipment is sold as toys. This
   page is the companion for a physical demonstration table. Buy the core kit, cut and mount the
   film, and every claim the tutorial makes about polarized light —
   Malus's odds, the twin test, the state that isn't there, light resurrected by an obstacle —
@@ -102,13 +102,13 @@
 <h2><span class="tag">PART 1</span>The shopping list</h2>
 
 <div class="slip">
-  <h3>CORE KIT <span class="sum">≈ €35–55 · covers steps 6–13</span></h3>
+  <h3>CORE KIT <span class="sum">≈ €35–55 · covers steps 6–14</span></h3>
   <div class="item"><input type="checkbox"><span class="what">
     <b>Linear polarizing film</b>, one A4 sheet — cut into 6 squares of ~6×6&nbsp;cm
     <small>search: "linear polarizing film sheet" · fallback: lenses from polarized sunglasses or cinema 3D glasses · used in every demo</small></span>
     <span class="eur">€10–20</span></div>
   <div class="item"><input type="checkbox"><span class="what">
-    <b>Quarter-wave retarder film</b>, one small sheet — the step-11 "crystal plate"
+    <b>Quarter-wave retarder film</b>, one small sheet — the step-12 "crystal plate"
     <small>search: "1/4 wave retarder film" or "quarter wave plate film" · budget trick: two pairs of RealD 3D cinema glasses (€2–5) are a QWP glued to a polarizer</small></span>
     <span class="eur">€10–15</span></div>
   <div class="item"><input type="checkbox"><span class="what">
@@ -120,6 +120,10 @@
     <small>any desk lamp; frosted is best (even glow, no hot spot)</small></span>
     <span class="eur">€0–10</span></div>
   <div class="item"><input type="checkbox"><span class="what">
+    <b>3–4 m of soft rope or elastic cord</b> — the mechanical wave of step&nbsp;6, playable by hand
+    <small>plus a "picket fence": the vertical bars of a chair back, or a slot cut in a cardboard box</small></span>
+    <span class="eur">€0–3</span></div>
+  <div class="item"><input type="checkbox"><span class="what">
     <b>Cardboard, binder clips, glue stick, printed 360° protractor dials</b> — mounts
     <small>frame each film square in cardboard on a printed dial so every angle is readable; this is what turns demos into measurements</small></span>
     <span class="eur">€5</span></div>
@@ -127,7 +131,7 @@
 </div>
 
 <div class="slip">
-  <h3>NICE EXTRAS <span class="sum">≈ €25–45 · steps 8, 12, 14</span></h3>
+  <h3>NICE EXTRAS <span class="sum">≈ €25–45 · steps 9, 13, 15</span></h3>
   <div class="item"><input type="checkbox"><span class="what">
     <b>Laser pointer</b> (red, class&nbsp;2) + <b>DIY double slit</b> — step-14 fringes and the quantum eraser
     <small>slit: two pencil leads side by side, a single hair, or two scratches in blackened foil</small></span>
@@ -158,7 +162,7 @@
 </div>
 
 <!-- ================= BENCH CARDS ================= -->
-<h2><span class="tag">PART 2</span>Seven bench cards</h2>
+<h2><span class="tag">PART 2</span>Nine bench cards</h2>
 <p>
   Each card names the tutorial step it demonstrates, sketches the optical train, and states the
   reading the theory predicts — so the audience can check the geometry against the meter.
@@ -166,7 +170,21 @@
 
 <!-- CARD 1 -->
 <div class="card">
-  <div class="head"><span class="badge">1</span><b>Malus's law — odds as brightness</b><span class="step">STEP 6</span></div>
+  <div class="head"><span class="badge">1</span><b>The rope and the fence — a wave you can hold</b><span class="step">STEP 6</span></div>
+  <p>
+    Tie one end of the rope to a doorknob, pass it between the vertical bars of a chair back (or
+    through a cardboard slot), and shake the free end. Shake <em>up-and-down</em>: the wave sails
+    through the vertical slots. Shake <em>sideways</em>: the fence swallows it. Shake at a slant —
+    both wiggles at once — and only the vertical part survives: the fence is a polarizer, and your
+    hand just felt Malus's law. Add a second fence turned 90° after the first: nothing gets
+    through at all — crossed polarizers, in rope. This is step&nbsp;6's animated wave, at
+    arm's length: the two wiggle sizes are how hard you shake each way.
+  </p>
+</div>
+
+<!-- CARD 2 -->
+<div class="card">
+  <div class="head"><span class="badge">2</span><b>Malus's law — odds as brightness</b><span class="step">STEPS 6–7</span></div>
   <svg class="sketch" viewBox="0 0 340 110">
     <line x1="14" y1="55" x2="60" y2="55" stroke="#002157" stroke-width="7" stroke-linecap="round" opacity=".85"/>
     <text x="16" y="38" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">lamp</text>
@@ -194,9 +212,9 @@
   </p>
 </div>
 
-<!-- CARD 2 -->
+<!-- CARD 3 -->
 <div class="card">
-  <div class="head"><span class="badge">2</span><b>The twin test — 45° is not 135°</b><span class="step">STEPS 6–9</span></div>
+  <div class="head"><span class="badge">3</span><b>The twin test — 45° is not 135°</b><span class="step">STEPS 7–10</span></div>
   <p>
     Prepare two beams: P1 at 45°, then P1 at 135°. Test each with the second sheet, first at 0°,
     then at 45°:
@@ -207,14 +225,38 @@
     <tr><td>θ = 45° — the tilted question</td><td class="n">100%</td><td class="n">0%</td></tr>
   </table>
   <p>
-    Identical to the flip, opposite to the tilted question — the mirror twins of step&nbsp;7,
+    Identical to the flip, opposite to the tilted question — the mirror twins of step&nbsp;8,
     told apart in hardware. This ten-second table is the whole reason the half-disk had to grow.
   </p>
 </div>
 
-<!-- CARD 3 -->
+<!-- CARD 4 -->
 <div class="card">
-  <div class="head"><span class="badge">3</span><b>The state that isn't there</b><span class="step">STEP 11</span></div>
+  <div class="head"><span class="badge">4</span><b>Glare — the interior of the disk, in the wild</b><span class="step">STEP 7</span></div>
+  <p>
+    Partially polarized light — the blend slider of step&nbsp;7 — is all around you. Find a
+    glare: lamplight reflecting off a smooth table, a phone lying face-down, or water. Look at it
+    through one rotating sheet with the lux app behind: the reading <em>breathes</em>, but not to
+    zero. Note the maximum and the minimum; then the degree of polarization is
+  </p>
+  <table class="read">
+    <tr><th>compute</th><td>V = (max − min) / (max + min)</td></tr>
+    <tr><th>V = 1</th><td>pure beam — the rim</td></tr>
+    <tr><th>0 &lt; V &lt; 1</th><td>partially polarized — the interior, at radius V</td></tr>
+    <tr><th>V = 0</th><td>the bulb — dead center</td></tr>
+  </table>
+  <p>
+    You have just measured a seat <em>inside</em> the disk — a confidence score, read off a
+    tabletop. Steeper or shallower reflection angles change V; so does blue sky, 90° away from
+    the sun (try it — skylight is partially polarized, which is how bees navigate). And this, at
+    last, is what polarizing sunglasses are <em>for</em>: road glare is mostly horizontal, so the
+    lenses mount their slots vertically.
+  </p>
+</div>
+
+<!-- CARD 5 -->
+<div class="card">
+  <div class="head"><span class="badge">5</span><b>The state that isn't there</b><span class="step">STEP 12</span></div>
   <svg class="sketch" viewBox="0 0 340 110">
     <rect x="14" y="24" width="34" height="62" rx="5" fill="#fff" stroke="#002157" stroke-width="2"/>
     <text x="31" y="59" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="#5C6E8F">screen</text>
@@ -246,9 +288,9 @@
   </p>
 </div>
 
-<!-- CARD 4 -->
+<!-- CARD 6 -->
 <div class="card">
-  <div class="head"><span class="badge">4</span><b>Light resurrected — three sheets</b><span class="step">STEP 13</span></div>
+  <div class="head"><span class="badge">6</span><b>Light resurrected — three sheets</b><span class="step">STEP 14</span></div>
   <svg class="sketch" viewBox="0 0 340 110">
     <line x1="14" y1="55" x2="52" y2="55" stroke="#002157" stroke-width="7" stroke-linecap="round" opacity=".85"/>
     <text x="16" y="38" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">lamp</text>
@@ -281,9 +323,9 @@
   </p>
 </div>
 
-<!-- CARD 5 -->
+<!-- CARD 7 -->
 <div class="card">
-  <div class="head"><span class="badge">5</span><b>The delay dial, painted — tape art</b><span class="step">STEP 12</span></div>
+  <div class="head"><span class="badge">7</span><b>The delay dial, painted — tape art</b><span class="step">STEP 13</span></div>
   <p>
     Layer strips of clear tape at assorted angles on a piece of glass or stiff plastic. Place it
     between crossed polarizers against the lamp: the invisible sandwich explodes into color. Tape
@@ -294,9 +336,9 @@
   </p>
 </div>
 
-<!-- CARD 6 -->
+<!-- CARD 8 -->
 <div class="card">
-  <div class="head"><span class="badge">6</span><b>Measuring is asking — calcite</b><span class="step">STEP 8</span></div>
+  <div class="head"><span class="badge">8</span><b>Measuring is asking — calcite</b><span class="step">STEP 9</span></div>
   <p>
     Set the calcite rhomb on printed text: every letter appears twice — the crystal splits light
     into two perpendicular polarizations that take different paths. Look through a rotating
@@ -306,9 +348,9 @@
   </p>
 </div>
 
-<!-- CARD 7 -->
+<!-- CARD 9 -->
 <div class="card">
-  <div class="head"><span class="badge">7</span><b>Fringes and the eraser — two paths</b><span class="step">STEP 14</span></div>
+  <div class="head"><span class="badge">9</span><b>Fringes and the eraser — two paths</b><span class="step">STEP 15</span></div>
   <svg class="sketch" viewBox="0 0 340 110">
     <line x1="14" y1="55" x2="66" y2="55" stroke="#F71D25" stroke-width="5" stroke-linecap="round" opacity=".9"/>
     <text x="16" y="38" font-family="IBM Plex Mono" font-size="9.5" fill="#5C6E8F">laser</text>
@@ -337,7 +379,7 @@
     other with 90° film — the fringes vanish (the routes are now labeled, and labeled routes
     cannot cancel). Hold a third piece at 45° in the beam after the slits — the fringes return,
     dimmer. The label is erased; the routes cancel again. This bench, run one photon at a time in
-    a real lab, gives identical curves — step 14's claim.
+    a real lab, gives identical curves — step 15's claim.
   </p>
 </div>
 
@@ -350,9 +392,9 @@
 
 <div class="notice">
   <b class="k">HONESTY NOTE — </b>
-  Every card above runs on bright, classical light, and that is exactly the point of steps 6–13:
+  Every card above runs on bright, classical light, and that is exactly the point of steps 6–14:
   the ball, the odds, the sign and the dial are all measurable classically. What this table
-  cannot show is step&nbsp;14's genuinely quantum half — single photons, one click at a time.
+  cannot show is step&nbsp;15's genuinely quantum half — single photons, one click at a time.
   That takes a university lab (a photon-pair source and single-photon detectors, thousands of
   euros). The honest framing works in your favor: the kitchen bench draws the curves
   <em>exactly</em>, and quantum mechanics is the discovery that the same curves survive when the
@@ -360,7 +402,7 @@
 </div>
 
 <footer>
-  companion to <a href="index.html">build your own qubit</a> — fourteen steps from a coin flip, via light, to a qubit
+  companion to <a href="index.html">build your own qubit</a> — fifteen steps from a coin flip, via light, to a qubit
 </footer>
 
 </div>
