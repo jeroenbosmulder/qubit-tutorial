@@ -583,51 +583,163 @@ function StepMix() {
 }
 
 // ================= STEP 6 : A COIN MADE OF LIGHT =================
-// Animated two-component wave. Sizes from beta; delta is the relative timing (0 = in step,
-// 180 = opposite step, 90 = quarter-beat delay -> circle). Steps own the controls.
-function WaveLab({ beta, delta }) {
+// Animated two-component wave, shown twice from one shared clock:
+// top panel — the two wiggles side-on plus the front view (as in the original lab);
+// bottom panel — the same wave as one object in 3D space, drag to turn.
+// Sizes from beta; delta is the relative timing (0 = in step, 180 = opposite step,
+// 90 = quarter-beat delay -> circle). Steps own the sliders.
+function WaveDuo({ beta, delta = 0 }) {
   const [t, setT] = useState(0);
   const [run, setRun] = useState(true);
+  const [view, setView] = useState({ yaw: 64, pitch: 16 });
+  const runRef = useRef(run);
+  runRef.current = run;
+  const tgt = useRef(null); // preset 3D view we are easing toward
+  const drag = useRef(null);
+
   useEffect(() => {
-    if (!run) return;
     let id;
     const loop = () => {
-      setT((x) => x + 0.045);
+      if (runRef.current) setT((x) => x + 0.045);
+      if (tgt.current) {
+        setView((v) => {
+          const g = tgt.current;
+          if (!g) return v;
+          const ny = v.yaw + (g.yaw - v.yaw) * 0.14;
+          const np = v.pitch + (g.pitch - v.pitch) * 0.14;
+          if (Math.abs(g.yaw - ny) < 0.25 && Math.abs(g.pitch - np) < 0.25) {
+            tgt.current = null;
+            return { yaw: g.yaw, pitch: g.pitch };
+          }
+          return { yaw: ny, pitch: np };
+        });
+      }
       id = requestAnimationFrame(loop);
     };
     id = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(id);
-  }, [run]);
+  }, []);
+
+  const onDown = (e) => {
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    tgt.current = null;
+    drag.current = { x: e.clientX, y: e.clientY, yaw: view.yaw, pitch: view.pitch };
+  };
+  const onMove = (e) => {
+    if (!drag.current) return;
+    const dx = e.clientX - drag.current.x;
+    const dy = e.clientY - drag.current.y;
+    setView({
+      yaw: Math.max(-6, Math.min(100, drag.current.yaw - dx * 0.35)),
+      pitch: Math.max(-30, Math.min(30, drag.current.pitch + dy * 0.35)),
+    });
+  };
+  const onUp = () => { drag.current = null; };
+
   const br = (beta * Math.PI) / 180;
   const a = Math.cos(br), b = Math.sin(br);
   const d = (delta * Math.PI) / 180;
-  const N = 44, x0 = 12, x1 = 206, yH = 42, yV = 108, amp = 24;
+  // one tip, shared by both panels: H and V displacement at the wave's near end
+  const tipH = (tt) => a * Math.sin(tt);
+  const tipV = (tt) => b * Math.sin(tt - d);
+  // when the wiggles run in step (or exactly opposite step) the tip's path is a
+  // straight line, and its turning points ±(a, b·cosδ) sit on the unit circle of
+  // amplitude pairs (step 4's circle). For other δ the path is an ellipse that
+  // never reaches these points, so the markers hide.
+  const lin = Math.abs(Math.sin(d)) < 0.02;
+  const ux = a, uy = b * Math.cos(d);
+
+  // ---------- top panel: side-on wiggles + front view ----------
+  const N2 = 44, x0 = 12, x1 = 206, yH = 42, yV = 108, amp = 24;
   const pts = (A, ph) =>
-    Array.from({ length: N + 1 }, (_, i) => {
-      const x = x0 + (i * (x1 - x0)) / N;
-      const y = -A * amp * Math.sin(i * 0.32 - t - ph);
+    Array.from({ length: N2 + 1 }, (_, i) => {
+      const x = x0 + (i * (x1 - x0)) / N2;
+      const y = -A * amp * Math.sin(i * 0.32 - t + ph);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(" ");
-  // front view: trail of recent tip positions
   const fcx = 273, fcy = 75, fr = 44;
-  const trail = Array.from({ length: 34 }, (_, k) => {
-    const tt = t - k * 0.13;
-    return [fcx + fr * a * Math.sin(tt), fcy - fr * b * Math.sin(tt - d), 1 - k / 36];
+  const trail2 = Array.from({ length: 34 }, (_, k2) => {
+    const tt = t - k2 * 0.13;
+    return [fcx + fr * tipH(tt), fcy - fr * tipV(tt), 1 - k2 / 36];
   });
-  const grid = [];
-  for (let x = 20; x <= 320; x += 30) grid.push(<line key={"v" + x} x1={x} y1={0} x2={x} y2={150} stroke={C.grid} strokeWidth={0.8} />);
-  for (let y = 15; y <= 145; y += 30) grid.push(<line key={"h" + y} x1={0} y1={y} x2={340} y2={y} stroke={C.grid} strokeWidth={0.8} />);
+  const grid2 = [];
+  for (let x = 20; x <= 320; x += 30) grid2.push(<line key={"v" + x} x1={x} y1={0} x2={x} y2={150} stroke={C.grid} strokeWidth={0.8} />);
+  for (let y = 15; y <= 145; y += 30) grid2.push(<line key={"h" + y} x1={0} y1={y} x2={340} y2={y} stroke={C.grid} strokeWidth={0.8} />);
+
+  // ---------- bottom panel: the wave in space ----------
+  const ps = (view.yaw * Math.PI) / 180, phv = (view.pitch * Math.PI) / 180;
+  const cps = Math.cos(ps), sps = Math.sin(ps);
+  const cph = Math.cos(phv), sph = Math.sin(phv);
+  const W = 340, H = 180, cx = 170, cyy = 90, S = 56;
+  // world: z = direction of flight, x = horizontal wiggle, y = vertical wiggle
+  const proj = (x, y, z) => {
+    const px = x * cps + z * sps;
+    const z1 = -x * sps + z * cps;
+    const py = y * cph - z1 * sph;
+    return [cx + S * px, cyy - S * py];
+  };
+  const L = 2.4, k3 = 2.6, A3 = 0.62, N3 = 72;
+  const zs = Array.from({ length: N3 + 1 }, (_, i) => -L + (2 * L * i) / N3);
+  // traveling toward +z; at the near end z = −L this is exactly the shared tip
+  const Ex = (z, tt) => A3 * tipH(tt - k3 * (z + L));
+  const Ey = (z, tt) => A3 * tipV(tt - k3 * (z + L));
+  const pl = (f) =>
+    zs.map((z) => { const [X, Y] = f(z); return `${X.toFixed(1)},${Y.toFixed(1)}`; }).join(" ");
+  const hPts = pl((z) => proj(Ex(z, t), 0, z));
+  const vPts = pl((z) => proj(0, Ey(z, t), z));
+  const sPts = pl((z) => proj(Ex(z, t), Ey(z, t), z));
+  // stems from the flight axis: dashed gold/teal for the two component wiggles
+  // (showing each one's plane), solid ink for the actual wave
+  const stems = zs.filter((_, i) => i % 6 === 0).map((z, i) => {
+    const [x0s, y0s] = proj(0, 0, z);
+    const [xh, yh] = proj(Ex(z, t), 0, z);
+    const [xv, yv] = proj(0, Ey(z, t), z);
+    const [x2, y2] = proj(Ex(z, t), Ey(z, t), z);
+    return (
+      <g key={"s" + i}>
+        <line x1={x0s} y1={y0s} x2={xh} y2={yh} stroke={C.gold} strokeWidth={1} strokeDasharray="2 3" opacity={0.5} />
+        <line x1={x0s} y1={y0s} x2={xv} y2={yv} stroke={C.teal} strokeWidth={1} strokeDasharray="2 3" opacity={0.5} />
+        <line x1={x0s} y1={y0s} x2={x2} y2={y2} stroke={C.ink} strokeWidth={1} opacity={0.13} />
+      </g>
+    );
+  });
+  // front frame at the near end (z = −L); fades to solid as the view goes head-on,
+  // at which point only the trail remains — exactly the front-view panel above
+  const hs = 0.8;
+  const sq = [[-hs, -hs], [hs, -hs], [hs, hs], [-hs, hs]]
+    .map(([x, y]) => proj(x, y, -L).map((v) => v.toFixed(1)).join(","))
+    .join(" ");
+  const hoF = Math.max(0, 1 - Math.abs(view.yaw) / 26) * Math.max(0, 1 - Math.abs(view.pitch) / 26);
+  const cr1 = [proj(-hs, 0, -L), proj(hs, 0, -L)];
+  const cr2 = [proj(0, -hs, -L), proj(0, hs, -L)];
+  // the unit circle of amplitude pairs, drawn on the frame plane (radius = one
+  // unit of wiggle amplitude); the tip's turning points sit on it
+  const uc = Array.from({ length: 49 }, (_, i) => {
+    const th = (2 * Math.PI * i) / 48;
+    return proj(A3 * Math.cos(th), A3 * Math.sin(th), -L)
+      .map((v) => v.toFixed(1)).join(",");
+  }).join(" ");
+  const trail3 = Array.from({ length: 30 }, (_, kk) => {
+    const tt = t - kk * 0.13;
+    const [X, Y] = proj(Ex(-L, tt), Ey(-L, tt), -L);
+    return [X, Y, 1 - kk / 32];
+  });
+  const axA = proj(0, 0, -L), axB = proj(0, 0, L);
+  const grid3 = [];
+  for (let x = 20; x <= 320; x += 30) grid3.push(<line key={"v" + x} x1={x} y1={0} x2={x} y2={H} stroke={C.grid} strokeWidth={0.8} />);
+  for (let y = 15; y <= 175; y += 30) grid3.push(<line key={"h" + y} x1={0} y1={y} x2={W} y2={y} stroke={C.grid} strokeWidth={0.8} />);
+
   return (
     <div>
       <svg viewBox="0 0 340 150" style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
-        {grid}
+        {grid2}
         <line x1={x0} y1={yH} x2={x1} y2={yH} stroke={C.gridBold} strokeWidth={1} />
         <line x1={x0} y1={yV} x2={x1} y2={yV} stroke={C.gridBold} strokeWidth={1} />
         <g transform={`translate(0 ${yH})`}>
-          <polyline points={pts(a, 0)} fill="none" stroke={C.gold} strokeWidth={2.5} strokeLinejoin="round" />
+          <polyline points={pts(a, Math.PI)} fill="none" stroke={C.gold} strokeWidth={2.5} strokeLinejoin="round" />
         </g>
         <g transform={`translate(0 ${yV})`}>
-          <polyline points={pts(b, d)} fill="none" stroke={C.teal} strokeWidth={2.5} strokeLinejoin="round" />
+          <polyline points={pts(b, Math.PI + d)} fill="none" stroke={C.teal} strokeWidth={2.5} strokeLinejoin="round" />
         </g>
         <text x={x0} y={14} fontFamily={mono} fontSize="9.5" fill={C.gold}>H wiggle · size a = {a.toFixed(2)}</text>
         <text x={x0} y={80} fontFamily={mono} fontSize="9.5" fill={C.teal}>V wiggle · size b = {b.toFixed(2)}</text>
@@ -635,13 +747,68 @@ function WaveLab({ beta, delta }) {
         <rect x={fcx - fr - 6} y={fcy - fr - 6} width={2 * fr + 12} height={2 * fr + 12} rx={8} fill="#fff" stroke={C.gridBold} strokeWidth={1.5} />
         <line x1={fcx - fr} y1={fcy} x2={fcx + fr} y2={fcy} stroke={C.grid} strokeWidth={1.2} />
         <line x1={fcx} y1={fcy - fr} x2={fcx} y2={fcy + fr} stroke={C.grid} strokeWidth={1.2} />
-        {trail.map(([x, y, o], k) => (
-          <circle key={k} cx={x} cy={y} r={k === 0 ? 4.5 : 2.2} fill={C.ink} opacity={k === 0 ? 1 : 0.28 * o} />
+        {trail2.map(([x, y, o], k2) => (
+          <circle key={k2} cx={x} cy={y} r={k2 === 0 ? 4.5 : 2.2} fill={C.ink} opacity={k2 === 0 ? 1 : 0.28 * o} />
         ))}
+        {lin && (
+          <circle cx={fcx + fr * ux} cy={fcy - fr * uy} r={2.8} fill="none" stroke={C.gold} strokeWidth={1.4} opacity={0.8} />
+        )}
         <text x={fcx} y={fcy + fr + 16} textAnchor="middle" fontFamily={mono} fontSize="9" fill={C.inkSoft}>front view — what the tip draws</text>
       </svg>
-      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+        style={{
+          width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`,
+          borderRadius: 8, display: "block", touchAction: "none", marginTop: 8,
+          cursor: drag.current ? "grabbing" : "grab",
+        }}
+      >
+        {grid3}
+        <line x1={axA[0]} y1={axA[1]} x2={axB[0]} y2={axB[1]} stroke={C.gridBold} strokeWidth={1.2} />
+        {/* frame drawn behind the waves — it sits at the near end of the axis, but the
+            waves pass in front of its far edges, so painting it first reads correctly */}
+        <polygon points={sq} fill="none" stroke={C.gridBold} strokeWidth={1.5} />
+        <line x1={cr1[0][0]} y1={cr1[0][1]} x2={cr1[1][0]} y2={cr1[1][1]} stroke={C.grid} strokeWidth={1.2} />
+        <line x1={cr2[0][0]} y1={cr2[0][1]} x2={cr2[1][0]} y2={cr2[1][1]} stroke={C.grid} strokeWidth={1.2} />
+        <polygon points={uc} fill="none" stroke={C.gold} strokeWidth={1} strokeDasharray="2 3" opacity={0.4} />
+        {stems}
+        <polyline points={hPts} fill="none" stroke={C.gold} strokeWidth={2} strokeLinejoin="round" opacity={0.9} />
+        <polyline points={vPts} fill="none" stroke={C.teal} strokeWidth={2} strokeLinejoin="round" opacity={0.9} />
+        <polyline points={sPts} fill="none" stroke={C.ink} strokeWidth={2.5} strokeLinejoin="round" />
+        {/* near head-on the plane really is in front of the whole wave: fade in a solid
+            copy of the frame over the curves, leaving only the trail — the front view */}
+        {hoF > 0.01 && (
+          <g opacity={hoF}>
+            <polygon points={sq} fill="#fff" fillOpacity={0.92} stroke={C.gridBold} strokeWidth={1.5} />
+            <line x1={cr1[0][0]} y1={cr1[0][1]} x2={cr1[1][0]} y2={cr1[1][1]} stroke={C.grid} strokeWidth={1.2} />
+            <line x1={cr2[0][0]} y1={cr2[0][1]} x2={cr2[1][0]} y2={cr2[1][1]} stroke={C.grid} strokeWidth={1.2} />
+            <polygon points={uc} fill="none" stroke={C.gold} strokeWidth={1} strokeDasharray="2 3" opacity={0.4} />
+          </g>
+        )}
+        {trail3.map(([X, Y, o], kk) => (
+          <circle key={kk} cx={X} cy={Y} r={kk === 0 ? 4.5 : 2.2} fill={C.ink} opacity={kk === 0 ? 1 : 0.28 * o} />
+        ))}
+        {lin && (() => {
+          const [X, Y] = proj(A3 * ux, A3 * uy, -L);
+          return <circle cx={X} cy={Y} r={2.8} fill="none" stroke={C.gold} strokeWidth={1.4} opacity={0.8} />;
+        })()}
+        <text x={12} y={14} fontFamily={mono} fontSize="9.5">
+          <tspan fill={C.ink}>in space — </tspan>
+          <tspan fill={C.gold}>H</tspan>
+          <tspan fill={C.ink}> + </tspan>
+          <tspan fill={C.teal}>V</tspan>
+          <tspan fill={C.ink}> = the wave (dark)</tspan>
+        </text>
+        <text x={12} y={175} fontFamily={mono} fontSize="9" fill={C.inkSoft}>
+          drag to turn · framed square = the front view above
+        </text>
+      </svg>
+      <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
         <Btn kind="ghost" onClick={() => setRun((v) => !v)}>{run ? "pause" : "play"}</Btn>
+        <Btn kind="ghost" onClick={() => { tgt.current = { yaw: 64, pitch: 16 }; }}>3D view</Btn>
+        <Btn kind="ghost" onClick={() => { tgt.current = { yaw: 90, pitch: 14 }; }}>side view</Btn>
+        <Btn kind="ghost" onClick={() => { tgt.current = { yaw: 0, pitch: 0 }; }}>look down the axis</Btn>
       </div>
     </div>
   );
@@ -701,9 +868,13 @@ function Step6Light() {
         step. Fix the brightness and the two sizes are locked together — a² + b² = 1, two numbers
         whose squares sum to one; that constraint should ring a bell — so one
         knob sets them both: a tilt angle β, with a = cos&nbsp;β and b = sin&nbsp;β. Seen
-        head-on, the two wiggles add up, and the wave's tip draws a single tilted line. Play:
+        head-on, the two wiggles add up, and the wave's tip draws a single tilted line — whose
+        turning point, marked by the small gold ring, is the pair (a,&nbsp;b) itself, sitting on
+        step&nbsp;4's unit circle of amplitude pairs (drawn dashed in the space view). The
+        direction of the line and the point (a,&nbsp;b) on that circle are two names for the
+        same data. Play:
       </p>
-      <WaveLab beta={beta} delta={flip ? 180 : 0} />
+      <WaveDuo beta={beta} delta={flip ? 180 : 0} />
       <Slider value={beta} min={0} max={90} step={1} onChange={setBeta}
         label="β — the wave's tilt (sets both wiggle sizes)"
         readout={`β=${beta}° → a=${Math.cos((beta * Math.PI) / 180).toFixed(2)}, b=${flip ? "−" : "+"}${Math.sin((beta * Math.PI) / 180).toFixed(2)}`} />
@@ -717,6 +888,16 @@ function Step6Light() {
         the back of your mind; it has a starring role two steps from now.
       </p>
       <p>
+        The lower panel of the visual is the check that the upper pictures really are{" "}
+        <em>one</em> object seen from two sides: it shows that object itself — the wave in space.
+        The H&nbsp;wiggle rides in the horizontal plane, the V&nbsp;wiggle in the vertical one,
+        and the dark curve is the actual wave: their sum, point by point.{" "}
+        <strong>Grab that panel and turn it.</strong> From the side you recognize the two wiggles
+        flying to the right; keep turning until you look straight down the line of flight, and
+        the whole wave collapses into the front view — the tilted line, drawing itself on the
+        framed square, in step with the front view above.
+      </p>
+      <p style={{ marginTop: 14 }}>
         Now the second fact — a few euros at any drugstore. A <strong>polarizer</strong>{" "}
         is a plastic sheet — the lens of polarizing sunglasses — that acts like a picket fence
         for light: it keeps the wiggle that runs <em>along its slots</em> and absorbs the other
@@ -1284,7 +1465,7 @@ function StepCircular() {
         one is passing through zero. Take the wave toy back out and unlock what was a switch into
         a free <strong>timing dial</strong> δ:
       </p>
-      <WaveLab beta={beta} delta={delta} />
+      <WaveDuo beta={beta} delta={delta} />
       <Slider value={delta} min={0} max={360} step={1} onChange={setDelta}
         label="δ — the timing between the wiggles (was: the flip switch)"
         readout={`δ=${delta}° ${delta === 0 || delta === 360 ? "· in step — a tilted line" : delta === 180 ? "· opposite step — the twin's line" : delta === 90 || delta === 270 ? (beta === 45 ? "· quarter beat — a circle!" : "· quarter beat — an ellipse") : "· part-way — an ellipse"}`} />
@@ -1293,7 +1474,9 @@ function StepCircular() {
         readout={`β=${beta}°`} />
       <p>
         Set β=45° and δ=90°: the front view rounds into a <em>circle</em> — the tip of the
-        light's arrow corkscrews as the beam flies. This is <strong>circular light</strong>, and
+        light's arrow corkscrews as the beam flies. Turn the wave in space and the corkscrew is
+        there whole, a genuine <em>helix</em>; look down the axis and the helix becomes the
+        circle. This is <strong>circular light</strong>, and
         its secret is now on your screen: not the size of the wiggles, not their sign, but their
         relative <em>delay</em>. Notice what else the dial shows. δ=0° is the plain tilted line;
         δ=180° is exactly step&nbsp;6's flip switch — the mirror twin's line; and everything in
