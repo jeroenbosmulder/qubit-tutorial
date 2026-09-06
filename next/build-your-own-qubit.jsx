@@ -12,6 +12,7 @@ const C = {
   red: "#F71D25",
   redSoft: "#FDE0E1",
   teal: "#00A1E4",
+  violet: "#5F3DC4",
 };
 
 const serif = "'Fraunces', Georgia, 'Times New Roman', serif";
@@ -163,6 +164,7 @@ function StatePlot({
   showSemicircle = true,
   showFullCircle = false,
   showChords = false,
+  showCenterVector = false,
   labels = true,
 }) {
   const S = 240; // px per unit of p
@@ -279,6 +281,24 @@ function StatePlot({
           })()}
         </>
       )}
+      {point && showCenterVector && (() => {
+        const [Px, Py] = px(point[0], point[1]);
+        const dx = cx - Px, dy = cy - Py;
+        const L = Math.hypot(dx, dy) || 1;
+        const ux = dx / L, uy = dy / L;
+        const hx = cx - 9 * ux, hy = cy - 9 * uy; // arrowhead base, just short of center
+        const wx = -uy, wy = ux;
+        return (
+          <g>
+            <line x1={Px} y1={Py} x2={hx} y2={hy} stroke={C.violet} strokeWidth={3.2} strokeLinecap="round" opacity={0.9} />
+            <polygon
+              points={`${cx},${cy} ${hx + 5 * wx},${hy + 5 * wy} ${hx - 5 * wx},${hy - 5 * wy}`}
+              fill={C.violet} opacity={0.9}
+            />
+            <text x={(Px + cx) / 2 + 10 * wx} y={(Py + cy) / 2 + 10 * wy + 4} fontFamily={mono} fontSize="10" fontWeight="600" fill={C.violet}>½</text>
+          </g>
+        );
+      })()}
       {point && (
         <>
           <line x1={cx} y1={cy} x2={px(point[0], point[1])[0]} y2={px(point[0], point[1])[1]} stroke={C.ink} strokeWidth={1.2} />
@@ -286,6 +306,21 @@ function StatePlot({
         </>
       )}
     </svg>
+  );
+}
+
+function Tech({ title, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: 12, border: `1.5px dashed ${C.gridBold}`, borderRadius: 8, background: "#FAFDFF" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", cursor: "pointer", padding: "9px 12px", fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft }}
+      >
+        {open ? "▾" : "▸"} FOR THE CURIOUS — {title}
+      </button>
+      {open && <div style={{ padding: "0 14px 12px", fontSize: 14, lineHeight: 1.55 }}>{children}</div>}
+    </div>
   );
 }
 
@@ -430,18 +465,20 @@ function Step3() {
     for (let k = 0; k < 8; k++) {
       const f = flipSeq(0.5, 30);
       pts.push({ p: mean(f), w: sampleStd(f), color: C.teal });
+      const bz = flipSeq(0.8, 30); // step 2's biased coin
+      pts.push({ p: mean(bz), w: sampleStd(bz), color: C.gold });
       const side = Math.random() < 0.5 ? 1 : 0; // fresh mystery deterministic coin
       const d = flipSeq(side, 30);
       pts.push({ p: mean(d), w: sampleStd(d), color: C.red });
     }
-    setScatter((s) => [...s, ...pts].slice(-160));
+    setScatter((s) => [...s, ...pts].slice(-240));
   };
   const centroidOf = (color) => {
     const s = scatter.filter((x) => x.color === color);
     if (!s.length) return null;
     return { p: mean(s.map((x) => x.p)), w: mean(s.map((x) => x.w)), color };
   };
-  const centroids = [centroidOf(C.teal), centroidOf(C.red)].filter(Boolean);
+  const centroids = [centroidOf(C.teal), centroidOf(C.gold), centroidOf(C.red)].filter(Boolean);
   const [shown, setShown] = useState([false, false, false]);
   const EXS = [
     {
@@ -460,12 +497,19 @@ function Step3() {
   return (
     <div>
       <p>
-        Give each run of 30 flips <strong>two numbers</strong>: its average outcome (count H = 1 and T = 0, so the average is simply the observed heads-fraction p) and its spread — we call it the <strong>band width</strong> of the sequence. Run many experiments with a fair coin <span style={{ color: C.teal }}>●</span> and with fresh mystery deterministic coins <span style={{ color: C.red }}>●</span>, and drop each run on the chart.
+        Give each run of 30 flips <strong>two numbers</strong>: its average outcome (count H = 1 and T = 0, so the average is simply the observed heads-fraction p) and its spread — we call it the <strong>band width</strong> of the sequence. Then bring back all three coins of step 2 and run many experiments with each: the fair coin <span style={{ color: C.teal }}>●</span>, the biased coin <span style={{ color: C.gold }}>●</span>, and fresh mystery deterministic coins <span style={{ color: C.red }}>●</span>. Drop each run on the chart.
       </p>
-      <div style={{ margin: "14px 0", padding: "12px 14px", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8 }}>
-        <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 6 }}>
-          HOW TO COMPUTE THE BAND WIDTH — try it yourself
-        </div>
+      <p>
+        Here is the important move: your <em>belief</em> about a coin is fixed <strong>before you start flipping</strong>. So its two numbers are <em>expectations over everything that might happen</em>: the average over the whole cloud of possible runs, not the one run you happen to get. Each belief is one point — the center of its cloud (the markers with a white ring).
+      </p>
+      <Btn onClick={runExperiments}>Run 8 experiments of each</Btn>
+      <div style={{ marginTop: 12 }}>
+        <StatePlot scatter={scatter} centroids={centroids} showSemicircle={scatter.length > 40} labels={false} />
+      </div>
+      <Notice>
+        The fair coin's possible runs all behave alike, so its belief marker settles on the curve, near (½, ½). So does the biased coin's — at a different seat, near (0.8, 0.4): <em>every</em> coin with definite odds earns a seat on this one curve, fairness is not special. The mystery deterministic coin's possible worlds <em>disagree</em>: each single world lands at a corner, (0, 0) or (1, 0). Averaging over both possibilities pulls the belief to (½, 0): the same expected outcome as the fair coin, zero expected band width, and strictly <em>inside</em> the region that the curve encloses. Definite coins live on the curve; uncertainty about <em>which</em> coin you hold pulls the belief into the interior. (If you had first peeked at one flip, you would have learned the coin's side and jumped to a corner. The interior point describes you <em>before</em> learning anything.) And save one question for later: the fair coin and the mystery coin now sit at different points — but how far apart are they, <em>really</em>? That simple, completely non-quantum question drives this whole tutorial. First we find the exact shape of the curve. Then we return for the interior.
+      </Notice>
+      <Tech title="how to compute the band width — try it yourself">
         <p style={{ margin: "0 0 8px" }}>
           The band width measures how far the flips scatter around their own average.
           The recipe: <strong>(1)</strong> write each flip as a number, H&nbsp;=&nbsp;1
@@ -494,21 +538,62 @@ function Step3() {
             )}
           </div>
         ))}
-      </div>
-      <p>
-        One honest admission before we continue: choosing the square-rooted spread — rather than, say, the squared one (statisticians' <em>variance</em>), or some other summary — may look like taste. Two defenses for now. First, the spread is not invented but <em>measured</em>: it is what the runs themselves report. Second, only the square root has the same units as p itself, so the two numbers may honestly share one drawing. The deeper defense — that this choice, and no other, will make distances on your drawing tell the statistical truth — has its own bench waiting in the evidence room (Playground A).
-      </p>
-      <p>
-        Here is the important move: your <em>belief</em> about a coin is fixed <strong>before you start flipping</strong>. So its two numbers are <em>expectations over everything that might happen</em>: the average over the whole cloud of possible runs, not the one run you happen to get. Each belief is one point — the center of its cloud (the markers with a white ring).
-      </p>
-      <Btn onClick={runExperiments}>Run 8 experiments of each</Btn>
-      <div style={{ marginTop: 12 }}>
-        <StatePlot scatter={scatter} centroids={centroids} showSemicircle={scatter.length > 40} labels={false} />
-      </div>
-      <Notice>
-        The fair coin's possible runs all behave alike, so its belief marker settles on the curve, near (½, ½). The mystery deterministic coin's possible worlds <em>disagree</em>: each single world lands at a corner, (0, 0) or (1, 0). Averaging over both possibilities pulls the belief to (½, 0): the same expected outcome as the fair coin, zero expected band width, and strictly <em>inside</em> the region that the curve encloses. Definite coins live on the curve; uncertainty about <em>which</em> coin you hold pulls the belief into the interior. (If you had first peeked at one flip, you would have learned the coin's side and jumped to a corner. The interior point describes you <em>before</em> learning anything.) And save one question for later: the fair coin and the mystery coin now sit at different points — but how far apart are they, <em>really</em>? That simple, completely non-quantum question drives this whole tutorial. First we find the exact shape of the curve. Then we return for the interior.
-      </Notice>
+      </Tech>
+      <Tech title="why the square root — and not the variance?">
+        Choosing the square-rooted spread — rather than, say, the squared one (statisticians' <em>variance</em>), or some other summary — may look like taste. Two defenses. First, the spread is not invented but <em>measured</em>: it is what the runs themselves report. Second, only the square root has the same units as p itself, so the two numbers may honestly share one drawing. The deeper defense — that this choice, and no other, makes distances on the drawing tell the statistical truth — has its own bench waiting in the evidence room (Playground A).
+      </Tech>
     </div>
+  );
+}
+
+// The needle's-eye view: P's private frame, axes = the two chords; the needle
+// sweeps the first quarter of the circle of radius 1/2 as p goes 0 -> 1.
+function NeedleView({ p }) {
+  const a = Math.sqrt(Math.max(0, p)) / 2;
+  const b = Math.sqrt(Math.max(0, 1 - p)) / 2;
+  const W = 340, H = 240, S = 300, ox = 54, oy = H - 44;
+  const px = (u, v) => [ox + u * S, oy - v * S];
+  const [Hx, Hy] = px(0.5, 0);
+  const [Tx, Ty] = px(0, 0.5);
+  const [Fx, Fy] = px(Math.SQRT1_2 / 2, Math.SQRT1_2 / 2);
+  const [Nx, Ny] = px(a, b);
+  const grid = [];
+  for (let u = 0.125; u <= 0.6; u += 0.125) {
+    const bold = Math.abs((u * 4) % 1) < 1e-6;
+    grid.push(<line key={"v" + u} x1={px(u, 0)[0]} y1={px(0, 0.62)[1]} x2={px(u, 0)[0]} y2={oy} stroke={bold ? C.gridBold : C.grid} strokeWidth={bold ? 1 : 0.6} />);
+    grid.push(<line key={"h" + u} x1={ox} y1={px(0, u)[1]} x2={px(0.78, 0)[0]} y2={px(0, u)[1]} stroke={bold ? C.gridBold : C.grid} strokeWidth={bold ? 1 : 0.6} />);
+  }
+  // arrowhead for the needle
+  const L = Math.hypot(Nx - ox, Ny - oy) || 1;
+  const ux = (Nx - ox) / L, uy = (Ny - oy) / L;
+  const hx = Nx - 10 * ux, hy = Ny - 10 * uy;
+  const wx = -uy, wy = ux;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block", marginTop: 10 }}>
+      {grid}
+      {/* axes = the two chords, from where you stand */}
+      <line x1={ox} y1={oy} x2={px(0.78, 0)[0]} y2={oy} stroke={C.ink} strokeWidth={1.4} />
+      <line x1={ox} y1={oy} x2={ox} y2={px(0, 0.62)[1]} stroke={C.ink} strokeWidth={1.4} />
+      <text x={px(0.78, 0)[0]} y={oy + 16} textAnchor="end" fontFamily={mono} fontSize="10" fill={C.teal}>toward T</text>
+      <text x={ox + 6} y={px(0, 0.6)[1]} fontFamily={mono} fontSize="10" fill={C.gold}>toward H</text>
+      <text x={ox - 6} y={oy + 16} textAnchor="middle" fontFamily={mono} fontSize="10" fill={C.inkSoft}>you</text>
+      {/* the quarter circle of radius 1/2 */}
+      <path d={`M ${Hx} ${Hy} A ${0.5 * S} ${0.5 * S} 0 0 0 ${Tx} ${Ty}`} fill="none" stroke={C.inkSoft} strokeWidth={1.5} strokeDasharray="5 4" />
+      {/* landmarks */}
+      <circle cx={Hx} cy={Hy} r={4} fill={C.ink} />
+      <text x={Hx + 6} y={Hy - 8} fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>H′ (½, 0)</text>
+      <circle cx={Tx} cy={Ty} r={4} fill={C.ink} />
+      <text x={Tx + 8} y={Ty + 4} fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>T′ (0, ½)</text>
+      <circle cx={Fx} cy={Fy} r={3.5} fill={C.teal} />
+      <text x={Fx + 8} y={Fy - 4} fontFamily={mono} fontSize="10" fill={C.teal}>fair coin (45°)</text>
+      {/* the needle */}
+      <line x1={ox} y1={oy} x2={hx} y2={hy} stroke={C.violet} strokeWidth={3.2} strokeLinecap="round" opacity={0.9} />
+      <polygon points={`${Nx},${Ny} ${hx + 5 * wx},${hy + 5 * wy} ${hx - 5 * wx},${hy - 5 * wy}`} fill={C.violet} opacity={0.9} />
+      <circle cx={Nx} cy={Ny} r={4.5} fill={C.violet} stroke={C.ink} strokeWidth={1.2} />
+      <text x={W - 8} y={18} textAnchor="end" fontFamily={mono} fontSize="10.5" fontWeight="600" fill={C.violet}>
+        needle tip = ({a.toFixed(2)}, {b.toFixed(2)})
+      </text>
+    </svg>
   );
 }
 
@@ -519,28 +604,42 @@ function Step4() {
   return (
     <div>
       <p>
-        There is a formula behind that curve. A coin with heads-probability p has band width
-      </p>
-      <Formula>σ = √(p(1 − p))</Formula>
-      <p>
-        which means every state satisfies (p − ½)² + σ² = ¼: a circle of radius ½, centered on fair odds — the <strong>Bernoulli circle</strong>. Slide the bias and watch where your belief lives.
+        Step 3's curve is no accident. It is a perfect <strong>circle</strong> — half of one — with the fair coin at the top of the arc and the two certain coins at its ends: the <strong>Bernoulli circle</strong>. Slide the bias and watch where your belief lives.
       </p>
       <Slider
         value={p} min={0} max={1} step={0.01} onChange={setP}
         label="P(heads)"
         readout={`p=${p.toFixed(2)}   σ=${w.toFixed(2)}   chords: √p=${Math.sqrt(p).toFixed(2)}, √(1−p)=${Math.sqrt(1 - p).toFixed(2)}`}
       />
-      <StatePlot point={[p, w]} showChords />
+      <StatePlot point={[p, w]} showChords showCenterVector />
       <p style={{ marginTop: 14 }}>
-        And the drawing pays an immediate dividend. Connect your state to the two ends of the diameter — one chord to always-T, one to always-H — and measure them. The chord to T has length exactly <strong>√p</strong>, the chord to H exactly <strong>√(1−p)</strong> (test the ends: at p=1 the H-chord shrinks to nothing). Thales' circle theorem says the two chords meet at a <em>right angle</em> — a diameter is seen at 90° from any point of its circle — so this is a right triangle on the base T–H, and its area can be computed twice. Half base times height gives σ/2; half leg times leg gives √p·√(1−p)/2. Equating the two <em>re-derives</em> this step's formula, and factors it:
+        Look closely at the picture: a thin dark line runs from the circle's center out to your state — a pointer from the center to <em>you</em>. Useful, but it is <em>not</em> a compass. A compass needle works the other way around: it sits in <em>your</em> hand, and points from wherever <em>you</em> stand toward a fixed landmark. So make the move <strong>Copernicus</strong> made, and flip the arrow. Stand at your state — <em>you</em> are the center of the universe now — and let the needle point at the one landmark that never changes its distance: the <strong>center</strong> of the Bernoulli circle, always exactly one radius away — length <strong>½</strong>, whoever you are. That is the violet arrow: fixed length, only its <em>direction</em> carries the news. Every inch a compass needle. Call it the <strong>Bernoulli vector</strong>.
       </p>
-      <Formula>σ = √p · √(1 − p)&nbsp;&nbsp;&nbsp;&nbsp;and&nbsp;&nbsp;p + (1 − p) = 1 is Pythagoras on the two chords</Formula>
       <p>
-        Pause on what just happened. Step 3's two kinds of not-knowing forced <em>two scores</em> on you — the odds p and the band width σ. Geometry has now fused them into a <strong>single pair of lengths</strong>: square one chord and you have p; multiply the two chords and you have σ. This pair, <strong>(√p, √(1−p))</strong> — call it the <strong>square-root pair</strong> — is the most important object in the whole tutorial. Physicists call it the (real) <strong>probability amplitudes</strong> — and mark well where it was born: on a semicircle drawn from coin flips, out of honest bookkeeping alone, with no physics anywhere in sight. (And should the band width still feel like one choice among many — step 3's admission — Playground A of the evidence room settles it: this is the <em>unique</em> vertical axis under which your drawing's plain ruler measures true distinguishability.)
+        A needle alone is not enough; a compass needs a <em>rose</em> — reference directions to read the bearing against. You own two natural ones: the direction toward always-T and the direction toward always-H, the two certain coins. And here geometry hands you a gift: from <em>every</em> seat on the circle, those two directions stand exactly at a <strong>right angle</strong> to each other — the little square in the picture, guaranteed by a theorem twenty-six centuries old (Thales). Your rose is a proper one, wherever you sit. Here is your needle's-eye view — driven by the same slider:
       </p>
+      <NeedleView p={p} />
+      <p style={{ marginTop: 14 }}>
+        Watch the map get drawn — no formula, just sliding. Push p to 1: <strong>always-H lands at H′ = (½, 0)</strong>, the needle flat along your toward-T axis. Push p to 0: <strong>always-T lands at T′ = (0, ½)</strong>, straight up the toward-H axis. Park at p = ½: the <strong>fair coin</strong> sits exactly halfway between, at 45°, tip at ≈ (0.35, 0.35). And in between, the tip <em>sweeps out the first quarter of a circle of radius ½</em> around you. Textbooks introduce this square-root map by formula, and it frightens people. You have just drawn it with a slider.
+      </p>
+      <p>
+        Say this step's lesson in one line, because it is the bridge the whole tutorial will cross. <strong>Stop thinking of always-H and always-T as merely <em>opposite</em>. Think of them as <em>orthogonal</em></strong> — at right angles, like two perpendicular directions in space. On the drawing they are the two ends of a diameter, as far apart as beliefs can get; their needles, H′ and T′, point at 90°. "As different as possible" has become "perpendicular". Today that sounds like wordplay. But nature runs a system that takes it <em>literally</em>: light, whose two basic wiggles — horizontal and vertical — really are two perpendicular directions in the room. Two steps from now, that turns out to be no coincidence at all.
+      </p>
+      <ClaimBadge n="2 & 3" who="COX + MIT" status="FIRST SIGHTING">
+        The needle is your first sighting of both films at once. It is a little quantity computed <em>beneath</em> the probabilities — exactly the kind Cox adds up — and it is a needle free to point anywhere along an arc, the first sliver of the globe that MIT reserves for qubits. So far it commands a quarter turn; the rest of the planet is the business of steps 12–14.
+      </ClaimBadge>
       <Notice>
-        Every possible coin-belief lands on the <em>upper half of the Bernoulli circle</em>. The fair coin sits at the top of the arc, at (½, ½); the two deterministic coins sit at the two ends. You have just drawn a state space — but one puzzle remains open. In step 3, the belief marker fell <em>inside</em> this curve. We fill the interior next — and then this whole drawing will step off the paper and into hardware. When it does, keep a hand on your pair (√p, √(1−p)). It looks like idle repackaging today; in two steps, nature will hand it back to you — <em>flying</em>.
+        Every possible coin-belief lands on the <em>upper half of the Bernoulli circle</em>. The fair coin sits at the top of the arc, at (½, ½); the two deterministic coins sit at the two ends. You have just drawn a state space — but one puzzle remains open. In step 3, the belief marker fell <em>inside</em> this curve. We fill the interior next — and then this whole drawing will step off the paper and into hardware. When it does, keep a hand on your needle. Its two coordinates look like idle bookkeeping today; in two steps, nature will hand exactly this pair back to you — <em>flying</em>.
       </Notice>
+      <Tech title="the circle's equation">
+        A coin with heads-probability p has band width σ = √(p(1 − p)), so every state satisfies (p − ½)² + σ² = ¼: a circle of radius ½, centered on fair odds.
+      </Tech>
+      <Tech title="the two chords — √p, √(1−p), and what the right angle buys">
+        Measure the two lines of your rose: the chord to T has length exactly <strong>√p</strong>, the chord to H exactly <strong>√(1−p)</strong> (test the ends: at p = 1 the chord to H shrinks to nothing). This pair of lengths, <strong>(√p, √(1−p))</strong> — the <strong>square-root pair</strong> — is the needle's secret identity, and it will quietly become the hero of the tutorial (official physics name: step 11). The right angle between the chords is Thales' circle theorem: a diameter is seen at 90° from any point of its circle. So the chords form a right triangle on the base T–H, and computing its area twice — half base times height gives σ/2, half leg times leg gives √p·√(1−p)/2 — <em>re-derives</em> step 3's formula, factored: σ = √p · √(1−p). Pythagoras on the two chords reads p + (1 − p) = 1. And should the band width still feel like one choice among many — step 3's admission — Playground A of the evidence room settles it: it is the <em>unique</em> vertical axis under which the drawing's plain ruler measures true distinguishability.
+      </Tech>
+      <Tech title="the needle's coordinates — the same map as a formula">
+        On the rose's axes, T sits at (√p, 0) and H at (0, √(1−p)) — the chord lengths from the panel above. The center of the Bernoulli circle is the <em>midpoint</em> of the diameter T–H, and a midpoint is an average of endpoints, so the needle's tip is at <strong>(√p, √(1−p))/2</strong>: half the square-root pair. Check the length: p + (1−p) = 1, so the tip's distance from you is √1/2 = ½, always — it really stays on the quarter circle. Statisticians know the doubled version of this map as the <em>square-root embedding</em>; step 11 performs the doubling.
+      </Tech>
     </div>
   );
 }
@@ -644,7 +743,7 @@ function WaveDuo({ beta, delta = 0 }) {
   const tipV = (tt) => b * Math.sin(tt - d);
   // when the wiggles run in step (or exactly opposite step) the tip's path is a
   // straight line, and its turning points ±(a, b·cosδ) sit on the unit circle of
-  // amplitude pairs (step 4's circle). For other δ the path is an ellipse that
+  // square-root pairs (step 4's circle). For other δ the path is an ellipse that
   // never reaches these points, so the markers hide.
   const lin = Math.abs(Math.sin(d)) < 0.02;
   const ux = a, uy = b * Math.cos(d);
@@ -712,8 +811,8 @@ function WaveDuo({ beta, delta = 0 }) {
   const hoF = Math.max(0, 1 - Math.abs(view.yaw) / 26) * Math.max(0, 1 - Math.abs(view.pitch) / 26);
   const cr1 = [proj(-hs, 0, -L), proj(hs, 0, -L)];
   const cr2 = [proj(0, -hs, -L), proj(0, hs, -L)];
-  // the unit circle of amplitude pairs, drawn on the frame plane (radius = one
-  // unit of wiggle amplitude); the tip's turning points sit on it
+  // the unit circle of square-root pairs, drawn on the frame plane (radius = one
+  // unit of wiggle size); the tip's turning points sit on it
   const uc = Array.from({ length: 49 }, (_, i) => {
     const th = (2 * Math.PI * i) / 48;
     return proj(A3 * Math.cos(th), A3 * Math.sin(th), -L)
@@ -855,6 +954,43 @@ function PhotonCounter({ beta }) {
   );
 }
 
+// Step 3's experiment, rerun on lamplight: each run = 30 photons through the
+// same fixed horizontal sheet — only the prepared beam's tilt varies. Runs are
+// scored exactly like coin runs (heads-fraction, band width) and dropped on the
+// same blank chart; the semicircle must re-emerge from the data before it is
+// drawn (same reveal threshold as step 3). Violet dots: the slider-chosen beam.
+function LightRunsChart({ beta }) {
+  const [scatter, setScatter] = useState([]);
+  const measureAt = (bDeg, color) => {
+    const pPass = Math.cos((bDeg * Math.PI) / 180) ** 2;
+    const seq = flipSeq(pPass, 30);
+    return { p: mean(seq), w: sampleStd(seq), color };
+  };
+  const measureThis = () => setScatter((s) => [...s, measureAt(beta, C.violet)].slice(-240));
+  const survey = () =>
+    setScatter((s) =>
+      [...s, ...Array.from({ length: 12 }, (_, i) => measureAt((90 * (i + Math.random())) / 12, C.gold))].slice(-240)
+    );
+  return (
+    <div style={{ marginTop: 12, background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, padding: "10px 12px" }}>
+      <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.inkSoft, marginBottom: 8 }}>
+        ONE FIXED QUESTION, MANY BEAMS — EVERY RUN: 30 PHOTONS THROUGH THE SAME HORIZONTAL SHEET
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+        <Btn onClick={measureThis}>{`measure your beam (β=${beta}°)`}</Btn>
+        <Btn onClick={survey}>survey 12 beam tilts</Btn>
+        <Btn kind="ghost" onClick={() => setScatter([])}>reset</Btn>
+      </div>
+      <StatePlot scatter={scatter} showSemicircle={scatter.length > 30} labels={false} />
+      <div style={{ fontFamily: mono, fontSize: 10.5, color: C.inkSoft, marginTop: 6 }}>
+        <span style={{ color: C.violet }}>●</span> your beam, from the slider above ·{" "}
+        <span style={{ color: C.gold }}>●</span> surveyed beams, tilts spread over 0–90° ·
+        the sheet never turns
+      </div>
+    </div>
+  );
+}
+
 function Step6Light() {
   const [beta, setBeta] = useState(30);
   const [flip, setFlip] = useState(false);
@@ -865,14 +1001,12 @@ function Step6Light() {
         rope: as it flies forward it <em>wiggles sideways</em>. It can wiggle horizontally, it can
         wiggle vertically — and in general it does both at once: an H&nbsp;wiggle of size{" "}
         <strong>a</strong> and a V&nbsp;wiggle of size <strong>b</strong>, riding together in
-        step. Fix the brightness and the two sizes are locked together — a² + b² = 1, two numbers
-        whose squares sum to one; that constraint should ring a bell — so one
+        step. Fix the brightness and the two sizes are locked together — a² + b² = 1 — so one
         knob sets them both: a tilt angle β, with a = cos&nbsp;β and b = sin&nbsp;β. Seen
         head-on, the two wiggles add up, and the wave's tip draws a single tilted line — whose
-        turning point, marked by the small gold ring, is the pair (a,&nbsp;b) itself, sitting on
-        step&nbsp;4's unit circle of amplitude pairs (drawn dashed in the space view). The
-        direction of the line and the point (a,&nbsp;b) on that circle are two names for the
-        same data. Play:
+        turning point, marked by the small gold ring, is the pair (a,&nbsp;b) itself, riding
+        the dashed circle of full brightness in the space view. The direction of the line and
+        the pair (a,&nbsp;b) are two names for the same data. Play:
       </p>
       <WaveDuo beta={beta} delta={flip ? 180 : 0} />
       <Slider value={beta} min={0} max={90} step={1} onChange={setBeta}
@@ -921,18 +1055,47 @@ function Step6Light() {
       <PhotonCounter beta={beta} />
       <p style={{ marginTop: 14 }}>
         Read the tally against the prediction: the clicks scatter, the fraction settles — your
-        step&nbsp;1 experience, run on grains of light. And now look hard at what the beam
-        physically <em>is</em>: a flying pair of numbers (a, b), squares summing to one, whose
-        squares are odds. You have held this pair before. It is step&nbsp;4's{" "}
-        <strong>square-root pair — the amplitudes</strong> — born on your semicircle out of pure
-        bookkeeping, two steps before any lamp was lit. Say the surprise slowly, because it is the
-        deepest one in the tutorial: the amplitudes were <em>not</em> invented to describe light.
-        Statistics forced them — telling your two kinds of not-knowing apart forced two scores,
-        and geometry fused the scores into this pair. Light did not create the amplitudes; light
-        turns out to be <strong>built of them</strong>: your statistics coordinates, physically
-        traveling through the room as a wave. (Step&nbsp;11 makes the match exact, chord for
-        chord.)
+        step&nbsp;1 experience, run on grains of light. But if light can replay step&nbsp;1, it
+        can replay <strong>step&nbsp;3</strong>. Keep the question fixed — the horizontal sheet
+        never turns — and vary only the <em>beam</em>, just as step&nbsp;3 kept one scoring rule
+        and varied the coin. Give each run of 30 photons the same two scores a coin run got —
+        its heads-fraction and its band width — and drop it on the blank chart, exactly as you
+        dropped the coins. Measure the beam your slider has prepared; then survey beams at many
+        tilts, and keep dropping:
       </p>
+      <LightRunsChart beta={beta} />
+      <p style={{ marginTop: 14 }}>
+        There it is. Out of clicks of lamplight — no coin anywhere in the room — your
+        semicircle has drawn <em>itself</em> again: same axes, same seats, the summit that
+        belonged to the fair coin now held by the β&nbsp;=&nbsp;45° beam. Step&nbsp;5 ended by
+        asking whether the disk is private bookkeeping or nature's own; the rim of nature's
+        books just surfaced, one photon at a time. And an honest auditor now has to ask the
+        question in reverse: the drawing was built from coin statistics alone, two steps before
+        any lamp was lit. <em>Where does light keep this circle?</em>
+      </p>
+      <p>
+        Look hard at what the beam physically <em>is</em>: a flying pair of numbers (a, b),
+        squares summing to one — whose squares are the odds, and whose product is the band
+        width. Check it against the chart: the seat every beam earned is (a², |a·b|); the
+        wiggle sizes <em>compute their own seat</em>. You have held this pair before. It is
+        your needle's coordinate pair, doubled — step&nbsp;4's{" "}
+        <strong>square-root pair</strong> — born on your semicircle out of pure
+        bookkeeping. Say the surprise slowly, because it is the
+        deepest one in the tutorial: this pair was <em>not</em> invented to describe light.
+        Statistics forced it — telling your two kinds of not-knowing apart forced two scores,
+        and geometry fused the scores into this pair. Light did not create the pair; light
+        turns out to be <strong>built of it</strong>: your statistics coordinates, physically
+        traveling through the room as a wave. (Step&nbsp;11 makes the match exact, chord for
+        chord — and finally hands the pair its official name.)
+      </p>
+      <ClaimBadge n={2} who="COX" status="CAUGHT IN THE WILD">
+        Cox's little quantities have just been found flying through the room — and half his
+        rule with them. The beam <em>is</em> a sum: a of the H wiggle plus b of the V wiggle,
+        added point by point in the space view — and the flip switch shows an added piece can
+        carry a minus sign. Light computes with the pair and squares it into odds only at the
+        detector. The rule's other half — adding the pairs of two separate <em>routes</em> —
+        needs a second route: step&nbsp;15 splits the beam, and answers interfere.
+      </ClaimBadge>
       <Notice>
         One definite wave is one fully specified state — nothing about it is unknown, and still
         the clicks come out random. That is step&nbsp;5's first kind of not-knowing (the
@@ -1002,7 +1165,8 @@ function StepLightDisk() {
   return (
     <div>
       <p>
-        Two sheets and a meter are enough to rebuild your whole drawing. The first sheet{" "}
+        Step&nbsp;6 caught the rim returning, dot by dot. Two sheets and a meter now rebuild the
+        whole drawing — interior included. The first sheet{" "}
         <em>prepares</em>: whatever the lamp sends, what leaves the sheet is one definite wave at
         the sheet's angle β. The second sheet, at an angle θ of your choice, <em>asks</em> — and
         by step&nbsp;6, its meter fraction is the odds that each photon answers "yes". Malus's
@@ -1021,11 +1185,13 @@ function StepLightDisk() {
         label="blend — share of steady beam vs. plain bulb light"
         readout={`${mix}% beam · ${100 - mix}% bulb`} />
       <p>
-        Now the dictionary. Call a horizontal beam (β=0°) "always&nbsp;H" and a vertical beam
+        Now make step&nbsp;6's discovery systematic — the dictionary. Call a horizontal beam
+        (β=0°) "always&nbsp;H" and a vertical beam
         (β=90°) "always&nbsp;T", and let the horizontal sheet play the coin flip. Then every pure
         beam gets a seat on your drawing: its heads-odds p is what the horizontal sheet reads, and
         its band width follows from p as always. Keep the blend at 100% and slide β from 0° to
-        90°: the beam's seat walks the <em>entire upper arc</em> — always-H, through the fair
+        90°: the beam's seat walks the <em>entire upper arc</em> — the curve your photon runs
+        dotted in, now traced continuously — always-H, through the fair
         coin at β=45°, to always-T. Note one curiosity for later: a <em>quarter</em> turn of the
         lab dial walks <em>half</em> the circle. Lab angles count double on the drawing. (Why,
         exactly, is a beautiful piece of geometry — step 11 derives it.)
@@ -1108,11 +1274,11 @@ function StepFrame() {
   return (
     <div>
       <p>
-        Every state carries its own private coordinate system — that is the discovery of this step, and it upgrades step 4's amplitude pair from two numbers to a point with a life of its own. Recall the setup: every state P on the Bernoulli circle owns two chords, one to always-T and one to always-H, perpendicular by <strong>Thales</strong> (the little square in the picture) — a ready-made pair of axes — with the lengths step 4 measured:
+        Every state carries its own private compass — step 4 built it, and this step lets it run. Recall the <strong>Bernoulli vector</strong>, the compass needle of step 4: stand at P, adopt the two Thales chords as your axes (the little square in the picture), and the needle points at the center of the Bernoulli circle — the same landmark spot for every state,
       </p>
-      <Formula>|to T| = √p&nbsp;&nbsp;&nbsp;&nbsp;|to H| = √(1 − p)</Formula>
+      <Formula>Bernoulli vector&nbsp;=&nbsp;(√p, √(1−p))/2&nbsp;&nbsp;&nbsp;&nbsp;length ½, always</Formula>
       <p>
-        Now the physicist's move: <em>change the coordinate system</em>. Stand at P and adopt the two chords as your axes. Where, in this personal frame, is the <strong>center</strong> of the Bernoulli circle? No computation needed: the center is the <em>midpoint</em> of T and H, so its coordinates are the average of theirs — T at (√p, 0), H at (0, √(1−p)), center at <strong>(√p, √(1−p))/2</strong>. The same landmark spot, for every state. Doubled, the center's position is the teal point: step 4's <strong>probability amplitudes</strong>, now living on the unit circle since their squares sum to 1. (The dashed ray gives a second reading of the same point: it is also the <em>direction in which the T-corner sees the state</em>, at distance √p — the two viewpoints agree because the triangle corner–center–state is isosceles, two of its sides being radii.)
+        One cosmetic step remains, and it is the last naming ceremony of the tutorial. A landmark arrow of length ½ is nobody's favorite unit; <em>normalize</em> it — stretch it to length 1, i.e. double it — and its tip lands on the <strong>unit circle</strong>, at the teal point <strong>(√p, √(1−p))</strong>: step 4's square-root pair, reborn as a direction of size one. This normalized Bernoulli vector is what physicists call the (real) <strong>probability amplitudes</strong>. The doubling added nothing — a compass needle's <em>direction</em> is its content, the length a convention — and that is exactly how physics treats its states: as directions, with lengths pinned to 1 for bookkeeping.
       </p>
       <Slider
         value={alpha} min={0} max={360} step={1} onChange={setAlpha}
@@ -1150,11 +1316,11 @@ function StepFrame() {
         <text x={Fx + 9} y={Fy + 15} fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>state</text>
       </svg>
       <p style={{ marginTop: 14 }}>
-        Where did the sign of step 8 go? Run the construction for a state <em>below</em> the axis: the chord lengths are the same, so the center sits at the same (√p, √(1−p))/2 — frame coordinates are twin-blind, like every length. The difference hides in the frame itself: above the axis the ordered pair of axes (toward-T, toward-H) is right-handed, below it left-handed — the handedness <em>is</em> the triangle orientation of step 8, met from inside. Now insist, as physicists always do, that your frame keep a <em>fixed</em> handedness. Crossing always-H or always-T — exactly where one chord shrinks to zero — one axis must then reverse, pointing <em>away</em> from its corner, and the coordinate along it comes out <strong>negative</strong>. A "negative length" is nothing mysterious: an ordinary coordinate along an axis that happens to face the other way. The doubled center-vector now reads the <em>signed</em> amplitude pair (a, b), produced by bookkeeping alone.
+        And with that, step 4's bridge is fully built: opposite beliefs — always-H and always-T, the two ends of a diameter — have become <strong>orthogonal amplitudes</strong>, (1, 0) and (0, 1), two perpendicular directions. Sweep the slider and watch the needle turn at <em>half</em> the state's speed: the drawing and the amplitudes are two views of one object, geared 2:1. Two deeper treasures are folded below for the curious — where step 8's minus sign comes from, and why one full lap of beliefs secretly takes two.
       </p>
-      <p>
-        One more lap, and something remarkable happens. Follow the rule continuously all the way around: crossing H flips one axis, crossing T flips the other — so you come home with <em>both</em> axes reversed and coordinates <strong>−(a, b)</strong>. Same state, opposite amplitude vector; only a <em>second</em> lap restores the frame. That is the <strong>double cover</strong>, live: a state and its overall negative are one and the same object, and only <em>relative</em> signs can ever be physical. Playground D of the evidence room shows the same fact mechanically (ψ and −ψ build the identical table). Physicists will recognize here the seed of the <em>geometric phase</em>: a sign picked up purely by traveling a closed loop.
-      </p>
+      <ClaimBadge n={2} who="COX" status="REDEEMED">
+        The little quantities beneath probability now have their official name — <strong>amplitudes</strong> — and their bookkeeping is the one Cox recited inside his sixty seconds: computed first, added as quantities, converted to odds only at the very end, by squaring.
+      </ClaimBadge>
       <p>
         And now the payoff that closes a loop seven steps wide. Step&nbsp;4 built the pair (√p,
         √(1−p)) out of pure statistics; step&nbsp;6 found the same pair flying through the room as
@@ -1170,6 +1336,15 @@ function StepFrame() {
       <Notice>
         Sweep α and watch the readout: the amplitude point turns at <em>half</em> the state's speed — the Bernoulli angle is 2α, so one lap of the state is half a lap of the amplitudes. And there is step 7's curiosity, derived: the lab angle α is the <em>amplitude's</em> angle, the state's seat on the disk turns at 2α — a quarter turn of the sheet, half a lap of the circle. Lab angles count double because the lab dial turns amplitudes, and states are their squares.
       </Notice>
+      <Tech title="a second reading of the teal point">
+        The dashed ray gives a second reading of the same teal point: it is also the <em>direction in which the T-corner sees the state</em>, at distance √p — the two viewpoints agree because the triangle corner–center–state is isosceles, two of its sides being radii.
+      </Tech>
+      <Tech title="where the minus sign comes from">
+        Run the construction for a state <em>below</em> the axis: the chord lengths are the same, so the Bernoulli vector reads the same (√p, √(1−p))/2 — frame coordinates are twin-blind, like every length. The difference hides in the frame itself: above the axis the ordered pair of axes (toward-T, toward-H) is right-handed, below it left-handed — the handedness <em>is</em> the triangle orientation of step 8, met from inside. Now insist, as physicists always do, that your frame keep a <em>fixed</em> handedness. Crossing always-H or always-T — exactly where one chord shrinks to zero — one axis must then reverse, pointing <em>away</em> from its corner, and the coordinate along it comes out <strong>negative</strong>. A "negative length" is nothing mysterious: an ordinary coordinate along an axis that happens to face the other way. The normalized Bernoulli vector now reads the <em>signed</em> amplitude pair (a, b), produced by bookkeeping alone.
+      </Tech>
+      <Tech title="one lap or two — the double cover">
+        Follow the fixed-handedness rule continuously all the way around: crossing H flips one axis, crossing T flips the other — so you come home with <em>both</em> axes reversed and coordinates <strong>−(a, b)</strong>. Same state, opposite amplitude vector; only a <em>second</em> lap restores the frame. That is the <strong>double cover</strong>, live: a state and its overall negative are one and the same object, and only <em>relative</em> signs can ever be physical. Playground D of the evidence room shows the same fact mechanically (ψ and −ψ build the identical table). Physicists will recognize here the seed of the <em>geometric phase</em>: a sign picked up purely by traveling a closed loop.
+      </Tech>
     </div>
   );
 }
@@ -1184,7 +1359,7 @@ function StepTwins() {
   return (
     <div>
       <p>
-        Light has just handed us states below the axis — beams that match a coin's odds exactly and still answer tilted sheets the opposite way. Now we owe those states a meaning in <em>coin language</em>. And the meaning was there all along: our own bookkeeping has been quietly throwing a detail away. Recall step 4's <strong>triangle</strong>: the T–H segment as base, the state as apex, the two amplitude chords √p and √(1−p) as slanted sides, meeting at Thales' right angle. Everything a coin flip can ever teach you is the number p — and p fixes all three side lengths.
+        Light has just handed us states below the axis — beams that match a coin's odds exactly and still answer tilted sheets the opposite way. Now we owe those states a meaning in <em>coin language</em>. And the meaning was there all along: our own bookkeeping has been quietly throwing a detail away. Recall step 4's <strong>triangle</strong>: the T–H segment as base, the state as apex, the two chords √p and √(1−p) as slanted sides, meeting at Thales' right angle. Everything a coin flip can ever teach you is the number p — and p fixes all three side lengths.
       </p>
       <p>
         But a triangle with these side lengths on this base exists in <em>two</em> copies: apex above the axis — or apex below. Mirror images. Same lengths, and one genuine difference: <strong>orientation</strong>. Walk the corners in the fixed order T → apex → H, and the upper triangle turns one way around, the lower one the other (the two arrows in the picture). Your plots have silently kept only the upper copy. Honest bookkeeping keeps both — and gives the band width the job of remembering which:
@@ -1198,7 +1373,7 @@ function StepTwins() {
         readout={`p=${p.toFixed(2)}   w=${fmt(w)} for P,  ${fmt(-w)} for P′`} />
       <MeasurePlot theta={theta} delta={0} showMirror showOrientation />
       <p style={{ marginTop: 14 }}>
-        A physicist's favorite move is a <em>change of coordinate system</em> — to the center of mass, to the rotating frame, to the falling elevator. It pays off here too. Stand at the state and use its two triangle sides as your own axes: in that private frame, the center of the Bernoulli circle hangs at the <em>same</em> spot for every state — half of (√p, √(1−p)), half of exactly step 4's square-root pair, the <strong>probability amplitudes</strong>. The twins share these numbers to the last digit; what distinguishes them is the <em>handedness</em> of their frames. Now insist — as physics always may — that your frame keep one fixed handedness, and the sign takes care of itself: for the twin, one axis must then point <em>away</em> from its corner, and the coordinate along it comes out <strong>negative</strong>. A "negative length" is nothing deeper than that: an ordinary coordinate along an axis that faces the other way. Keep this picture — it is what every minus sign in the coming steps quietly means. Step 11 completes the story (follow the frame around one full lap, and there is a surprise).
+        A physicist's favorite move is a <em>change of coordinate system</em> — to the center of mass, to the rotating frame, to the falling elevator. It pays off here too — and step 4 already made it. Stand at the state, take its two triangle sides as your own axes, and the center of the Bernoulli circle hangs at the <em>same</em> landmark spot for every state: step 4's <strong>Bernoulli vector</strong>, (√p, √(1−p))/2 — the compass needle. The twins share this needle to the last digit; what distinguishes them is the <em>handedness</em> of their frames. Now insist — as physics always may — that your frame keep one fixed handedness, and the sign takes care of itself: for the twin, one axis must then point <em>away</em> from its corner, and the coordinate along it comes out <strong>negative</strong>. A "negative length" is nothing deeper than that: an ordinary coordinate along an axis that faces the other way. Keep this picture — it is what every minus sign in the coming steps quietly means. Step 11 completes the story (follow the frame around one full lap, and there is a surprise).
       </p>
       <Notice>
         Is the twin a real state, or a bookkeeping fiction? The flip cannot say: the twins' triangles have identical side lengths, and side lengths are all a bet on heads-or-tails can feel. But light has already voted: the 45° and 135° beams — coin and anti-coin — were told apart by a <em>tilted sheet</em>, a question that is not heads-or-tails. What such tilted questions mean in coin language, and why the plain flip is blind to the twins forever, is what the next two steps settle.
@@ -1623,6 +1798,9 @@ function StepBloch() {
         contrast questions rising out of the table. Every state on the surface is still
         perfectly certain about exactly one diameter — the one that runs through it.
       </p>
+      <ClaimBadge n={3} who="MIT" status="REDEEMED">
+        Oliver's planet Earth is on your screen. The poles are the two certain states — a transistor is pinned to them; a qubit may sit anywhere on the surface, and everywhere off the poles is a superposition. And notice the fine print his metaphor quietly carries: <em>opposite</em> points of the globe are <em>orthogonal</em> states — step 4's bridge, completed on a planet.
+      </ClaimBadge>
       <Notice>
         Everything you built survives in 3D: answer odds are still squared distances to a diameter's ends, mixing still pulls inward, purity is still the distance from the center. One phenomenon is new. With three axes, certainty about one diameter forces a 50/50 spread over every diameter perpendicular to it: no state can answer two independent questions sharply at the same time. That trade-off has a famous name: <strong>uncertainty</strong>. (This is Heisenberg's uncertainty principle, in its qubit form.) This ball, with its diameters, is the complete qubit — built from a coin, with light twice forcing your hand: once for the sign, once for the dial. The next step assembles the full dictionary between ball and light, and puts the ball — quite literally — in your hands.
       </Notice>
@@ -2206,7 +2384,7 @@ function StepDistance() {
         <span style={{ color: C.inkSoft }}>ratio ×{naive > 0 ? (arc / naive).toFixed(1) : "—"}</span>
       </div>
       <p style={{ marginTop: 14 }}>
-        This bench also settles the honest doubt planted in step 3: was the band width an <em>arbitrary</em> pick for the second coordinate? Press the axis button and re-run the presets on the <strong>variance</strong> instead. The parabola's arc stretches the edge pair by a factor of merely 1.4 over the middle pair — where the flips needed to tell them apart demand a factor of ten. The wrong curve <em>lies</em>. Now ask what a curve must look like for its plain arc to tell the truth about distinguishability, and the demand pins the slope exactly: <strong>1 + slope² = 1/(4p(1−p))</strong>. Solve it, and out comes one height and one height only: <strong>√(p(1−p))</strong> — the band width, the Bernoulli circle. (Truthful curves of other proportions exist, but all are stretched-out, strictly longer copies; the circle is the shortest drawing whose ruler does not lie.) And the choice is over-determined from two more sides: this is also the curve whose corner-chords are the amplitudes of step 4 — and the Bhattacharyya angle below is literally the <em>angle between amplitude pairs</em>: cos(angle) = √(p₁p₂) + √((1−p₁)(1−p₂)). Statistics' honest ruler, Thales' right triangle, and — two steps later — light's own wiggle sizes all demand the same square root.
+        This bench also settles the honest doubt planted in step 3: was the band width an <em>arbitrary</em> pick for the second coordinate? Press the axis button and re-run the presets on the <strong>variance</strong> instead. The parabola's arc stretches the edge pair by a factor of merely 1.4 over the middle pair — where the flips needed to tell them apart demand a factor of ten. The wrong curve <em>lies</em>. Now ask what a curve must look like for its plain arc to tell the truth about distinguishability, and the demand pins the slope exactly: <strong>1 + slope² = 1/(4p(1−p))</strong>. Solve it, and out comes one height and one height only: <strong>√(p(1−p))</strong> — the band width, the Bernoulli circle. (Truthful curves of other proportions exist, but all are stretched-out, strictly longer copies; the circle is the shortest drawing whose ruler does not lie.) And the choice is over-determined from two more sides: this is also the curve whose corner-chords are step 4's square-root pair — step 11's amplitudes — and the Bhattacharyya angle below is literally the <em>angle between amplitude pairs</em>: cos(angle) = √(p₁p₂) + √((1−p₁)(1−p₂)). Statistics' honest ruler, Thales' right triangle, and — two steps later — light's own wiggle sizes all demand the same square root.
       </p>
       <Notice>
         Try the two preset pairs: identical flat gaps, but a tenfold difference in circle distance. The circle is the honest ruler, because it predicts how many flips you actually need to tell the coins apart. This arc has a classical name: the <strong>Bhattacharyya angle</strong> between the two distributions (its straight-line chord is the Hellinger distance). The lesson: distances between coins are not measured through the interval, but along the Bernoulli circle. The circle is not decoration — it is the <em>ruler</em>, and the band width is not a choice — it is the unique axis that builds it. The next playground turns this claim into flips: you will race the two duels and count.
@@ -3004,7 +3182,9 @@ function StepTwoPaths() {
       <p style={{ marginTop: 14 }}>
         Set φ = 0: two 50/50 mirrors in a row, and yet one detector clicks <em>always</em>. The
         routes' two contributions to the other detector are equal and opposite — step 8's
-        "negative lengths" again — and cancel to nothing. Sweep φ and the odds trace{" "}
+        "negative lengths" again — and cancel to nothing. This is the other half of Cox's rule,
+        promised back in step&nbsp;6: the pairs of two separate routes, finally <em>added</em> —
+        and only the sum squared. Sweep φ and the odds trace{" "}
         <strong>cos²(φ/2)</strong>: fringes, the dial made visible. Then press the source button.
         A mystery-mixture source sends each particle definitely down <em>one</em> route — you just
         don't know which: the center of the ball. The fringes die into a flat 50/50 at every φ,
@@ -3028,6 +3208,9 @@ function StepTwoPaths() {
         <strong>gates</strong> — steering amplitudes so that wrong answers cancel and right ones
         add. You have run the smallest quantum computation there is.
       </p>
+      <ClaimBadge n="1 & 4" who="COX + MIT" status="REDEEMED">
+        Both films, at once. Cox's opening — particles hop with a probability given by one simple rule — is your interferometer's arithmetic: one little quantity per path, added, squared last. And MIT's parallelism-plus-interference, enhancing right answers while suppressing wrong ones, is precisely what your gates just did with a single photon.
+      </ClaimBadge>
       <Notice>
         Here the tutorial closes its loop. The ball was never really about light. Light was the
         teacher — it forced the sign, then forced the dial — but the single photon reveals the
@@ -3146,7 +3329,84 @@ function StepBallAfter() {
 }
 
 // ================= APP =================
+function ClaimBadge({ n, who, status, children }) {
+  return (
+    <div style={{ marginTop: 14, padding: "8px 12px", border: `1.5px solid ${C.gold}`, borderRadius: 8, background: C.goldSoft }}>
+      <span style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: 1, color: C.gold, fontWeight: 700 }}>
+        CLAIM № {n} · {who} — {status}
+      </span>
+      <div style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 3 }}>{children}</div>
+    </div>
+  );
+}
+
+function VideoEmbed({ id, title, href }) {
+  return (
+    <div style={{ margin: "12px 0" }}>
+      <iframe
+        src={`https://www.youtube-nocookie.com/embed/${id}`}
+        title={title}
+        allowFullScreen
+        style={{ width: "100%", aspectRatio: "16 / 9", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}
+      />
+      <div style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft, marginTop: 4 }}>
+        {title} — <a href={href} target="_blank" rel="noreferrer" style={{ color: C.teal }}>open on YouTube</a>
+      </div>
+    </div>
+  );
+}
+
+function Step0Videos() {
+  const claims = [
+    {
+      n: 1, who: "COX",
+      text: <>Nature's basic rule is probabilistic. Particles are particles, and they hop from place to place with a particular probability, given by one simple rule — that's it, and the rest of quantum mechanics follows from it.</>,
+      where: "redeemed across steps 1–3 and 9–10",
+    },
+    {
+      n: 2, who: "COX",
+      text: <>The rule does not work with the probabilities directly. As Cox puts it: <em>"you basically calculate these little quantities … and you add them up."</em> Beneath every probability sits a stranger quantity — computed first, added up, turned into odds only at the end.</>,
+      where: "sighted in steps 4 and 6, redeemed in steps 11 and 15",
+    },
+    {
+      n: 3, who: "MIT",
+      text: <>A transistor's bit is a switch: 0 or 1, north pole or south pole, that's it. But <em>"qubits, like humans, can be anywhere on the surface of the planet Earth."</em> Anywhere off the poles is a superposition of 0 and 1.</>,
+      where: "sighted in step 4, redeemed across steps 12–14",
+    },
+    {
+      n: 4, who: "MIT",
+      text: <>The power of a quantum computer is quantum parallelism plus quantum interference — states adding like overlapping waves — arranged so that right answers are enhanced and wrong answers suppressed.</>,
+      where: "sighted in steps 6–7, redeemed in steps 14–15",
+    },
+  ];
+  return (
+    <div>
+      <p>
+        Before building anything, watch two short films. The first is sixty seconds: physicist Brian Cox, challenged on BBC radio to state the rules of quantum mechanics inside a minute. The second is a few minutes from MIT: Will Oliver, director of MIT's Center for Quantum Engineering, and research scientist Jeff Grover, on what quantum mechanics is and why quantum computers should be powerful.
+      </p>
+      <VideoEmbed id="fcfQkxwz4Oo" title="Brian Cox — quantum mechanics in 60 seconds (BBC News)" href="https://youtu.be/fcfQkxwz4Oo" />
+      <VideoEmbed id="jk0jWzlvA5w" title="Quantum Explained — MIT (Will Oliver & Jeff Grover)" href="https://youtu.be/jk0jWzlvA5w" />
+      <p>
+        Both films are honest. And both, in the nature of short films, ask you to take nearly everything on faith. Listen closely and they make four remarkable claims:
+      </p>
+      {claims.map((c) => (
+        <div key={c.n} style={{ marginTop: 10, padding: "10px 12px", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, background: "#fff" }}>
+          <span style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: 1, color: C.inkSoft, fontWeight: 700 }}>
+            CLAIM № {c.n} · {c.who}
+          </span>
+          <div style={{ fontSize: 13.5, lineHeight: 1.55, marginTop: 3 }}>{c.text}</div>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: C.gold, marginTop: 5 }}>→ {c.where}</div>
+        </div>
+      ))}
+      <Notice>
+        Here is this tutorial's promise: <strong>you will not be asked to believe any of these.</strong> You will build all four, with your own hands, starting from nothing but coin flips — no physics until nature herself forces it. Gold badges along the way mark the moment each claim stops being a claim. When a film says <em>little quantities</em>, you will have drawn them with a slider; when it says <em>anywhere on the planet Earth</em>, the planet will be on your screen, and you will know why the poles sit where they do. Now forget quantum entirely. Step 1 is a coin.
+      </Notice>
+    </div>
+  );
+}
+
 const STEPS = [
+  { title: "Two films, four claims", comp: Step0Videos, tag: "0", label: "WATCH FIRST" },
   { title: "Just statistics — at first", comp: StepIntro, tag: "i", shape: "bra", label: "INTRODUCTION" },
   { title: "Flip a fair coin", comp: Step1, tag: "1", label: "STEP 1/15" },
   { title: "Three mystery coins", comp: Step2, tag: "2", label: "STEP 2/15" },
