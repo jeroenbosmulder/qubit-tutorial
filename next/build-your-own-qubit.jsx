@@ -3696,7 +3696,255 @@ function RoomStep6({ room }) {
   );
 }
 
-const ROOM_STEPS = { 1: RoomStep1, 2: RoomStep2, 3: RoomStep3, 4: RoomStep4, 5: RoomStep5, 6: RoomStep6 };
+// ═══════════════ PART II — LIGHT (phone side) ═══════════════
+const DEG = Math.PI / 180;
+const aggBeams = (room) => ((room.state.agg && room.state.agg.beam) || []);
+const pQ = (q, a) => (typeof Room !== "undefined" ? Room.pOf(q, a) : null);
+
+/* small polarizing sheet (phone size) */
+function PhoneSheet({ x, y, size = 54, a, color = C.ink, label }) {
+  const lines = [], r = size * 0.42;
+  for (let k = -3; k <= 3; k++) { const off = k * (size / 8), hl = Math.sqrt(Math.max(0, r * r - off * off)); lines.push(<line key={k} x1={-hl} y1={off} x2={hl} y2={off} stroke={color} strokeWidth="1.5" opacity="0.7" />); }
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <rect x={-size / 2} y={-size / 2} width={size} height={size} rx="6" fill="#fff" stroke={color} strokeWidth="2" />
+      <g transform={`rotate(${-a})`}>{lines}</g>
+      {label && <text x={0} y={size / 2 + 14} textAnchor="middle" fontFamily={mono} fontSize="10" fill={color}>{label}</text>}
+    </g>
+  );
+}
+function PhoneArrow({ x, y, a, amp = 1, color = C.gold }) {
+  const L = 22 * amp, dx = Math.cos(a * DEG) * L, dy = -Math.sin(a * DEG) * L;
+  return <g><circle cx={x} cy={y} r="24" fill="none" stroke={C.gridBold} strokeWidth="1" strokeDasharray="3 3" /><line x1={x - dx} y1={y - dy} x2={x + dx} y2={y + dy} stroke={color} strokeWidth="3.5" strokeLinecap="round" opacity={0.3 + 0.7 * amp} /></g>;
+}
+
+/* the phone's own beam: hidden angle from the seat, tallies per sheet angle, noise knob.
+   One snapshot per change:  beam = { noise, q:{ "0":{n,passed}, "45":{…} } }                */
+function useBeam(room) {
+  const key = "pf-beam-" + room.session;
+  const [beam, setBeam] = useState(() => { try { const v = JSON.parse(sessionStorage.getItem(key)); if (v && v.q) return v; } catch (e) {} return { noise: 0, q: {} }; });
+  useEffect(() => { try { sessionStorage.setItem(key, JSON.stringify(beam)); } catch (e) {} room.send("beam", beam); }, [beam]);
+  const theta = room.me ? room.me.theta : null;
+  /* results = array of 0/1 clicks already drawn with Room.photon (so the caller can also show them) */
+  const addResults = (angle, results) => {
+    if (theta === null || !results.length) return;
+    setBeam((b) => {
+      const a = String(angle), cur = b.q[a] || { n: 0, passed: 0 };
+      const passed = results.reduce((x, y) => x + y, 0);
+      return { ...b, q: { ...b.q, [a]: { n: cur.n + results.length, passed: cur.passed + passed } } };
+    });
+  };
+  const setNoise = (v) => setBeam((b) => ({ noise: v, q: {} }));      // a new beam: old tallies no longer apply
+  const reset = () => setBeam({ noise: 0, q: {} });
+  return { beam, theta, addResults, setNoise, reset };
+}
+
+function PhotonBench({ angle, tally, onOne, onMany, disabled, log }) {
+  const f = tally && tally.n ? tally.passed / tally.n : null;
+  return (
+    <div>
+      <svg viewBox="0 0 340 110" style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+        <circle cx={30} cy={50} r="13" fill="#FFF4E8" stroke={C.gold} strokeWidth="2" />
+        <text x={30} y={82} textAnchor="middle" fontFamily={mono} fontSize="9" fill={C.inkSoft}>your beam</text>
+        <line x1={45} y1={50} x2={250} y2={50} stroke={C.gridBold} strokeWidth="4" />
+        <PhoneSheet x={150} y={50} a={angle} label={`${angle}° sheet`} />
+        <rect x={255} y={35} width={40} height={30} rx="5" fill="#fff" stroke={C.ink} strokeWidth="1.5" />
+        <text x={275} y={54} textAnchor="middle" fontFamily={mono} fontSize="9" fill={C.ink}>click?</text>
+        {(log || []).slice(-24).map((v, i) => <circle key={i} cx={40 + i * 12.5} cy={15} r={4.5} fill={v ? C.gold : "#fff"} stroke={v ? C.ink : C.inkSoft} strokeWidth="1.2" />)}
+        <text x={330} y={100} textAnchor="end" fontFamily={mono} fontSize="11" fontWeight="600" fill={C.ink}>{tally && tally.n ? `${tally.passed} of ${tally.n} passed · ${f.toFixed(2)}` : "no photons yet"}</text>
+      </svg>
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <Btn onClick={onOne} disabled={disabled}>send 1 photon</Btn>
+        <Btn onClick={onMany} disabled={disabled} kind="ghost">send 25</Btn>
+      </div>
+    </div>
+  );
+}
+/* keep a short local click log for the strip (the snapshot only carries counts) */
+function useClickLog() {
+  const [log, setLog] = useState([]);
+  return { log, push: (arr) => setLog((l) => [...l, ...arr].slice(-40)), clear: () => setLog([]) };
+}
+
+// ── SCENE 7 : two pairs of sunglasses ──
+function RoomStep7({ room }) {
+  const [a2, setA2] = useState(room.state.lens2 ?? 90);
+  const [follow, setFollow] = useState(true);
+  const a = follow ? (room.state.lens2 ?? 90) : a2;
+  const T = Room.malus(0, a);
+  return (
+    <div>
+      <p>Two polarizing sunglass lenses, one behind the other. The first only lets through the <strong>horizontal</strong> wiggle. Rotate the second: at 0° everything passes, at 90° nothing does.</p>
+      <svg viewBox="0 0 340 130" style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+        <circle cx={28} cy={60} r="13" fill="#FFF4E8" stroke={C.gold} strokeWidth="2" />
+        <line x1={42} y1={60} x2={290} y2={60} stroke={C.gridBold} strokeWidth="4" />
+        <PhoneArrow x={70} y={60} a={45} color={C.inkSoft} />
+        <PhoneSheet x={125} y={60} a={0} label="lens 1 · 0°" />
+        <PhoneArrow x={175} y={60} a={0} />
+        <PhoneSheet x={225} y={60} a={a} label={`lens 2 · ${a}°`} color={C.gold} />
+        <PhoneArrow x={275} y={60} a={a} amp={Math.sqrt(T)} />
+        <rect x={300} y={20} width={22} height={80} rx="4" fill="#fff" stroke={C.ink} strokeWidth="1.5" />
+        <rect x={302} y={22 + 76 * (1 - T)} width={18} height={76 * T} fill={C.gold} rx="3" />
+        <text x={311} y={118} textAnchor="middle" fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>{`${Math.round(T * 100)}%`}</text>
+      </svg>
+      <Slider value={a} min={0} max={180} step={1} onChange={(v) => { setFollow(false); setA2(v); }} label="lens 2 angle" readout={`${a}° → ${Math.round(T * 100)}%`} />
+      <div style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft, marginTop: -8 }}>{follow ? "following the presenter" : <button onClick={() => setFollow(true)} style={{ fontFamily: mono, fontSize: 11, border: "none", background: "none", color: C.gold, cursor: "pointer", padding: 0 }}>follow the presenter again</button>}</div>
+      <Notice>After lens 1 the light is <em>always-horizontal</em>: ask it the horizontal question again and it always says yes. You just built a fully known coin out of light. Nothing passes the vertical question — that is the <em>always-T</em> of light.</Notice>
+    </div>
+  );
+}
+
+// ── SCENE 8 : the polarizer is the coin toss ──
+function RoomStep8({ room }) {
+  const B = useBeam(room);
+  const L = useClickLog();
+  const q = 0;
+  const tally = B.beam.q["0"];
+  const fire = (k) => { if (B.theta === null) return; const arr = []; for (let i = 0; i < k; i++) arr.push(Room.photon(B.theta, q, B.beam.noise)); L.push(arr); B.addResults(q, arr); };
+  return (
+    <div>
+      <p>Your phone now holds a <strong>beam of light</strong> with a polarization angle you cannot see — it came with your seat. Send photons one at a time through a horizontal sheet: each one either passes (a click) or is blocked. Heads or tails.</p>
+      <PhotonBench angle={q} tally={tally} log={L.log} disabled={B.theta === null} onOne={() => fire(1)} onMany={() => fire(25)} />
+      {B.theta === null && <div style={{ fontFamily: mono, fontSize: 11, color: C.red, marginTop: 6 }}>waiting for your seat number…</div>}
+      <Notice>The fraction that passes is your beam's p for the horizontal question. Every click lands on the presenter's line; your emoji marks your beam. Nobody knows the angles yet — not even you.</Notice>
+    </div>
+  );
+}
+
+// ── SCENE 9 : the half circle, in glass ──
+function RoomStep9({ room }) {
+  const B = useBeam(room);
+  const reveal = !!room.state.reveal;
+  const t0 = B.beam.q["0"], p = t0 && t0.n ? t0.passed / t0.n : null;
+  const others = aggBeams(room).filter((b) => pQ(b.q, 0) !== null && !(room.me && b.slot === room.me.slot)).map((b) => { const f = pQ(b.q, 0); return { p: f, w: sigOf(f) * (1 - (b.noise || 0)), color: "#F3C9A0" }; });
+  const th = B.theta;
+  return (
+    <div>
+      <p>Take your fraction p and the bandwidth √(p(1−p)) and put your beam on the coin plane. Every beam in the room lands on the same arc — the Bernoulli circle, drawn this time by glass. Malus's law says the fraction is cos²θ; the bandwidth is |cos θ sin θ|; together they trace exactly that circle.</p>
+      <StatePlot point={p !== null ? [p, sigOf(p) * (1 - B.beam.noise)] : null} scatter={others} />
+      {reveal && th !== null && p !== null && (
+        <div>
+          <p style={{ marginTop: 12 }}>Revealed: your beam wiggles at <strong>{th}°</strong>. Its direction has components (cos θ, sin θ) = ({Math.cos(th * DEG).toFixed(2)}, {Math.sin(th * DEG).toFixed(2)}). Your needle from the measurement is (√p, √(1−p)) = ({Math.sqrt(p).toFixed(2)}, {Math.sqrt(1 - p).toFixed(2)}).</p>
+          <svg viewBox="0 0 340 200" style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+            <line x1={60} y1={170} x2={320} y2={170} stroke={C.gold} strokeWidth="2" /><line x1={60} y1={170} x2={60} y2={20} stroke={C.teal} strokeWidth="2" />
+            <text x={318} y={186} textAnchor="end" fontFamily={mono} fontSize="10" fill={C.gold}>toward always-H</text>
+            <text x={66} y={30} fontFamily={mono} fontSize="10" fill={C.teal}>toward always-V</text>
+            <path d={`M 200 170 A 140 140 0 0 0 60 30`} fill="none" stroke={C.inkSoft} strokeWidth="1.2" strokeDasharray="4 3" />
+            <line x1={60} y1={170} x2={60 + 140 * Math.abs(Math.cos(th * DEG))} y2={170 - 140 * Math.abs(Math.sin(th * DEG))} stroke={C.gold} strokeWidth="7" strokeLinecap="round" opacity="0.5" />
+            <line x1={60} y1={170} x2={60 + 140 * Math.sqrt(p)} y2={170 - 140 * Math.sqrt(1 - p)} stroke={C.violet} strokeWidth="3" strokeLinecap="round" />
+            <text x={200} y={60} fontFamily={mono} fontSize="10" fill={C.gold}>wide gold: the wave's direction</text>
+            <text x={200} y={76} fontFamily={mono} fontSize="10" fill={C.violet}>thin purple: your needle</text>
+          </svg>
+          <Notice>The arrow we invented in scene 5 to keep the books is the direction the light actually wiggles in. Nobody put it there.</Notice>
+        </div>
+      )}
+      {!reveal && <Notice>Waiting for the presenter to reveal the angles. Faded dots: the other beams in the room.</Notice>}
+    </div>
+  );
+}
+
+// ── SCENE 10 : mixed light ──
+function RoomStep10({ room }) {
+  const B = useBeam(room);
+  const L = useClickLog();
+  const t0 = B.beam.q["0"], p = t0 && t0.n ? t0.passed / t0.n : null;
+  const spot = room.state.spotlight || [];
+  const fire = (k) => { const arr = []; for (let i = 0; i < k; i++) arr.push(Room.photon(B.theta, 0, B.beam.noise)); L.push(arr); B.addResults(0, arr); };
+  const mine = room.me && spot.includes(room.me.slot);
+  return (
+    <div>
+      <p>So far your beam's polarization was fixed. Now let it <strong>wander</strong>: turn up the noise and the angle jitters from photon to photon. At full noise the light is <em>unpolarized</em> — like a bulb, not a laser through a sheet.</p>
+      <Slider value={B.beam.noise} min={0} max={1} step={0.05} onChange={B.setNoise} label="noise — how much the polarization wanders" readout={B.beam.noise === 0 ? "none (pure)" : B.beam.noise >= 0.95 ? "fully unpolarized" : B.beam.noise.toFixed(2)} />
+      <PhotonBench angle={0} tally={t0} log={L.log} disabled={B.theta === null} onOne={() => fire(1)} onMany={() => fire(25)} />
+      <StatePlot point={p !== null ? [p, sigOf(p) * (1 - B.beam.noise)] : null} />
+      {mine && <div style={{ fontFamily: mono, fontSize: 12, color: C.red, marginTop: 6, fontWeight: 600 }}>the presenter is pointing at your beam</div>}
+      <Notice>Changing the noise makes a new beam: your old counts are cleared. A wandering beam sinks toward the centre — unpolarized light sits at the state of no information. Notice: a pure 45° beam and an unpolarized beam both answer 50% to the horizontal question. The fair coin and the mystery coin, in glass.</Notice>
+    </div>
+  );
+}
+
+// ── SCENE 11 : ask a different question ──
+function RoomStep11({ room }) {
+  const B = useBeam(room);
+  const L = useClickLog();
+  const q = room.state.question ?? 0;
+  const tq = B.beam.q[String(q)];
+  const t0 = B.beam.q["0"], t45 = B.beam.q["45"];
+  const fire = (k) => { const arr = []; for (let i = 0; i < k; i++) arr.push(Room.photon(B.theta, q, B.beam.noise)); L.push(arr); B.addResults(q, arr); };
+  const [mid, setMid] = useState(45); const [midIn, setMidIn] = useState(false);
+  const T1 = midIn ? Room.malus(0, mid) : 1, T = T1 * (midIn ? Room.malus(mid, 90) : 0);
+  return (
+    <div>
+      <p>The presenter turns the sheet. The question is now: <strong>do you pass a {q}° sheet?</strong> Send 25 photons and watch your dot jump on the big screen.</p>
+      <PhotonBench angle={q} tally={tq} log={L.log} disabled={B.theta === null} onOne={() => fire(1)} onMany={() => fire(25)} />
+      <div style={{ fontFamily: mono, fontSize: 12, color: C.ink, marginTop: 8 }}>
+        0° sheet: {t0 && t0.n ? (t0.passed / t0.n).toFixed(2) : "—"} · 45° sheet: {t45 && t45.n ? (t45.passed / t45.n).toFixed(2) : "—"}
+        {t0 && t0.n && t45 && t45.n ? <> · bandwidth from 0°: {sigOf(t0.passed / t0.n).toFixed(2)} · (45° answer − ½) = <strong>{(t45.passed / t45.n - 0.5).toFixed(2)}</strong></> : null}
+      </div>
+      <Notice>The 45° answer minus ½ is your bandwidth — with a sign. Nature keeps the same two numbers we chose for coins, and she signs them. Why: the sheet <em>projects</em> the needle (add the components along the sheet), and the light you see is the square. Malus's law is "first add, then square".</Notice>
+      <p style={{ marginTop: 16 }}><strong>Three sheets.</strong> 0° then 90° blocks everything. Slide a middle sheet between them:</p>
+      <svg viewBox="0 0 340 120" style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+        <circle cx={22} cy={55} r="11" fill="#FFF4E8" stroke={C.gold} strokeWidth="2" />
+        <line x1={34} y1={55} x2={290} y2={55} stroke={C.gridBold} strokeWidth="4" />
+        <PhoneSheet x={85} y={55} size={46} a={0} label="0°" />
+        {midIn ? <PhoneSheet x={160} y={55} size={46} a={mid} label={`${mid}°`} color={C.gold} /> : <rect x={137} y={32} width={46} height={46} rx="5" fill="none" stroke={C.gridBold} strokeWidth="1.5" strokeDasharray="4 3" />}
+        <PhoneArrow x={205} y={55} a={midIn ? mid : 0} amp={Math.sqrt(T1)} />
+        <PhoneSheet x={245} y={55} size={46} a={90} label="90°" />
+        <rect x={300} y={15} width={22} height={80} rx="4" fill="#fff" stroke={C.ink} strokeWidth="1.5" />
+        <rect x={302} y={17 + 76 * (1 - T)} width={18} height={76 * T} fill={C.gold} rx="3" />
+        <text x={311} y={112} textAnchor="middle" fontFamily={mono} fontSize="10" fontWeight="600" fill={C.ink}>{`${Math.round(T * 100)}%`}</text>
+      </svg>
+      <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
+        <Btn onClick={() => setMidIn((v) => !v)} kind={midIn ? "solid" : "ghost"}>{midIn ? "take it out" : "slide it in"}</Btn>
+        {midIn && <div style={{ flex: 1 }}><Slider value={mid} min={0} max={180} step={1} onChange={setMid} label="middle sheet" readout={`${mid}°`} /></div>}
+      </div>
+      <Notice>An extra obstacle lets light through. Each sheet projects, then the intensity squares: cos²(mid) · cos²(90° − mid). Claim № 2, caught.</Notice>
+    </div>
+  );
+}
+
+// ── SCENE 12 : angle doubling (technical) ──
+function RoomStep12({ room }) {
+  const B = useBeam(room);
+  const t0 = B.beam.q["0"], t45 = B.beam.q["45"];
+  const p0 = t0 && t0.n ? t0.passed / t0.n : null, p45 = t45 && t45.n ? t45.passed / t45.n : null;
+  const ang = p0 !== null && p45 !== null ? Math.atan2(p45 - 0.5, p0 - 0.5) / DEG : null;
+  return (
+    <div>
+      <p>Turn the sheet by 45° and the dot on the circle turns by 90°: the Bernoulli angle is <strong>twice</strong> the beam angle. So the 0° question and the 45° question use the same circle, turned a quarter turn.</p>
+      {ang !== null && <div style={{ fontFamily: mono, fontSize: 12, color: C.ink }}>your dot: (passes 0°, passes 45° − ½) = ({p0.toFixed(2)}, {(p45 - 0.5).toFixed(2)}) → Bernoulli angle {((ang + 360) % 360).toFixed(0)}°{B.theta !== null && room.state.reveal ? ` · your beam angle ${B.theta}° · doubled: ${(2 * B.theta) % 360}°` : ""}</div>}
+      <Notice>Technical aside — nothing to do here. The presenter's slide shows the doubling; your own numbers above should agree, up to the noise of 25 photons.</Notice>
+    </div>
+  );
+}
+
+// ── SCENE 13 : the twins split ──
+function RoomStep13({ room }) {
+  const B = useBeam(room);
+  const full = !!room.state.fullDisk;
+  const t0 = B.beam.q["0"], t45 = B.beam.q["45"];
+  const p0 = t0 && t0.n ? t0.passed / t0.n : null, s45 = t45 && t45.n ? t45.passed / t45.n - 0.5 : null;
+  const twinSlot = room.me ? room.me.twin : null;
+  const twin = twinSlot ? aggBeams(room).find((b) => b.slot === twinSlot) : null;
+  const tp0 = twin ? pQ(twin.q, 0) : null, ts45 = twin && pQ(twin.q, 45) !== null ? pQ(twin.q, 45) - 0.5 : null;
+  const pair = room.state.pair || [];
+  const mine = room.me && pair.includes(room.me.slot);
+  const seg = p0 !== null && tp0 !== null ? [[p0, full && s45 !== null ? s45 : sigOf(p0)], [tp0, full && ts45 !== null ? ts45 : sigOf(tp0)]] : null;
+  return (
+    <div>
+      <p>Two beams that answer the horizontal question identically can still differ: a 30° beam and a 150° beam are mirror images. The 0° sheet cannot tell them apart. The 45° sheet can — one says 93%, the other 7%.</p>
+      <StatePlot showLower showSemicircle showFullCircle={full} point={p0 !== null ? [p0, full && s45 !== null ? s45 : sigOf(p0)] : null} scatter={tp0 !== null ? [{ p: tp0, w: full && ts45 !== null ? ts45 : sigOf(tp0), color: C.teal }] : []} segment={seg} />
+      <div style={{ fontFamily: mono, fontSize: 12, color: C.ink, marginTop: 6 }}>
+        {twin ? <>your twin is {twin.tag}{full ? " — with the 45° question you split across the diameter" : " — with the 0° question you are one dot"}</> : "you have no assigned twin in this room"}
+        {mine && <span style={{ color: C.red, fontWeight: 600 }}> · the presenter is pointing at your pair</span>}
+      </div>
+      <Notice>Half a disk was half the questions. A coin can only be asked one thing; light can be asked at every angle, and the answers fill the whole disk. The needle's quarter circle becomes a half circle: the twin's needle points below the axis — negative bandwidth.</Notice>
+    </div>
+  );
+}
+
+const ROOM_STEPS = { 1: RoomStep1, 2: RoomStep2, 3: RoomStep3, 4: RoomStep4, 5: RoomStep5, 6: RoomStep6,
+  7: RoomStep7, 8: RoomStep8, 9: RoomStep9, 10: RoomStep10, 11: RoomStep11, 12: RoomStep12, 13: RoomStep13 };
 
 function RoomApp() {
   const room = useParticipantSafe();
