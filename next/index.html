@@ -11,6 +11,10 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<!-- room mode (only active with ?session=CODE); harmless when opened standalone -->
+<script src="../room/relay-config.js"></script>
+<script src="../room/relay-transport.js"></script>
+<script src="../room/room.js"></script>
 <style>html, body { margin: 0; padding: 0; }</style>
 </head>
 <body>
@@ -3457,6 +3461,190 @@ const EXTRAS = [
 ];
 const ROOM = { title: "The evidence room", comp: StepEvidenceRoom, label: "ADDITIONAL MATERIAL" };
 
+
+// =====================================================================
+// ROOM MODE — the tutorial as the participant page of a live session.
+// Active only when the URL carries ?session=CODE and ../room/*.js is loaded.
+// Scenes follow the presenter (storyboard v0.3); scenes without a room step
+// yet fall back to the closest standalone tutorial step.
+// =====================================================================
+const useParticipantSafe = () => (typeof Room !== "undefined" && Room.useParticipant ? Room.useParticipant() : null);
+const roomSession = () => (typeof Room !== "undefined" && Room.sessionFromUrl ? Room.sessionFromUrl() : null);
+
+// scene → index into STEPS (fallback while room steps are built slice by slice)
+const SCENE_TO_STEP = { 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 5, 6: 6, 7: 7, 8: 7, 9: 7, 10: 8, 11: 10, 12: 12, 13: 9, 14: 13, 15: 13, 16: 14, 17: 16, 18: 17, 19: 14 };
+const SCENE_TITLES = {
+  0: "How this works", 1: "Two coins, one prediction", 2: "Two sources of uncertainty", 3: "One number is not enough",
+  4: "The Bernoulli circle", 5: "From the state's own point of view", 6: "Two doubts", 7: "Two pairs of sunglasses",
+  8: "The polarizer is the coin toss", 9: "The half circle, in glass", 10: "Mixed light", 11: "Ask a different question",
+  12: "Angle doubling", 13: "The twins split", 14: "The shadow", 15: "The impostor", 16: "The ball",
+  17: "One photon at a time", 18: "The dictionary and the receipt", 19: "The room decoheres",
+};
+
+function RoomStatus({ status }) {
+  const col = status === "connected" ? C.teal : status === "error" ? C.red : status === "connecting" ? C.gold : C.inkSoft;
+  const txt = status === "connected" ? "live" : status === "local" ? "local" : status;
+  return <span style={{ fontFamily: mono, fontSize: 10, color: "#fff", background: col, padding: "2px 8px", borderRadius: 10 }}>{txt}</span>;
+}
+
+function RoomJoin({ room }) {
+  const [tag, setTag] = useState(null);
+  const tags = (typeof Room !== "undefined" && Room.TAGS) || ["🦊", "🐙", "🦉", "🐢"];
+  return (
+    <div>
+      <p>You are joining session <strong style={{ fontFamily: mono, letterSpacing: 2 }}>{room.session}</strong>. Pick a name — it is how your dot appears on the big screen.</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "14px 0" }}>
+        {tags.map((t) => (
+          <button key={t} onClick={() => setTag(t)} style={{
+            width: 48, height: 48, fontSize: 26, borderRadius: 10, cursor: "pointer",
+            border: `2px solid ${tag === t ? C.gold : C.gridBold}`, background: tag === t ? C.goldSoft : "#fff",
+          }}>{t}</button>
+        ))}
+      </div>
+      <Btn onClick={() => tag && room.join(tag)} disabled={!tag}>join as {tag || "…"}</Btn>
+      <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: C.inkSoft }}>
+        connection: <RoomStatus status={room.status} />
+      </div>
+    </div>
+  );
+}
+
+// ── SCENE 1 : two coins, one prediction ──
+function RoomStep1({ room }) {
+  const round = room.state.round || "A";
+  const token = room.state.resetToken || 0;
+  const storeKey = "pf-flips-" + room.session;
+  const [flips, setFlips] = useState(() => {
+    try { const v = JSON.parse(sessionStorage.getItem(storeKey)); if (v && v.A && v.B) return v; } catch (e) {}
+    return { A: [], B: [] };
+  });
+  const [guess, setGuess] = useState(null);
+  const lastToken = useRef(token);
+  const me = room.me;
+
+  const tallyOf = (f) => ({ A: { n: f.A.length, heads: f.A.filter((v) => v).length }, B: { n: f.B.length, heads: f.B.filter((v) => v).length } });
+
+  // every change of the local flips → persist + one snapshot to the presenter (never inside a render)
+  useEffect(() => {
+    try { sessionStorage.setItem(storeKey, JSON.stringify(flips)); } catch (e) {}
+    room.send("tally", tallyOf(flips));
+  }, [flips]);
+
+  // presenter reset: clear the round that was reset (it is the current round in the same patch)
+  useEffect(() => {
+    if (token !== lastToken.current) {
+      lastToken.current = token;
+      setFlips((f) => ({ ...f, [round]: [] }));
+    }
+  }, [token]);
+
+  const p = round === "A" ? 0.5 : me ? me.bias : null;
+  const seq = flips[round];
+  const nH = seq.filter((v) => v).length;
+  const flip = () => {
+    if (p === null) return;
+    setFlips((f) => ({ ...f, [round]: [...f[round], flipOne(p)] }));
+  };
+
+  return (
+    <div>
+      {round === "A" ? (
+        <p>Round A. You hold a <strong>fair coin</strong>. Before you flip: what do you expect ten flips to look like — neat alternation, or something clumpier?</p>
+      ) : (
+        <p>Round B. Your phone now holds <strong>its own coin</strong>, with a bias you cannot see. Nobody in the room has the same one. Flip it ten times.</p>
+      )}
+      <div style={{ display: "flex", gap: 8, margin: "10px 0", flexWrap: "wrap" }}>
+        {["all heads", "strict alternation", "something messy"].map((g) => (
+          <button key={g} onClick={() => setGuess(g)} style={{
+            fontFamily: mono, fontSize: 11, padding: "5px 10px", borderRadius: 12, cursor: "pointer",
+            border: `1.5px solid ${guess === g ? C.gold : C.gridBold}`, background: guess === g ? C.goldSoft : "#fff", color: C.ink,
+          }}>{g}</button>
+        ))}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "14px 0" }}>
+        <button onClick={flip} disabled={p === null} style={{
+          width: 96, height: 96, borderRadius: "50%", cursor: p === null ? "default" : "pointer", fontFamily: mono, fontWeight: 700, fontSize: 18,
+          color: "#fff", border: `3px solid ${C.ink}`, opacity: p === null ? 0.4 : 1,
+          background: `radial-gradient(circle at 35% 30%, #FFAE5E, ${round === "A" ? C.teal : C.gold})`,
+        }}>Flip</button>
+        <div>
+          <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft }}>{`round ${round} · ${seq.length} flips`}</div>
+          <div style={{ fontFamily: mono, fontSize: 22, fontWeight: 600 }}>{seq.length ? `${nH} heads · ${(nH / seq.length).toFixed(2)}` : "—"}</div>
+          {p === null && <div style={{ fontFamily: mono, fontSize: 11, color: C.red }}>waiting for your seat number…</div>}
+          {seq.length >= 10 && <div style={{ fontFamily: mono, fontSize: 11, color: C.teal }}>ten done ✓ — look at the big screen</div>}
+        </div>
+      </div>
+      <div style={{ minHeight: 30 }}>{seq.slice(-40).map((v, i) => <CoinChip key={i} v={v} />)}</div>
+      <Notice>
+        Every tap lands on the presenter's plot. Your own dot is the one with your name; the line is everybody together.
+        {round === "B" && " Same forecast as round A — but is it the same belief?"}
+      </Notice>
+    </div>
+  );
+}
+
+const ROOM_STEPS = { 1: RoomStep1 };
+
+function RoomApp() {
+  const room = useParticipantSafe();
+  const session = roomSession();
+  const scene = room ? (room.state.scene || 0) : 0;
+  const RoomComp = ROOM_STEPS[scene];
+  const fallback = STEPS[SCENE_TO_STEP[scene] ?? 1];
+  const Fallback = fallback.comp;
+  return (
+    <div style={{ minHeight: "100vh", background: C.paper, color: C.ink }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+        * { box-sizing: border-box; }
+        p { line-height: 1.6; font-size: 15px; }
+      `}</style>
+      <div style={{ maxWidth: 660, margin: "0 auto", padding: "22px 18px 60px", fontFamily: serif }}>
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, #FFAE5E, ${C.gold})`,
+              border: `2px solid ${C.ink}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: mono, fontWeight: 600, color: "#fff", fontSize: 20,
+            }}>{room && room.tag ? room.tag : "H"}</div>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: -0.3 }}>Build your own qubit</div>
+              <div style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft }}>
+                session {session}{room && room.me ? ` · seat #${room.me.slot}` : ""}
+              </div>
+            </div>
+          </div>
+          {room && <RoomStatus status={room.status} />}
+        </header>
+
+        {!room ? (
+          <Notice>Room mode needs the room scripts (../room/relay-transport.js and room.js). Open the tutorial without ?session= to run it standalone.</Notice>
+        ) : !room.joined ? (
+          <RoomJoin room={room} />
+        ) : (
+          <>
+            <h2 style={{ fontSize: 21, fontWeight: 600, margin: "0 0 10px" }}>
+              <span style={{ fontFamily: mono, fontSize: 13, color: C.gold, marginRight: 8 }}>{`SCENE ${scene}`}</span>
+              {SCENE_TITLES[scene] || fallback.title}
+            </h2>
+            {RoomComp ? <RoomComp room={room} /> : (
+              <>
+                <div style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft, marginBottom: 10 }}>
+                  following the presenter · the room version of this scene is not built yet — here is the matching tutorial step
+                </div>
+                <Fallback />
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return roomSession() ? <RoomApp /> : <BuildYourOwnQubit />;
+}
+
 function BuildYourOwnQubit() {
   const [step, setStep] = useState(0);
   const [extra, setExtra] = useState(null); // null = main; 'room' = evidence room; 0..3 = playgrounds
@@ -3574,7 +3762,7 @@ function BuildYourOwnQubit() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(BuildYourOwnQubit));
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 
 </script>
 </body>
