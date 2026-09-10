@@ -1,6 +1,8 @@
 # From Coins to a Qubit — Storyboard (presentation + tutorial)
 
-Working document, v0.2. Three sections: (A) review of the storyline, (B) the aha-moments, (C) the scene-by-scene storyboard with participation and reuse notes. Section (D) records the decisions taken so far.
+Working document, v0.3. Three sections: (A) review of the storyline, (B) the aha-moments, (C) the scene-by-scene storyboard with participation and reuse notes. Section (D) records the decisions taken so far.
+
+v0.3 (10 Sep, after reading the v2 deck): adds the four-claims contract as an opening block and a badge thread; the finale is the Mach–Zehnder with crowd photons; the dictionary-and-receipt slide moves after it (S17 ↔ S18 swapped). Scenes otherwise unchanged.
 
 Decisions baked into this version: audience 15–20 people; participation is on phones/laptops only (no physical props for now); the "compass needle" is the pointer from the centre of the Bernoulli circle to the state, seen from the state's own frame — and it turns out to be the wave's own polarization arrow; the uniqueness lemma appears as a technical note on distance between beliefs.
 
@@ -55,7 +57,18 @@ In story order. Each one is a beat the reader should be *made to stop* at: slow 
 | 7 | The twins split | "Two beams that were one dot are now mirror images. Half a disk was only half the questions." |
 | 8 | The impostor at the centre | "Every linear glass says 50%. It looks unpolarized. It isn't. The disk is too small." |
 | 9 | The ball closes | "One more question — a delay — and there is nothing left to ask." |
-| 10 | Every particle carries the ball | "This is a qubit. And each single photon — each single coin — carries the whole ball." |
+| 10 | Every particle carries the ball | "One photon, one click — and still the fringe. Each single photon, each single coin, carries the whole ball." |
+
+**The four-claims thread.** The v2 deck opens with two films (Cox's sixty seconds; MIT's Oliver and Grover) and extracts four claims the audience is asked to take on faith: № 1 nature's basic rule is probabilistic; № 2 beneath the odds sit little quantities, added first and squared last; № 3 bits are poles, qubits live anywhere on the surface; № 4 quantum power is parallelism plus interference. Each claim carries a gold badge that goes *sighted → caught → redeemed* as the scenes build it. This is not a fifth part; it is a thread through the aha list:
+
+| Claim | sighted | caught | redeemed |
+|---|---|---|---|
+| № 1 probabilistic rule | S1 (a bet, not a fact) | S8 (a photon is a coin toss) | S17 (one photon, still cos²) |
+| № 2 add, then square | S5 (the needle) | S11 (Malus = add then square; three lenses) | S17 (contributions cancel at φ = 0) |
+| № 3 anywhere on the surface | S4 (the circle) | S13 (the disk) | S16 (the ball) |
+| № 4 parallelism + interference | S11 (light back through an obstacle) | S14–15 (the delay is a dial) | S17 (the smallest quantum computation) |
+
+The receipt — all four badges redeemed — is read out on S18.
 
 Three of these (5, 6, 8) are *crises* — the current picture fails. Put them on their own slide with nothing else; the resolution comes on the next slide. That rhythm (build → audit → crisis → repair) is the engine of the talk.
 
@@ -73,6 +86,12 @@ With 15–20 people this allows three things a big room would not:
 - **Everyone is a photon.** In scene 18, 15–20 phones is exactly the right number to fire one at a time and still see a shape emerge.
 
 All demos that were physical in v0.1 (sunglasses, three lenses, 3D glasses) are now on-screen simulations that run on the phone itself: draggable polarizers, a beam animation, a transmitted-intensity readout. Physical props can be added later without changing the storyboard.
+
+### Scene 0 — The contract (three presenter slides, before Part I)
+
+**0a. Two films.** Cox (sixty seconds) and MIT (a few minutes). Say: "Listen for the claims." Reuse: v2 deck slides 3–4, tutorial `Step0Videos`.
+**0b. Four claims, taken on faith — until today.** The four badges appear, all grey. Say: "Nobody here will be asked to believe any of these. We build all four, starting from a coin." Reuse: v2 deck slide 5, `ClaimBadge`.
+**0c. How this works.** Phones join (QR), everyone sees scene 1, the rhythm per scene: I frame it, you play, we regroup on the surprise. The one rule: we never *add* anything quantum, we only refuse to throw details away. Reuse: v2 deck slide 2 (mechanics), plus the join step.
 
 ### Part I — Coins (scenes 1–6)
 
@@ -132,11 +151,11 @@ Screen: the delay dial sweeps the disk out of the plane into the Bernoulli ball;
 
 ### Part IV — Conclusion (scenes 17–19)
 
-**17. The dictionary**
-Screen: one slide — coin → half disk; linear light → disk; circular light → ball; R → C; rebit → qubit; Bernoulli ball = Poincaré ball = Bloch ball. Say: "You have built a qubit. Not postulated — built, from bookkeeping and sunglasses." Reuse: tutorial step 14, paper abstract.
+**17. One photon at a time — the smallest quantum computation**
+Screen: the Mach–Zehnder: half-mirror, two routes, a path-length dial φ, half-mirror, two detectors — and the same run drawn on the ball (quarter-turn, walk φ, quarter-turn back). Turn the lamp down until one photon flies at a time. Hands: each connected phone is one photon; the presenter arms a φ, everyone presses once, the clicks land on the detectors; sweep φ over three or four rounds and the room's own clicks trace cos²(φ/2). Then switch to the mystery-mixture source (each photon definitely took one route, unknown which): the fringe dies. Aha 10. Say: "Each photon is one indivisible click, and still the fringe appears. Each photon carries the whole ball — its needle, its two clocks. So did each coin. It was about probability all along. You have just run the smallest quantum computation there is." Reuse: tutorial step 15 (`MZBall`, `MZPlot`), v2 deck slide 28 (`FigMZ`).
 
-**18. One photon at a time**
-Screen: each connected phone is one photon; presenter fires them one by one at a chosen polarizer; individually random, collectively the ball. Aha 10. Say: "Each photon carries the whole ball — its needle, its two clocks. So did each coin. It was about probability all along." Reuse: tutorial step 15.
+**18. The dictionary and the receipt**
+Screen: one slide — coin → half disk; linear light → disk; circular light → ball; R → C; rebit → qubit; Bernoulli ball = Poincaré ball = Bloch ball. Then the four claims, all badges gold: read them out. Say: "You have built a qubit. Not postulated — built, from bookkeeping and sunglasses. Nothing today was taken on faith." Reuse: tutorial step 14 dictionary, epilogue `Roadmap`, v2 deck slide 29 (closing, receipt).
 
 **19. (Optional encore) The room decoheres**
 Screen: the presenter's pure state; every phone adds a random delay; the room's dot shrinks to the centre. Say: "That is what happens to a qubit in a noisy room. Thank you for being the noise." Reuse: engagement ideas from the earlier session.

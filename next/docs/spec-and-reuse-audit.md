@@ -1,6 +1,6 @@
 # Coins to Qubit — Spec sheet and reuse audit
 
-Companion to `storyboard-coins-to-qubit.md` v0.2 (frozen, 19 scenes). Section 1 is the architecture the spec assumes. Section 2 is the spec: one block per scene. Section 3 is the wire protocol and the hidden-secret roster. Section 4 is the reuse audit against `next/build-your-own-qubit.jsx`, `presentation/fifteen-steps.html` + `fifteen-figures.jsx`, and the Present Anything relay. Section 5 lists decisions still open and the build order.
+Companion to `storyboard-coins-to-qubit.md` v0.3 (frozen scenes + scene 0 and the four-claims thread; S17 = Mach–Zehnder finale, S18 = dictionary and receipt). Updated 10 Sep after reading the v2 deck sources (`Fifteen Steps v2.dc.html`, `fifteen-figures.jsx` v2, `presenter-kit.js`). Section 1 is the architecture the spec assumes. Section 2 is the spec: one block per scene. Section 3 is the wire protocol and the hidden-secret roster. Section 4 is the reuse audit against `next/build-your-own-qubit.jsx`, `presentation/fifteen-steps.html` + `fifteen-figures.jsx`, and the Present Anything relay. Section 5 lists decisions still open and the build order.
 
 ---
 
@@ -11,7 +11,9 @@ Three roles, two documents, one channel.
 - **Presenter** = the `fifteen-steps.html` deck (deck-stage engine), reworked to the 19 scenes. Its figures are the *aggregate* plots: all phones' dots, named. The presenter also owns the "question" (polarizer angle, delay on/off) and the scene index.
 - **Participant** = the tutorial (`next/`, React) opened in **room mode**: it follows the presenter's scene index, shows the same plot with the participant's own dot highlighted, and carries the controls (flip, measure, drag). So the new tutorial steps *are* the participant pages; outside a session the same steps work standalone with local simulation. One codebase, one set of step components.
 - **Mirror** = the projector window (existing `present-sync.js` behaviour).
-- **Channel** = Supabase Realtime broadcast, no tables (the `relay-supabase.js` built earlier for Present Anything). The deck's current `useSynced(figKey)` and the tutorial's new `useRoom()` both sit on this channel. See §3.
+- **Channel** = Supabase Realtime broadcast, no tables (the `relay-supabase.js` built earlier for Present Anything). Today the deck syncs presenter → mirror over BroadcastChannel in two ways: `useSynced(figKey)` in `fifteen-figures.jsx` (channel `three-arches-figs`) and the newer drop-in `presenter-kit.js`, which wraps `React.useState` so *every* hook state mirrors automatically (channel `pk:<pathname>`). Both are same-browser only. The plan keeps their message shapes and swaps the transport: a `relay-transport.js` object with the BroadcastChannel interface (`postMessage`, `addEventListener`) backed by Supabase, handed to `presenter-kit.js` and `useSynced` in place of `new BroadcastChannel(...)`. The mirror and the participants' *downstream* then work across devices with no figure code changed. Upstream (phones → presenter) is the new `useRoom()` hook on the same transport. See §3.
+
+Caution on `presenter-kit.js` for participants: it identifies hooks by first-seen order, which only matches between two windows running the *same page*. That is fine for the mirror; the participant page (the tutorial) must not run in mirror mode, or its local state would be overwritten. Participants subscribe only to the explicit `state` patch (scene, question, …) via `useRoom()`.
 
 Design rule for robustness: phones never send *events*, they send their **current tally** (`{n, heads}` etc.) as a snapshot keyed by device id, last-write-wins. Late joins, reconnects and the presenter reloading all recover from the latest snapshot per phone; nothing is ever lost or double-counted.
 
@@ -20,6 +22,12 @@ Design rule for robustness: phones never send *events*, they send their **curren
 ## 2. Spec sheet
 
 Per scene: **Phone plot** (what the participant sees) · **Control** (what they can do) · **Up** (snapshot the phone sends) · **Down** (state the presenter pushes) · **Presenter plot** (the aggregate on the big screen). "Same as phone" means the presenter plot is the phone plot with all dots.
+
+### Scene 0 — The contract
+
+**S0a–b Films and four claims** — presenter-only. Phone: the join screen (tag/emoji picker, then "waiting for scene 1"). Down: `scene:0`. Reuse: v2 deck slides 3–5 as is.
+
+**S0c How this works** — presenter shows the QR/session code; phones join. Up: `hello:{tag}`; the presenter answers with the roster slot. Presenter plot: joined phones appearing as tagged dots (this doubles as the plumbing check). Reuse: v2 deck slide 2 plus the Present Anything invite panel.
 
 ### Part I — Coins
 
@@ -131,14 +139,15 @@ Per scene: **Phone plot** (what the participant sees) · **Control** (what they 
 
 ### Part IV — Conclusion
 
-**S17 The dictionary** — presenter-only slide; phone shows the ladder half-disk → disk → ball, rebit → qubit. Down: `scene:17`.
+**S17 One photon at a time — Mach–Zehnder with crowd photons**
+- Phone plot: the interferometer with the presenter's current φ; "You are photon #k"; after pressing, your click lights D1 or D2. Below, the ball with the three-move choreography.
+- Control: `Be measured` (one press per round; greys out until the presenter arms the next round). Source toggle is presenter-only.
+- Up: `photon:{round, phi, source, detector}`.
+- Down: `scene:17`, `phi`, `source:'amplitudes'|'mixture'`, `armed:true` (opens a round and resets buttons).
+- Presenter plot: clicks landing one at a time on D1/D2; per-round fraction as a dot on the fringe axis; over three or four rounds the room's dots trace cos²(φ/2). Switch source to mixture and repeat two rounds: flat 50/50. `MZBall` shows the state's walk for the current φ.
+- Rounds: φ = 0°, 90°, 180°, 270° with amplitudes (four rounds, one press each), then φ = 0° and 180° with the mixture. Six presses per person, about four minutes.
 
-**S18 One photon at a time**
-- Phone plot: "You are photon #k." A single big button; once pressed, your click (pass/blocked) for the presenter's current question.
-- Control: `Be measured` (one press, then it greys out until the presenter resets).
-- Up: `photon:{question, result}`.
-- Down: `scene:18`, `question`, `armed:true` (resets everyone's button).
-- Presenter plot: clicks arriving one at a time as dots on the detector row; the fraction converging; the ball with the prepared state and the question's diameter. Run it twice with two questions.
+**S18 The dictionary and the receipt** — presenter-only slide; phone shows the ladder half-disk → disk → ball, rebit → qubit, and the four claims with all badges gold. Down: `scene:18`.
 
 **S19 The room decoheres (optional)**
 - Phone plot: the ball; your random delay contribution as an arrow.
@@ -197,10 +206,11 @@ Legend: **as is** — drop in; **adapt** — keep the component, change its data
 | S3 | `Step3` + `StatePlot(scatter)` + Tech "honest doubt" | 6 · `FigScatter` | **adapt**: `StatePlot` as is, scatter fed from room; keep Step 3's bandwidth recipe text. |
 | S4 | `Step4` + `StatePlot(point, showCenterVector)` | 7 · `FigArc` | **as is** for the plot. Technical note = playground A `StepDistance` (arc = distance, variance-vs-bandwidth toggle) **as is**, collapsed; playground C `StepBures` optional. |
 | S5 | `NeedleView` (Step 4) + `StepFrame` (normalised needle, 2α readout) | 13 · `FigEmbed`, `FigThales` (interactive-figures) | **adapt**: put `StatePlot(showChords, showCenterVector)` and `NeedleView` side by side on one slider; keep `StepFrame`'s unit-circle normalisation as the technical panel only. |
+| S0 | `Step0Videos`, `ClaimBadge` | v2 2–5 (mechanics, films, four claims) | **as is**; add the join/QR panel to slide 2. |
 | S6 | Step 3 tech note, Step 5 closing prose | 8 (last line) | **new** slide, text only. |
-| S7 | `WaveDuo` (Step 6), `PolarizerBench(midIn=false)`, `lab.html` sunglasses text | 9 · `FigWave` | **adapt**: `PolarizerBench` already draws a two/three-lens bench; add a drag handle on lens 2 and the cos² readout. `WaveDuo` as is. |
-| S8 | `PhotonCounter` (Step 6) | 10 · `FigPhoton` | **adapt**: `pPass` from the hidden roster θ; buttons send `beam` snapshot upstream. |
-| S9 | `LightRunsChart`, `StatePlot(scatter)`, `StepFrame` payoff prose, `WaveDuo` front view | 11 · `FigDisk`; 16 "amplitudes were the light all along" | **adapt** the plots; **new** small overlay: the beam's front-view direction drawn on top of the needle (both exist, the overlay does not). |
+| S7 | `WaveDuo` (Step 6), `PolarizerBench(midIn=false)`, `lab.html` sunglasses text | v2 13 · `FigWave3D` | **adapt**: `PolarizerBench` already draws a two/three-lens bench; add a drag handle on lens 2 and the cos² readout. `FigWave3D` (draggable 3D wave) as is on the presenter. |
+| S8 | `PhotonCounter` (Step 6) | v2 14 · `FigPhoton` | **adapt**: `pPass` from the hidden roster θ; buttons send `beam` snapshot upstream. |
+| S9 | `LightRunsChart`, `StatePlot(scatter)`, `StepFrame` payoff prose, `WaveDuo` front view | v2 15 · **`FigSurvey`**; v2 22 "amplitudes were the light all along" | **as is**: `FigSurvey` is the S9 presenter plot (dots on the semicircle, `mine` flag already distinguishes own dots) — feed `pts` from the room instead of its local `survey()`. **new** small overlay for aha 4b: the beam's front-view direction drawn on top of the needle. |
 | S10 | `StepLightDisk` (`LightBench` with `mix`), `StepMix` | 8 · `FigMix`, 11 | **adapt**: `mix` becomes the per-phone `noise`; the spotlight of two dots is **new** (trivial). `StepPolarBench` has the "centre vs surface 50/50" prose to reuse. |
 | S11 | `StepMeasure`/`StepSign` (`MeasurePlot` with `delta` = question), `StepLightDisk` θ-sheet, `PolarizerBench(midIn)`, `StepHands` three-lens prose | 14 · `FigAsk`, 15 · `FigSign`, 21 "light resurrected" | **adapt**: question angle becomes presenter-owned (`Down`). The *T₄₅−½ vs σ̂* line plot is **new** (one scatter). Needle-projection animation is **new**, small. |
 | S12 | `StepFrame` readout "Bernoulli angle = 2α", `StepPolarBench` fine print | index deck 12 "one turn, two laps" | **as is** as a technical slide. |
@@ -208,8 +218,8 @@ Legend: **as is** — drop in; **adapt** — keep the component, change its data
 | S14 | `WaveDuo` front view, Step 6 flip switch | 17 | **new**: shadow-of-a-circle animation and the two clocks on the needle. Small, pure SVG. |
 | S15 | `StepCircular` (`CircularBench` with plate), **`MysteryBeamLab`** (playground F: H sheet / 45° sheet / waveplate+sheet tallies with reveal) | 18 · `FigWaveDelay` | **as is**: `MysteryBeamLab` is already the per-phone crowd-tomography page; wire its hidden beam to the roster and its tallies upstream. Presenter aggregate on the disk-then-lift is **adapt** of `StatePlot` + `PolarBall`. |
 | S16 | `StepBloch` (table + wheel, θ/φ), `PolarBall` (StepHands) | 19 · `FigBloch` | **as is**; add room dots to `PolarBall`. |
-| S17 | `StepHands` dictionary, `Roadmap`, `StepEpilogue` | 22–23; index deck 16 | **as is** (trim text). |
-| S18 | `PhotonCounter` logic; `StepTwoPaths` (`MZBall`, `MZPlot`) | 20 · `FigMZ` | **adapt**: one press per phone → one click; the aggregate detector row is **new** (trivial). Keep the Mach–Zehnder as an optional deeper slide, not the main beat. |
+| S17 | `StepTwoPaths` (`MZBall`, `MZPlot`, source toggle) | v2 28 · `FigMZ` (`bs2`, `mix`, `phi` state) | **adapt**: `FigMZ` becomes the presenter plot with `phi`/`mix` presenter-owned and the per-round click dots added; phone side is `MZPlot` + one button. The detector row / fringe-by-rounds overlay is **new** (trivial). |
+| S18 | `StepHands` dictionary, `Roadmap`, `StepEpilogue`, `ClaimBadge` | v2 29 (closing + receipt); index deck 16 | **as is** (trim text). |
 | S19 | `StepBloch` ball | — | **new**, small: average of Bloch vectors as phones send δ. |
 
 ### Infrastructure
@@ -217,14 +227,16 @@ Legend: **as is** — drop in; **adapt** — keep the component, change its data
 | Piece | Exists | Verdict |
 |---|---|---|
 | Cross-device relay (`relay-supabase.js`, `relay-config.js`) | Present Anything session, not in this repo | **as is** — copy into `presentation/`. |
-| Deck sync (`present-sync.js`, `useSynced` in `fifteen-figures.jsx`) | BroadcastChannel only | **adapt**: `useSynced` publishes to the relay as well as `figBC`; add `useRoom()` (presenter side) that reduces `up` snapshots into `room`. |
+| Deck sync (`presenter-kit.js`; `useSynced`/`figBC` in `fifteen-figures.jsx`; `present-sync.js`) | BroadcastChannel only | **adapt** by transport swap: `relay-transport.js` with the BroadcastChannel interface, injected into `presenter-kit.js` and `useSynced`. No figure code changes. Add `useRoom()` (presenter side) that reduces `up` snapshots into `room`. |
 | Participant page | Present Anything shows the *deck* on phones | **change**: participant = tutorial in room mode (§1), not the deck. Add `?session=…&role=participant` handling and a `useRoom()` (participant side) to `next/`. |
 | Invite (QR) button, session code, late-join snapshot | Present Anything shell | **as is**. |
-| Speaker notes panel | `present-sync.js` (toggle N) | **as is** — put the storyboard's "Say" lines there. |
+| Speaker notes | `data-speaker-notes` on every v2 slide; panel in `presenter-kit.js` / `present-sync.js` (toggle N) | **as is** — the v2 notes are already scene-grade; merge the storyboard's "Say" lines into them rather than the reverse. |
 | Presenter roster / slot assignment | — | **new** (§3.2), ~60 lines. |
 | `lab.html` kitchen lab | hardware | park; becomes the props layer later. |
 
-Rough count: 12 scenes are adapt-with-existing-components, 4 are reuse as is, and the genuinely new UI is five small pieces (S9 overlay, S11 line plot + projection animation, S14 shadow/clocks, S18 detector row, S19 average) plus the roster and the two `useRoom` hooks.
+Rough count: 12 scenes are adapt-with-existing-components, 6 are reuse as is (S0, S4, S12, S16, S18, and now S9 via `FigSurvey`), and the genuinely new UI is five small pieces (S9 overlay, S11 line plot + projection animation, S14 shadow/clocks, S17 click dots on the fringe, S19 average) plus the roster, the relay transport, and the two `useRoom` hooks.
+
+Source of truth for the deck from now on: `Fifteen Steps v2.dc.html` + `fifteen-figures.jsx` (v2, 1106 lines, exports `FigSurvey` and `FigWave3D`). The bundled `Build Your Own Qubit - Fifteen Steps.html` is an export and should not be edited.
 
 ---
 
@@ -234,11 +246,12 @@ Decisions I made in the spec that you should confirm or overrule:
 1. Participant = tutorial in room mode, presenter = deck (§1). The alternative (phones show the deck, as Present Anything does now) gives less to touch and no standalone tutorial.
 2. Snapshots not events (§1). Slightly more per-message bytes, much simpler recovery.
 3. Roster is designed, not random (§3.2).
-4. Mach–Zehnder demoted to an optional slide after S18.
+4. ~~Mach–Zehnder demoted~~ — reversed on 10 Sep: the Mach–Zehnder *is* S17, run with crowd photons, because it redeems claims № 1, 2 and 4.
+5. The four-claims contract stays (scene 0 and the badge thread), and the receipt closes the talk on S18.
 
 Build order (each slice tested with two phones before the next):
 1. **Plumbing**: relay into `presentation/`, `useRoom` both sides, roster, invite/QR, S1 end to end. This is the coin-flip counter demo re-homed.
 2. **Part I** (S2–S6): mostly `StatePlot` fed from the room.
 3. **Part II** (S7–S13): the largest slice; presenter-owned `question` is the key new state.
-4. **Parts III–IV** (S14–S19): `MysteryBeamLab` and `StepBloch` do most of the work.
+4. **Parts III–IV** (S14–S19): `MysteryBeamLab`, `StepBloch` and `FigMZ` do most of the work.
 5. Speaker notes from the storyboard; a dry run with the full roster simulated by a script that plays 20 fake phones.
