@@ -62,6 +62,16 @@
     return { slot: slot, bias: s.bias, theta: s.theta, delta: s.delta, twin: s.twin };
   }
 
+  // ── light helpers (both sides) ──
+  var DEG = Math.PI / 180;
+  function malus(theta, alpha) { var c = Math.cos((theta - alpha) * DEG); return c * c; }
+  /* one photon of a beam at `theta` (deg), polarization wandering by `noise`∈[0,1], meeting a sheet at `alpha` */
+  function photon(theta, alpha, noise) {
+    var t = theta + (noise ? noise * (Math.random() * 180 - 90) : 0);
+    return Math.random() < malus(t, alpha) ? 1 : 0;
+  }
+  function pOf(q, angle) { var d = q && q[String(angle)]; return d && d.n > 0 ? d.passed / d.n : null; }
+
   var TAGS = ['🦊','🐙','🦉','🐢','🦋','🐝','🐬','🦩','🐸','🦔','🐧','🦒','🐳','🦜','🐞','🦎','🐨','🦚','🐿️','🦭','🐌','🦀','🐇','🦓'];
 
   // ─────────────────────────── helpers ───────────────────────────
@@ -105,7 +115,7 @@
 
     var store = makeStore({
       session: session, role: role, status: t.status,
-      state: (saved && saved.state) || { scene: 0, round: 'A', resetToken: 0, p: 0.5, roster: {} },
+      state: (saved && saved.state) || { scene: 0, round: 'A', resetToken: 0, p: 0.5, question: 0, lens2: 90, mid: 45, roster: {} },
       phones: (saved && saved.phones) || {},
       memo: {},                                    // scratch for figures (histories etc.)
     });
@@ -169,10 +179,11 @@
        agg.tally = { A:[{slot,tag,n,heads}], B:[…] }; later slices add agg.beam etc.            */
     var aggTimer = null;
     function computeAgg() {
-      var out = { tally: { A: [], B: [] } };
+      var out = { tally: { A: [], B: [] }, beam: [] };
       ['A', 'B'].forEach(function (r) {
         tallies(r).phones.forEach(function (x) { out.tally[r].push({ slot: x.slot, tag: x.tag, n: x.n, heads: x.heads }); });
       });
+      beams().forEach(function (b) { out.beam.push({ slot: b.slot, tag: b.tag, noise: b.noise, q: b.q }); });
       return out;
     }
     function scheduleAgg() {
@@ -224,6 +235,15 @@
       });
       return { phones: out, n: N, heads: H, frac: N ? H / N : null };
     }
+    /* Part II: light. beam snapshot = { noise, q:{ "0":{n,passed}, "45":{n,passed}, … } } per phone */
+    function beams() {
+      var ph = store.get().phones, out = [];
+      Object.keys(ph).forEach(function (f) {
+        var b = ph[f].up && ph[f].up.beam; if (!b || !b.q) return;
+        out.push({ from: f, slot: ph[f].slot, tag: ph[f].tag, noise: b.noise || 0, q: b.q });
+      });
+      return out.sort(function (a, b) { return a.slot - b.slot; });
+    }
     function resetRound(round) {
       var cur = store.get(), phones = {};
       Object.keys(cur.phones).forEach(function (f) {
@@ -241,7 +261,7 @@
     var api = {
       session: session, role: role, transport: t,
       get: store.get, subscribe: store.subscribe,
-      publish: publish, bindDeck: bindDeck, tallies: tallies, resetRound: resetRound, setMemo: setMemo,
+      publish: publish, bindDeck: bindDeck, tallies: tallies, beams: beams, resetRound: resetRound, setMemo: setMemo,
       participantUrl: function () { return participantUrl(session); },
       close: function () { t.removeEventListener('message', onMessage); if (!opts.transport) t.close(); },
     };
@@ -259,7 +279,7 @@
     var store = makeStore({
       session: session, status: t.status, from: t.clientId,
       tag: (saved && saved.tag) || null, joined: !!(saved && saved.tag),
-      state: { scene: 0, round: 'A', resetToken: 0, p: 0.5, roster: {} },
+      state: { scene: 0, round: 'A', resetToken: 0, p: 0.5, question: 0, lens2: 90, mid: 45, roster: {} },
       me: null,                                     // { slot, tag, bias, theta, delta, twin }
       snapshots: (saved && saved.snapshots) || {},  // last sent per name (re-sent on reconnect)
     });
@@ -320,7 +340,7 @@
     var R = global.React;
     return R.useSyncExternalStore(s.subscribe, s.get, s.get);
   }
-  function usePresenter() { var p = presenter(); var snap = useStore(p); return shallowMerge(snap, { transport: p.transport, publish: p.publish, tallies: p.tallies, resetRound: p.resetRound, setMemo: p.setMemo, participantUrl: p.participantUrl }); }
+  function usePresenter() { var p = presenter(); var snap = useStore(p); return shallowMerge(snap, { transport: p.transport, publish: p.publish, tallies: p.tallies, beams: p.beams, resetRound: p.resetRound, setMemo: p.setMemo, participantUrl: p.participantUrl }); }
   function useParticipant() {
     var p = participant();
     var R = global.React;
@@ -330,7 +350,7 @@
   }
 
   global.Room = {
-    SLOTS: SLOTS, TAGS: TAGS, secrets: secrets,
+    SLOTS: SLOTS, TAGS: TAGS, secrets: secrets, malus: malus, photon: photon, pOf: pOf,
     newSession: newSession, sessionFromUrl: sessionFromUrl, isMirrorUrl: isMirrorUrl, participantUrl: participantUrl,
     createPresenter: createPresenter, createParticipant: createParticipant,
     presenter: presenter, participant: participant,
