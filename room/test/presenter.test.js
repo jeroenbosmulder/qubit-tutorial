@@ -17,10 +17,11 @@ const src = fs.readFileSync(path.join(__dirname, '..', '..', 'presentation', 'ro
 const code = babel.transformSync(src, { presets: [[req('@babel/preset-react'), { runtime: 'classic' }]], filename: 'room-figures.jsx', sourceType: 'script' }).code;
 const mod = { exports: {} };
 new Function('React', 'Room', 'window', 'document', 'location', 'navigator', 'module', 'confirm', code)(React, Room, window, document, location, navigator, mod, global.confirm);
-const { FigJoin, FigFlipRoom } = mod.exports;
+const { FigJoin, FigFlipRoom, FigBarsRoom, FigHalfPlaneRoom, FigArcRoom, FigNeedleRoom } = mod.exports;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const byText = (re) => Array.from(document.querySelectorAll('button')).find((b) => re.test(b.textContent));
+const setRange = async (el, v) => { await act(async () => { Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(el, v); el.dispatchEvent(new window.Event('input', { bubbles: true })); await sleep(150); }); };
 const click = async (el) => { await act(async () => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); }); };
 
 (async () => {
@@ -57,6 +58,26 @@ const click = async (el) => { await act(async () => { el.dispatchEvent(new windo
   await click(byText(/reset round B/)); await act(async () => { await sleep(120); });
   assert(/no flips yet/.test(document.body.textContent), 'reset clears the plot');
   assert.strictEqual(a.get().state.resetToken, 1);
+
+  // scenes 2–5 figures render from the same room data
+  a.send('tally', { A: { n: 10, heads: 6 }, B: { n: 10, heads: 1 } });
+  b.send('tally', { A: { n: 10, heads: 4 }, B: { n: 10, heads: 9 } });
+  await act(async () => { await sleep(80); });
+  await act(async () => { root.render(React.createElement(FigBarsRoom)); await sleep(30); });
+  assert(/round A/.test(document.body.textContent) && /room 0\.50/.test(document.body.textContent), 'bars + room mean');
+  await act(async () => { root.render(React.createElement(FigHalfPlaneRoom)); await sleep(30); });
+  assert(/add the second number/.test(document.body.textContent));
+  await click(byText(/add the second number/)); await click(byText(/pool each round/));
+  await act(async () => { await sleep(120); });
+  assert(/room, round B/.test(document.body.textContent), 'pooled dots shown');
+  assert.strictEqual(a.get().state.showPooled, true, 'flags reach phones');
+  await act(async () => { root.render(React.createElement(FigArcRoom)); await sleep(30); });
+  const range = document.querySelector('input[type=range]');
+  await setRange(range, '0.25');
+  assert(/p = 0\.25/.test(document.body.textContent), 'arc dot follows slider');
+  assert.strictEqual(a.get().state.p, 0.25, 'p reaches phones');
+  await act(async () => { root.render(React.createElement(FigNeedleRoom)); await sleep(30); });
+  assert(/2θ = 120°/.test(document.body.textContent) && /θ = 60°/.test(document.body.textContent), 'angle halving readouts');
 
   console.log('presenter.test.js: all assertions passed');
   process.exit(0);

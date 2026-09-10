@@ -77,6 +77,12 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   await sleep(50); d.join('🐢'); await sleep(120);
   assert.strictEqual(d.get().state.scene, 1); assert.strictEqual(d.get().me.slot, 4);
 
+  // aggregates reach the phones (throttled)
+  await sleep(400);
+  const agg = d.get().state.agg;
+  assert(agg && agg.tally && agg.tally.A.length === 2, 'phones receive agg.tally: ' + JSON.stringify(agg));
+  assert.strictEqual(agg.tally.A.find(x => x.slot === 1).n, 12);
+
   // roster wraps beyond 20 slots
   assert.strictEqual(Room.secrets(21).bias, Room.secrets(1).bias);
   console.log('protocol.test.js: all assertions passed');

@@ -12,6 +12,7 @@ global.window = window; global.document = window.document; global.navigator = wi
 global.location = window.location; global.history = window.history;
 global.sessionStorage = window.sessionStorage; global.BroadcastChannel = BroadcastChannel; window.BroadcastChannel = BroadcastChannel;
 global.HTMLElement = window.HTMLElement; global.getComputedStyle = window.getComputedStyle;
+global.requestAnimationFrame = window.requestAnimationFrame; global.cancelAnimationFrame = window.cancelAnimationFrame;
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
 const React = req('react'), ReactDOM = req('react-dom/client'), { act } = req('react');
@@ -29,6 +30,7 @@ const App = new Function('React', 'Room', 'window', 'document', 'location', code
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const byText = (re) => Array.from(document.querySelectorAll('button')).find((b) => re.test(b.textContent));
+const setRange = async (el, v) => { await act(async () => { Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(el, v); el.dispatchEvent(new window.Event('input', { bubbles: true })); await sleep(150); }); };
 const click = async (el) => { await act(async () => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); }); };
 
 (async () => {
@@ -69,9 +71,28 @@ const click = async (el) => { await act(async () => { el.dispatchEvent(new windo
   assert.strictEqual(P.tallies('B').n, 0, 'reset propagated');
   assert(/0 flips/.test(document.body.textContent), 'phone shows 0 flips after reset');
 
+  // scenes 2–6: aggregates arrive, plots render, slider follows then detaches
+  for (let i = 0; i < 10; i++) await click(byText(/^Flip$/));          // refill round B
+  await act(async () => { await sleep(450); });                         // agg throttle
+  await act(async () => { P.publish({ scene: 2 }, true); await sleep(120); });
+  assert(/Two sources of uncertainty/.test(document.body.textContent) && document.querySelectorAll('svg circle').length >= 2, 'scene 2 bars with room dots');
+  await act(async () => { P.publish({ scene: 3, showBandAxis: true, showPooled: true }, true); await sleep(120); });
+  assert(/second axis: bandwidth/.test(document.body.textContent), 'scene 3 follows presenter flags');
+  await act(async () => { P.publish({ scene: 4, p: 0.8 }, true); await sleep(120); });
+  assert(/The Bernoulli circle/.test(document.body.textContent) && /0\.80/.test(document.body.textContent), 'scene 4 follows p');
+  const range = document.querySelector('input[type=range]');
+  await setRange(range, '0.3');
+  assert(/your own value/.test(document.body.textContent) && /0\.30/.test(document.body.textContent), 'slider detaches');
+  await click(byText(/follow the presenter again/));
+  assert(/following the presenter/.test(document.body.textContent));
+  await act(async () => { P.publish({ scene: 5 }, true); await sleep(120); });
+  assert(/needle angle θ/.test(document.body.textContent), 'scene 5 renders pointer + needle');
+  await act(async () => { P.publish({ scene: 6 }, true); await sleep(120); });
+  assert(/Half a disk/.test(document.body.textContent), 'scene 6 text');
+
   // a scene without a room step falls back to the tutorial step
-  await act(async () => { P.publish({ scene: 4 }, true); await sleep(120); });
-  assert(/SCENE 4/.test(document.body.textContent) && /not built yet/.test(document.body.textContent), 'fallback rendered');
+  await act(async () => { P.publish({ scene: 9 }, true); await sleep(120); });
+  assert(/SCENE 9/.test(document.body.textContent) && /not built yet/.test(document.body.textContent), 'fallback rendered');
 
   console.log('participant.test.js: all assertions passed');
   process.exit(0);
