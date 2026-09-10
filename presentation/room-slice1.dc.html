@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #0B1B3A; }
+    a { color: #EE7203; } a:hover { color: #00A1E4; }
+  </style>
+  <!-- room: config → transport → protocol, then the presenter kit (P mirror, N notes) -->
+  <script src="../room/relay-config.js"></script>
+  <script src="../room/relay-transport.js"></script>
+  <script src="../room/room.js"></script>
+  <script src="./presenter-kit.js"></script>
+</helmet>
+<x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1920" height="1080" hint-size="100%,100%" data-uneditable="">
+
+  <section data-label="How this works" data-scene="0" data-speaker-notes="Logistics, two minutes:
+— scan the code (or type the link); pick an emoji — that's your name on my screen;
+— your seat number decides the secrets your phone will carry later; you can't see them yet;
+— rhythm per scene: I frame it here, you play on your phone, we regroup on the surprise.
+The one rule of the day: we never ADD anything quantum; we only refuse to throw details away." style="display:flex; flex-direction:column; padding:80px 100px 70px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>SCENE 0 · HOW THIS WORKS</span></div>
+      <h2 style="font-size:60px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Your phone is your coin, your beam, your photon</span></h2>
+    </div>
+    <div style="flex:1; margin-top:26px; border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px;">
+      <x-import component="FigJoin" from="./room-figures.jsx" style="width:100%;" hint-size="100%,700px"></x-import>
+    </div>
+  </section>
+
+  <section data-label="Scene 1 · round A" data-scene="1" data-pf-round="A" data-speaker-notes="Before anyone flips: what does a fair sequence look like? Collect guesses.
+Everyone: tap Flip ten times. Watch the pooled line settle on ½.
+Two take-aways: the honest pre-flip statement is a bet, p; the running fraction settles — odds are real, measurable things." style="display:flex; flex-direction:column; padding:80px 100px 70px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>SCENE 1 · ROUND A</span></div>
+      <h2 style="font-size:60px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Everyone flips the same fair coin</span></h2>
+    </div>
+    <div style="display:flex; gap:56px; flex:1; align-items:center; margin-top:26px;">
+      <div style="width:430px; display:flex; flex-direction:column; gap:26px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Before you flip: what do you expect the pooled line to do?</span></p>
+        <p style="margin:0;"><span>Tap </span><strong>Flip</strong><span> ten times. Every tap lands on this screen.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>The honest statement before flipping is a bet: 50%. The line tells us whether the bet was any good.</span></p>
+      </div>
+      <div style="border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px; flex:1; align-self:stretch;">
+        <x-import component="FigFlipRoom" from="./room-figures.jsx" style="width:100%;" hint-size="100%,620px"></x-import>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Scene 1 · round B" data-scene="1" data-pf-round="B" data-speaker-notes="Round B: every phone now holds its OWN coin, with a secret bias it cannot see.
+Tap Flip ten times again. The pooled line settles on ½ again — same forecast.
+Then look at the strip underneath: the phones are all over the place. Same prediction, different knowledge. That is aha 0 — hold it, scene 2 makes it explicit." style="display:flex; flex-direction:column; padding:80px 100px 70px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>SCENE 1 · ROUND B</span></div>
+      <h2 style="font-size:60px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Everyone flips their own secret coin</span></h2>
+    </div>
+    <div style="display:flex; gap:56px; flex:1; align-items:center; margin-top:26px;">
+      <div style="width:430px; display:flex; flex-direction:column; gap:26px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Your phone now holds a coin with a bias you cannot see.</span></p>
+        <p style="margin:0;"><span>Ten flips again. Same pooled forecast?</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Both rounds say 50%. Do you believe the same thing in both?</span></p>
+      </div>
+      <div style="border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px; flex:1; align-self:stretch;">
+        <x-import component="FigFlipRoom" from="./room-figures.jsx" style="width:100%;" hint-size="100%,620px"></x-import>
+      </div>
+    </div>
+  </section>
+
+</x-import>
+</x-dc>
+</body>
+</html>
