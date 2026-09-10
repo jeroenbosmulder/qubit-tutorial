@@ -17,7 +17,7 @@ const src = fs.readFileSync(path.join(__dirname, '..', '..', 'presentation', 'ro
 const code = babel.transformSync(src, { presets: [[req('@babel/preset-react'), { runtime: 'classic' }]], filename: 'room-figures.jsx', sourceType: 'script' }).code;
 const mod = { exports: {} };
 new Function('React', 'Room', 'window', 'document', 'location', 'navigator', 'module', 'confirm', code)(React, Room, window, document, location, navigator, mod, global.confirm);
-const { FigJoin, FigFlipRoom, FigBarsRoom, FigHalfPlaneRoom, FigArcRoom, FigNeedleRoom } = mod.exports;
+const { FigJoin, FigFlipRoom, FigBarsRoom, FigHalfPlaneRoom, FigArcRoom, FigNeedleRoom, FigLensRoom, FigPhotonRoom, FigSurveyRoom, FigMixRoom, FigQuestionRoom, FigProjectRoom, FigThreeLensRoom, FigDoubleRoom, FigTwinsRoom } = mod.exports;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const byText = (re) => Array.from(document.querySelectorAll('button')).find((b) => re.test(b.textContent));
@@ -78,6 +78,43 @@ const click = async (el) => { await act(async () => { el.dispatchEvent(new windo
   assert.strictEqual(a.get().state.p, 0.25, 'p reaches phones');
   await act(async () => { root.render(React.createElement(FigNeedleRoom)); await sleep(30); });
   assert(/2θ = 120°/.test(document.body.textContent) && /θ = 60°/.test(document.body.textContent), 'angle halving readouts');
+
+  // ── Part II figures with three simulated beams (seats 1,2 = twins at 10°/170°, seat 3 = 30°) ──
+  const mk = (n, p) => ({ n, passed: Math.round(n * p) });
+  a.send('beam', { noise: 0, q: { '0': mk(50, Room.malus(10, 0)), '45': mk(50, Room.malus(10, 45)) } });
+  b.send('beam', { noise: 0, q: { '0': mk(50, Room.malus(170, 0)), '45': mk(50, Room.malus(170, 45)) } });
+  c.send('beam', { noise: 1, q: { '0': mk(50, 0.5), '45': mk(50, 0.5) } });
+  await act(async () => { await sleep(80); });
+  await act(async () => { root.render(React.createElement(FigLensRoom)); await sleep(30); });
+  await click(byText(/^45°$/)); await act(async () => { await sleep(120); });
+  assert(/sheet 2 · 45°/.test(document.body.textContent) && /50%/.test(document.body.textContent), 'lens bench at 45° → 50%');
+  assert.strictEqual(a.get().state.lens2, 45, 'lens2 reaches phones');
+  await act(async () => { P.publish({ question: 0 }, true); root.render(React.createElement(FigPhotonRoom)); await sleep(30); });
+  assert(/150 photons/.test(document.body.textContent) && /from 3 beams/.test(document.body.textContent), 'photon figure counts');
+  await act(async () => { root.render(React.createElement(FigSurveyRoom)); await sleep(30); });
+  await click(byText(/reveal each beam/)); await act(async () => { await sleep(120); });
+  assert.strictEqual(a.get().state.reveal, true, 'reveal reaches phones');
+  assert(document.querySelectorAll('line[stroke="#6D3FC0"]').length === 2, 'needle strokes only on the two pure beams');
+  await act(async () => { root.render(React.createElement(FigMixRoom)); await sleep(30); });
+  await click(byText(/spotlight: a 45°/)); await act(async () => { await sleep(120); });
+  assert.deepStrictEqual(a.get().state.spotlight, [3], 'spotlight picks the unpolarized beam (no 45° beam in this room)');
+  await act(async () => { root.render(React.createElement(FigQuestionRoom)); await sleep(30); });
+  await click(byText(/ask 45°/)); await act(async () => { await sleep(120); });
+  assert.strictEqual(a.get().state.question, 45, 'question reaches phones');
+  assert(/do you pass a 45° sheet/.test(document.body.textContent));
+  await act(async () => { root.render(React.createElement(FigProjectRoom)); await sleep(30); });
+  assert(/cos²\(θ − 45°\)/.test(document.body.textContent), 'projection readout');
+  await act(async () => { root.render(React.createElement(FigThreeLensRoom)); await sleep(30); });
+  await click(byText(/slide the middle sheet in/)); await act(async () => { await sleep(120); });
+  assert(/= 25%/.test(document.body.textContent), 'three sheets: 25% at 45°');
+  await act(async () => { root.render(React.createElement(FigDoubleRoom)); await sleep(30); });
+  assert(/two laps/.test(document.body.textContent));
+  await act(async () => { root.render(React.createElement(FigTwinsRoom)); await sleep(30); });
+  await click(byText(/spotlight a twin pair/)); await act(async () => { await sleep(120); });
+  assert.deepStrictEqual(a.get().state.pair, [1, 2], 'twin pair found');
+  await click(byText(/with the 45° question/)); await act(async () => { await sleep(120); });
+  assert.strictEqual(a.get().state.fullDisk, true);
+  assert(/negative bandwidth/.test(document.body.textContent), 'full disk view');
 
   console.log('presenter.test.js: all assertions passed');
   process.exit(0);

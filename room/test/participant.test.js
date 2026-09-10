@@ -90,9 +90,40 @@ const click = async (el) => { await act(async () => { el.dispatchEvent(new windo
   await act(async () => { P.publish({ scene: 6 }, true); await sleep(120); });
   assert(/Half a disk/.test(document.body.textContent), 'scene 6 text');
 
+  // ── Part II: light ──
+  await act(async () => { P.publish({ scene: 7, lens2: 90 }, true); await sleep(120); });
+  assert(/lens 2 · 90°/.test(document.body.textContent) && /0%/.test(document.body.textContent), 'scene 7 follows lens2');
+  await act(async () => { P.publish({ scene: 8, question: 0 }, true); await sleep(120); });
+  assert(/send 25/.test(document.body.textContent), 'scene 8 bench');
+  await click(byText(/send 25/)); await click(byText(/send 25/));
+  await act(async () => { await sleep(150); });
+  let bm = P.beams(); assert.strictEqual(bm.length, 1); assert.strictEqual(bm[0].q['0'].n, 50, 'beam snapshot arrives');
+  // seat 1 → theta 10° → about 97% pass the 0° sheet
+  assert(bm[0].q['0'].passed / 50 > 0.8, 'Malus with the secret angle: ' + bm[0].q['0'].passed);
+  await act(async () => { P.publish({ scene: 9, reveal: true }, true); await sleep(120); });
+  assert(/wiggles at 10°/.test(document.body.textContent), 'scene 9 reveal shows the secret angle');
+  await act(async () => { P.publish({ scene: 10, reveal: false }, true); await sleep(120); });
+  const noiseRange = document.querySelector('input[type=range]');
+  await setRange(noiseRange, '1');
+  await act(async () => { await sleep(150); });
+  bm = P.beams(); assert.strictEqual(bm[0].noise, 1, 'noise reaches presenter'); assert(!bm[0].q['0'], 'new beam clears tallies');
+  await click(byText(/send 25/)); await click(byText(/send 25/)); await click(byText(/send 25/)); await click(byText(/send 25/));
+  await act(async () => { await sleep(150); });
+  bm = P.beams(); const f = bm[0].q['0'].passed / bm[0].q['0'].n;
+  assert(f > 0.25 && f < 0.75, 'unpolarized ≈ 50%: ' + f);
+  await setRange(document.querySelector('input[type=range]'), '0');
+  await act(async () => { P.publish({ scene: 11, question: 45 }, true); await sleep(120); });
+  assert(/pass a 45° sheet/.test(document.body.textContent), 'scene 11 follows question');
+  await click(byText(/send 25/)); await click(byText(/send 25/));
+  await act(async () => { await sleep(150); });
+  bm = P.beams(); assert.strictEqual(bm[0].q['45'].n, 50, '45° tally kept separately');
+  await click(byText(/slide it in/)); assert(/take it out/.test(document.body.textContent), 'three-sheet bench toggles');
+  await act(async () => { P.publish({ scene: 13, fullDisk: true }, true); await sleep(120); });
+  assert(/The twins split/.test(document.body.textContent), 'scene 13 renders');
+
   // a scene without a room step falls back to the tutorial step
-  await act(async () => { P.publish({ scene: 9 }, true); await sleep(120); });
-  assert(/SCENE 9/.test(document.body.textContent) && /not built yet/.test(document.body.textContent), 'fallback rendered');
+  await act(async () => { P.publish({ scene: 16 }, true); await sleep(120); });
+  assert(/SCENE 16/.test(document.body.textContent) && /not built yet/.test(document.body.textContent), 'fallback rendered');
 
   console.log('participant.test.js: all assertions passed');
   process.exit(0);
