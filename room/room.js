@@ -105,7 +105,7 @@
 
     var store = makeStore({
       session: session, role: role, status: t.status,
-      state: (saved && saved.state) || { scene: 0, round: 'A', resetToken: 0, roster: {} },
+      state: (saved && saved.state) || { scene: 0, round: 'A', resetToken: 0, p: 0.5, roster: {} },
       phones: (saved && saved.phones) || {},
       memo: {},                                    // scratch for figures (histories etc.)
     });
@@ -162,6 +162,22 @@
       phones[m.from] = shallowMerge(ph, { up: up, at: Date.now() });
       store.set(shallowMerge(cur, { phones: phones }));
       persist();
+      scheduleAgg();
+    }
+
+    /* Aggregates (presenter → everyone, ≤ 1 per 300 ms): the room around each phone's own dot.
+       agg.tally = { A:[{slot,tag,n,heads}], B:[…] }; later slices add agg.beam etc.            */
+    var aggTimer = null;
+    function computeAgg() {
+      var out = { tally: { A: [], B: [] } };
+      ['A', 'B'].forEach(function (r) {
+        tallies(r).phones.forEach(function (x) { out.tally[r].push({ slot: x.slot, tag: x.tag, n: x.n, heads: x.heads }); });
+      });
+      return out;
+    }
+    function scheduleAgg() {
+      if (role !== 'presenter' || aggTimer) return;
+      aggTimer = setTimeout(function () { aggTimer = null; publish({ agg: computeAgg() }); }, 300);
     }
     t.addEventListener('message', onMessage);
     t.onStatus(function (s) { store.update(function (c) { return shallowMerge(c, { status: s }); }); });
@@ -218,6 +234,7 @@
       var memo = shallowMerge(cur.memo); delete memo['hist:' + round];
       store.set(shallowMerge(cur, { phones: phones, memo: memo }));
       publish({ resetToken: (cur.state.resetToken || 0) + 1, round: round }, true);
+      scheduleAgg();
     }
     function setMemo(k, v) { store.update(function (c) { var m = shallowMerge(c.memo); m[k] = v; return shallowMerge(c, { memo: m }); }); }
 
@@ -242,7 +259,7 @@
     var store = makeStore({
       session: session, status: t.status, from: t.clientId,
       tag: (saved && saved.tag) || null, joined: !!(saved && saved.tag),
-      state: { scene: 0, round: 'A', resetToken: 0, roster: {} },
+      state: { scene: 0, round: 'A', resetToken: 0, p: 0.5, roster: {} },
       me: null,                                     // { slot, tag, bias, theta, delta, twin }
       snapshots: (saved && saved.snapshots) || {},  // last sent per name (re-sent on reconnect)
     });
