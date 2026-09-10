@@ -73,6 +73,98 @@ Then look at the strip underneath: the phones are all over the place. Same predi
     </div>
   </section>
 
+  <section data-label="Scene 2 · two sources" data-scene="2" data-speaker-notes="Round A on top: everyone near ½ — the coin is known, the throw is random. Statistical.
+Round B below: all over the place, average still ½ — the throw is the same, but the coin is unknown. Systematic.
+The room average cannot tell these apart. That is the problem scene 3 solves." style="display:flex; flex-direction:column; padding:80px 100px 70px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>SCENE 2 · TWO SOURCES OF UNCERTAINTY</span></div>
+      <h2 style="font-size:60px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Same forecast, different knowledge</span></h2>
+    </div>
+    <div style="display:flex; gap:56px; flex:1; align-items:center; margin-top:26px;">
+      <div style="width:430px; display:flex; flex-direction:column; gap:26px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Round A: everyone huddles around ½.</span></p>
+        <p style="margin:0;"><span>Round B: everyone is somewhere else — and the room average is still ½.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>One number cannot tell luck from ignorance.</span></p>
+      </div>
+      <div style="border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px; flex:1; align-self:stretch;">
+        <x-import component="FigBarsRoom" from="./room-figures.jsx" style="width:100%;" hint-size="100%,620px"></x-import>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Scene 3 · bandwidth" data-scene="3" data-speaker-notes="Start with the axis off: both rounds are one pile of dots around ½.
+Press ‘add the second number’: the bandwidth axis appears; every known coin lands on the arc.
+Press ‘pool each round’: room-A sits ON the rim; room-B sits INSIDE, same x. Aha 1: pure on the rim, mixtures inside — nobody drew the shape.
+‘reveal the true coins’ shows the exact biases as hollow rings; the estimates scatter around them." style="display:flex; flex-direction:column; padding:80px 100px 70px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>SCENE 3 · ONE NUMBER IS NOT ENOUGH</span></div>
+      <h2 style="font-size:60px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Add one honest number and a shape appears</span></h2>
+    </div>
+    <div style="display:flex; gap:56px; flex:1; align-items:center; margin-top:26px;">
+      <div style="width:430px; display:flex; flex-direction:column; gap:26px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Odds on the x-axis. Bandwidth — the spread you expect — on the y-axis.</span></p>
+        <p style="margin:0;"><span>Every fully known coin lands on the same arc.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>A coin you only know on average lands inside. We added one number; a shape appeared.</span></p>
+      </div>
+      <div style="border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px; flex:1; align-self:stretch;">
+        <x-import component="FigHalfPlaneRoom" from="./room-figures.jsx" style="width:100%;" hint-size="100%,620px"></x-import>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Scene 4 · the circle" data-scene="4" data-speaker-notes="Drag p; every phone's dot follows (they can detach and drag their own). σ = √(p(1−p)) ⇒ a circle of radius ½ centred on the fair coin's foot.
+Technical note if the room wants it: arc length = statistical distance; bandwidth is the only second number that makes this true (uniqueness lemma)." style="display:flex; flex-direction:column; padding:80px 100px 70px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>SCENE 4 · THE BERNOULLI CIRCLE</span></div>
+      <h2 style="font-size:60px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Known coins live on the rim</span></h2>
+    </div>
+    <div style="display:flex; gap:56px; flex:1; align-items:center; margin-top:26px;">
+      <div style="width:430px; display:flex; flex-direction:column; gap:26px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>Slide p. The dot never leaves the arc.</span></p>
+        <p style="margin:0;"><span>Every coin you fully know sits on the rim. Every coin you don't sits inside.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Technical aside: the arc length between two beliefs is how well a run of throws can tell them apart.</span></p>
+      </div>
+      <div style="border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px; flex:1; align-self:stretch;">
+        <x-import component="FigArcRoom" from="./room-figures.jsx" style="width:100%;" hint-size="100%,620px"></x-import>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Scene 5 · the needle" data-scene="5" data-speaker-notes="Left: the Thales triangle always-T · state · always-H, right angle at the state; the legs squared are p and 1−p. The POINTER runs from the centre (no information) to the state, angle 2θ.
+Right: stand at the state. The same arrow is the NEEDLE, angle θ, components (√p, √(1−p)) on perpendicular axes.
+Aha 2: add the two components first, square last — remember that. Light will do exactly this." style="display:flex; flex-direction:column; padding:80px 100px 70px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>SCENE 5 · FROM THE STATE'S OWN POINT OF VIEW</span></div>
+      <h2 style="font-size:60px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Opposite beliefs become perpendicular beliefs</span></h2>
+    </div>
+    <div style="display:flex; gap:56px; flex:1; align-items:center; margin-top:26px;">
+      <div style="width:430px; display:flex; flex-direction:column; gap:26px; font-size:30px; line-height:1.55;">
+        <p style="margin:0;"><span>The pointer: centre to state, angle 2θ.</span></p>
+        <p style="margin:0;"><span>The needle: the same arrow seen from the state, angle θ — always-H and always-T at right angles.</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Add the components, then square. Hold on to that.</span></p>
+      </div>
+      <div style="border:2px solid #AFE0F7; border-radius:14px; background-color:#FFFFFF; background-image:repeating-linear-gradient(to right, #E1F3FC 0 1.5px, transparent 1.5px 42px), repeating-linear-gradient(to bottom, #E1F3FC 0 1.5px, transparent 1.5px 42px); display:flex; align-items:center; justify-content:center; padding:26px; flex:1; align-self:stretch;">
+        <x-import component="FigNeedleRoom" from="./room-figures.jsx" style="width:100%;" hint-size="100%,620px"></x-import>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Scene 6 · two doubts" data-scene="6" data-speaker-notes="Plant both doubts explicitly; scene 11 and scene 13 pay them off.
+(i) Two numbers don't capture everything you could believe about a coin — who says bandwidth is the right one to keep?
+(ii) Half a disk — half of what?" style="display:flex; flex-direction:column; padding:80px 100px 70px; background:#FFFFFF; color:#002157; font-family:'Fraunces', Georgia, serif; box-sizing:border-box;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:24px; letter-spacing:3px; color:#EE7203; font-weight:600;"><span>SCENE 6 · TWO DOUBTS</span></div>
+      <h2 style="font-size:60px; font-weight:600; margin:0; letter-spacing:-1px;"><span>Hold these — Nature will answer both</span></h2>
+    </div>
+    <div style="display:flex; gap:56px; flex:1; align-items:center; margin-top:26px;">
+      <div style="width:1500px; display:flex; flex-direction:column; gap:26px; font-size:40px; line-height:1.55;">
+        <p style="margin:0;"><span>Why two numbers? Odds and bandwidth don't capture everything you could believe about a coin — so who says bandwidth is the right one to keep?</span></p>
+        <p style="margin:0;"><span>Half a disk — half of what?</span></p>
+        <p style="margin:0; color:#5C6E8F;"><span>Next: light.</span></p>
+      </div>
+    </div>
+  </section>
+
 </x-import>
 </x-dc>
 </body>
