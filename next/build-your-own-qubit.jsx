@@ -3531,14 +3531,24 @@ function RoomStep1({ room }) {
       ) : (
         <p>Round B. Your phone now holds <strong>its own coin</strong>, with a bias you cannot see. Nobody in the room has the same one. Flip it ten times.</p>
       )}
-      <div style={{ display: "flex", gap: 8, margin: "10px 0", flexWrap: "wrap" }}>
-        {["all heads", "strict alternation", "something messy"].map((g) => (
-          <button key={g} onClick={() => setGuess(g)} style={{
-            fontFamily: mono, fontSize: 11, padding: "5px 10px", borderRadius: 12, cursor: "pointer",
-            border: `1.5px solid ${guess === g ? C.gold : C.gridBold}`, background: guess === g ? C.goldSoft : "#fff", color: C.ink,
-          }}>{g}</button>
-        ))}
-      </div>
+      {round === "A" && seq.length < 10 && (
+        <div style={{ margin: "10px 0" }}>
+          <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.gold, marginBottom: 6 }}>BEFORE YOU FLIP — what will ten flips look like?</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {["mostly heads", "neat alternation", "clumpy and messy"].map((g) => (
+              <button key={g} onClick={() => setGuess(g)} style={{
+                fontFamily: mono, fontSize: 11, padding: "5px 10px", borderRadius: 12, cursor: "pointer",
+                border: `1.5px solid ${guess === g ? C.gold : C.gridBold}`, background: guess === g ? C.goldSoft : "#fff", color: C.ink,
+              }}>{g}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      {round === "A" && seq.length >= 10 && guess && (
+        <div style={{ fontFamily: mono, fontSize: 12, color: C.inkSoft, margin: "10px 0" }}>
+          you guessed <strong style={{ color: C.ink }}>{guess}</strong> — you got {seq.slice(0, 10).map((v) => (v ? "H" : "T")).join("")}
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "14px 0" }}>
         <button onClick={flip} disabled={p === null} style={{
           width: 96, height: 96, borderRadius: "50%", cursor: p === null ? "default" : "pointer", fontFamily: mono, fontWeight: 700, fontSize: 18,
@@ -3561,7 +3571,132 @@ function RoomStep1({ room }) {
   );
 }
 
-const ROOM_STEPS = { 1: RoomStep1 };
+// helpers shared by the room steps
+const sigOf = (p) => Math.sqrt(Math.max(0, p * (1 - p)));
+const aggRound = (room, r) => ((room.state.agg && room.state.agg.tally && room.state.agg.tally[r]) || []);
+const myAgg = (room, r) => aggRound(room, r).find((x) => room.me && x.slot === room.me.slot) || null;
+const dotOf = (x, color) => ({ p: x.heads / x.n, w: sigOf(x.heads / x.n), color });
+const meanDot = (arr, color) => arr.length ? { p: arr.reduce((a, d) => a + d.p, 0) / arr.length, w: arr.reduce((a, d) => a + d.w, 0) / arr.length, color } : null;
+
+/* slider that follows the presenter's p until you touch it; "follow" snaps back */
+function RoomSlider({ room, own, setOwn, label }) {
+  const p = own === null ? (room.state.p ?? 0.5) : own;
+  return (
+    <div>
+      <Slider value={p} min={0} max={1} step={0.01} onChange={setOwn} label={label || "p"} readout={p.toFixed(2)} />
+      <div style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft, marginTop: -8 }}>
+        {own === null ? "following the presenter" : <>your own value — <button onClick={() => setOwn(null)} style={{ fontFamily: mono, fontSize: 11, border: "none", background: "none", color: C.gold, cursor: "pointer", padding: 0 }}>follow the presenter again</button></>}
+      </div>
+    </div>
+  );
+}
+
+// ── SCENE 2 : two sources of uncertainty ──
+function RoomStep2({ room }) {
+  const A = aggRound(room, "A"), B = aggRound(room, "B");
+  const mine = { A: myAgg(room, "A"), B: myAgg(room, "B") };
+  const W = 340, x0 = 30, x1 = 310, X = (f) => x0 + f * (x1 - x0);
+  const Row = ({ y, r, col }) => {
+    const all = r === "A" ? A : B, me = mine[r];
+    const mean = all.length ? all.reduce((a, x) => a + x.heads, 0) / all.reduce((a, x) => a + x.n, 0) : null;
+    return (
+      <g>
+        <text x={x0} y={y - 40} fontFamily={mono} fontSize="11" fill={C.ink} fontWeight="600">round {r}</text>
+        <line x1={x0} y1={y} x2={x1} y2={y} stroke={C.inkSoft} strokeWidth="1.5" />
+        <line x1={X(0.5)} y1={y - 30} x2={X(0.5)} y2={y + 8} stroke={C.inkSoft} strokeWidth="1" strokeDasharray="4 3" />
+        {all.map((x) => <circle key={x.slot} cx={X(x.heads / x.n)} cy={y - 6} r={5} fill={col} opacity={0.25} />)}
+        {me && <g><circle cx={X(me.heads / me.n)} cy={y - 6} r={7} fill={col} stroke={C.ink} strokeWidth="1.5" /><text x={X(me.heads / me.n)} y={y - 18} textAnchor="middle" fontSize="14">{room.tag}</text></g>}
+        {mean !== null && <polygon points={`${X(mean)},${y + 1} ${X(mean) - 5},${y + 10} ${X(mean) + 5},${y + 10}`} fill={C.ink} />}
+      </g>
+    );
+  };
+  return (
+    <div>
+      <p>Two rounds, two kinds of not-knowing. Round A: everyone had the <strong>same</strong> coin; only the throws differed. Round B: everyone had a <strong>different</strong> coin. Both rooms average about ½.</p>
+      <svg viewBox={`0 0 ${W} 190`} style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.gridBold}`, borderRadius: 8, display: "block" }}>
+        <Row y={75} r="A" col={C.teal} />
+        <Row y={160} r="B" col={C.gold} />
+        <text x={x0} y={185} fontFamily={mono} fontSize="10" fill={C.inkSoft}>0</text>
+        <text x={X(0.5)} y={185} textAnchor="middle" fontFamily={mono} fontSize="10" fill={C.inkSoft}>½</text>
+        <text x={x1} y={185} textAnchor="end" fontFamily={mono} fontSize="10" fill={C.inkSoft}>1</text>
+      </svg>
+      <Notice>Your dot is the marked one; the faded dots are the rest of the room. In round A the dots huddle around ½ because the coin is known and only luck differs — <em>statistical</em> uncertainty. In round B they spread out because the coins themselves differ — <em>systematic</em> uncertainty. The room average cannot tell the two apart.</Notice>
+    </div>
+  );
+}
+
+// ── SCENE 3 : one number is not enough → the bandwidth ──
+function RoomStep3({ room }) {
+  const showBand = !!room.state.showBandAxis, showPooled = !!room.state.showPooled;
+  const A = aggRound(room, "A").map((x) => dotOf(x, C.teal)), B = aggRound(room, "B").map((x) => dotOf(x, C.gold));
+  const mA = myAgg(room, "A"), mB = myAgg(room, "B");
+  const scatter = [...A, ...B].map((d) => ({ ...d, w: showBand ? d.w : 0 }));
+  const cents = showPooled && showBand ? [meanDot(A, C.teal), meanDot(B, C.gold)].filter(Boolean) : [];
+  const mine = [mA && dotOf(mA, C.teal), mB && dotOf(mB, C.gold)].filter(Boolean);
+  return (
+    <div>
+      <p>The room average was ½ in both rounds — one number, and it hides the difference. Add a second, honest number: the spread you <em>expect</em> from ten flips of your coin, its <strong>bandwidth</strong>.</p>
+      <StatePlot showSemicircle={showBand} scatter={scatter} centroids={cents} point={mine.length ? [mine[mine.length - 1].p, showBand ? mine[mine.length - 1].w : 0] : null} />
+      <div style={{ fontFamily: mono, fontSize: 11, color: C.inkSoft, marginTop: 6 }}>
+        {showBand ? "second axis: bandwidth √(p(1−p))" : "waiting for the presenter to add the second axis…"}{showPooled ? " · big dots: the room pooled per round" : ""}
+      </div>
+      <Notice>
+        {showBand
+          ? "Every coin whose p you know sits on the same arc. The pooled round-A belief sits on the arc too. The pooled round-B belief sits inside — you know the average but not the coin. Pure beliefs on the rim, mixtures inside: nobody drew this shape, the second number did."
+          : "On one axis, round A and round B are the same pile of dots around ½. Watch what a second number does."}
+      </Notice>
+    </div>
+  );
+}
+
+// ── SCENE 4 : the Bernoulli circle ──
+function RoomStep4({ room }) {
+  const [own, setOwn] = useState(null);
+  const p = own === null ? (room.state.p ?? 0.5) : own;
+  const B = aggRound(room, "B").map((x) => ({ ...dotOf(x, C.gold), color: "#F3C9A0" }));
+  return (
+    <div>
+      <p>A coin you fully know — p given — has bandwidth √(p(1−p)). Slide p and watch the dot: it never leaves the arc. That arc is the <strong>Bernoulli circle</strong>, radius ½, centred on the fair coin's foot.</p>
+      <StatePlot point={[p, sigOf(p)]} scatter={B} />
+      <RoomSlider room={room} own={own} setOwn={setOwn} label="p" />
+      <Notice>Every coin you fully know sits on the rim. Every coin you don't sits inside. The faded gold dots are the room's round-B coins.</Notice>
+      <Tech title="How far apart are two beliefs? (technical note)">
+        <p>Walk along the arc from one pure belief to another. That arc length is their <em>statistical distance</em> — how well a run of throws can tell them apart. The bandwidth is essentially the only second number for which this is true (the uniqueness lemma in the paper). So the circle is not decoration: the ruler on it measures distinguishability. Playground A in the standalone tutorial lets you test it.</p>
+      </Tech>
+    </div>
+  );
+}
+
+// ── SCENE 5 : from the state's own point of view ──
+function RoomStep5({ room }) {
+  const [own, setOwn] = useState(null);
+  const p = own === null ? (room.state.p ?? 0.5) : own;
+  const th = Math.atan2(Math.sqrt(1 - p), Math.sqrt(p)) * 180 / Math.PI;
+  return (
+    <div>
+      <p>Two views of one arrow. On the Bernoulli circle the <strong>pointer</strong> runs from the centre — the state of no information — to your state on the rim. Stand at the state itself and the same arrow becomes the <strong>needle</strong>: always-H and always-T, opposite ends of a diameter a moment ago, are now perpendicular axes.</p>
+      <StatePlot point={[p, sigOf(p)]} showChords showCenterVector />
+      <NeedleView p={p} />
+      <RoomSlider room={room} own={own} setOwn={setOwn} label="p" />
+      <div style={{ fontFamily: mono, fontSize: 12, color: C.ink, marginTop: 6 }}>pointer angle 2θ = {(2 * th).toFixed(0)}° · needle angle θ = {th.toFixed(0)}° · needle = (√p, √(1−p)) = ({Math.sqrt(p).toFixed(2)}, {Math.sqrt(1 - p).toFixed(2)})</div>
+      <Notice>The needle's two components, squared, are p and 1−p. Add the components first, square last — remember that; light will do exactly this.</Notice>
+    </div>
+  );
+}
+
+// ── SCENE 6 : two doubts ──
+function RoomStep6({ room }) {
+  return (
+    <div>
+      <p>Hold two doubts before we leave the coins.</p>
+      <p><strong>Why two numbers?</strong> Odds and bandwidth do not capture everything you could believe about a coin — so who says the bandwidth is the right second number to keep?</p>
+      <p><strong>Half a disk — half of what?</strong></p>
+      <Notice>Nature is going to answer both. Next: light.</Notice>
+    </div>
+  );
+}
+
+const ROOM_STEPS = { 1: RoomStep1, 2: RoomStep2, 3: RoomStep3, 4: RoomStep4, 5: RoomStep5, 6: RoomStep6 };
 
 function RoomApp() {
   const room = useParticipantSafe();
