@@ -130,9 +130,7 @@ function FigFlipRoom() {
   return (
     <div>
       <svg viewBox="0 0 900 520" style={svgStyle}>
-        <Txt x={450} y={36} size={19} fill={INK} bold>
-          {round === "A" ? "round A — everyone flips the same fair coin" : "round B — everyone flips their own secret coin"}
-        </Txt>
+        <Txt x={450} y={36} size={19} fill={INK} bold>{`${ROUND[round].name} — ${ROUND[round].title}`}</Txt>
         <line x1={X0} y1={Y0} x2={X1} y2={Y0} stroke={INK} strokeWidth="3" />
         <line x1={X0} y1={Y1} x2={X1} y2={Y1} stroke={INK} strokeWidth="3" opacity="0.25" />
         <line x1={X0} y1={Y(0.5)} x2={X1} y2={Y(0.5)} stroke={SOFT} strokeWidth="2.5" strokeDasharray="8 7" />
@@ -141,8 +139,8 @@ function FigFlipRoom() {
         <Txt x={X0 - 28} y={Y1 + 6} anchor="end">1</Txt>
         <Txt x={X1} y={Y0 + 30} anchor="end" size={14}>{`${T.n} flips from ${T.phones.length} phones`}</Txt>
         <Txt x={450} y={Y1 - 26} size={15}>pooled fraction of heads, flip by flip, as they arrive</Txt>
-        {hist.length > 1 && <polyline points={path} fill="none" stroke={round === "A" ? TEAL : GOLD} strokeWidth="4" strokeLinejoin="round" />}
-        {T.n > 0 && <circle cx={X(T.n)} cy={Y(T.frac)} r="10" fill={round === "A" ? TEAL : GOLD} stroke={INK} strokeWidth="3" />}
+        {hist.length > 1 && <polyline points={path} fill="none" stroke={ROUND[round].col} strokeWidth="4" strokeLinejoin="round" />}
+        {T.n > 0 && <circle cx={X(T.n)} cy={Y(T.frac)} r="10" fill={ROUND[round].col} stroke={INK} strokeWidth="3" />}
         {T.n > 0 && <Txt x={Math.min(X(T.n), X1 - 40)} y={Y(T.frac) - 18} size={16} fill={INK} bold>{T.frac.toFixed(2)}</Txt>}
         {T.n === 0 && <Txt x={450} y={260} size={17}>{`no flips yet — phones: tap Flip (round ${round})`}</Txt>}
         {/* strip: each phone's own fraction (preview of scene 2) */}
@@ -151,14 +149,13 @@ function FigFlipRoom() {
         <Txt x={450} y={452} size={13}>each phone's own fraction</Txt>
         {own.map((p) => (
           <g key={p.from}>
-            <circle cx={X0 + p.frac * (X1 - X0)} cy={480} r={7 + Math.min(6, p.n / 5)} fill={round === "A" ? TEAL : GOLD} opacity="0.55" stroke={INK} strokeWidth="1.5" />
+            <circle cx={X0 + p.frac * (X1 - X0)} cy={480} r={7 + Math.min(6, p.n / 5)} fill={ROUND[round].col} opacity="0.55" stroke={INK} strokeWidth="1.5" />
             <text x={X0 + p.frac * (X1 - X0)} y={472} textAnchor="middle" fontSize="16">{p.tag}</text>
           </g>
         ))}
       </svg>
       <div style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
-        <Button active={round === "A"} onClick={() => room.publish({ round: "A" }, true)}>round A · fair coin</Button>
-        <Button active={round === "B"} onClick={() => room.publish({ round: "B" }, true)}>round B · secret coins</Button>
+        {["A", "B", "C"].map((r) => <Button key={r} active={round === r} onClick={() => room.publish({ round: r }, true)}>{`${ROUND[r].name} · ${ROUND[r].short}`}</Button>)}
         <Button ghost onClick={() => room.resetRound(round)}>{`reset round ${round}`}</Button>
       </div>
     </div>
@@ -198,6 +195,11 @@ function Plane({ W = 900, H = 520, showBand = true, showArc = true, left = "alwa
     </svg>
   ) };
 }
+const ROUND = {
+  A: { col: TEAL, name: "round A", title: "everyone flips the same fair coin", short: "fair coin" },
+  B: { col: PURP, name: "round B", title: "everyone flips a mystery coin — it always lands the same way, but nobody knows which", short: "mystery coin" },
+  C: { col: GOLD, name: "round C", title: "everyone flips their own secret coin", short: "secret coin" },
+};
 const sig = (p) => Math.sqrt(Math.max(0, p * (1 - p)));
 const phoneDots = (T) => T.phones.map((x) => ({ ...x, p: x.frac, w: sig(x.frac) }));
 const pooled = (dots) => dots.length ? { p: dots.reduce((a, d) => a + d.p, 0) / dots.length, w: dots.reduce((a, d) => a + d.w, 0) / dots.length } : null;
@@ -205,38 +207,39 @@ const pooled = (dots) => dots.length ? { p: dots.reduce((a, d) => a + d.p, 0) / 
 // ── SCENE 2 : two sources of uncertainty — every phone's own fraction, round A over round B ──
 function FigBarsRoom() {
   const room = Room.usePresenter();
-  const A = room.tallies("A"), B = room.tallies("B");
+  const T = { A: room.tallies("A"), B: room.tallies("B"), C: room.tallies("C") };
   const slots = {};
-  A.phones.forEach((x) => { slots[x.slot] = { ...(slots[x.slot] || {}), tag: x.tag, a: x }; });
-  B.phones.forEach((x) => { slots[x.slot] = { ...(slots[x.slot] || {}), tag: x.tag, b: x }; });
+  ["A", "B", "C"].forEach((r) => T[r].phones.forEach((x) => { slots[x.slot] = { ...(slots[x.slot] || {}), tag: x.tag, [r]: x }; }));
   const rows = Object.keys(slots).map(Number).sort((a, b) => a - b);
   const W = 900, x0 = 150, x1 = 860, bw = Math.min(24, 600 / Math.max(1, rows.length));
   const X = (f) => x0 + f * (x1 - x0);
-  const Row = ({ y, label, field, mean, col }) => (
+  const Row = ({ y, r }) => (
     <g>
-      <Txt x={x0 - 16} y={y + 5} anchor="end" size={16} fill={INK} bold>{label}</Txt>
+      <Txt x={x0 - 16} y={y + 5} anchor="end" size={16} fill={INK} bold>{ROUND[r].name}</Txt>
+      <Txt x={x0 - 16} y={y + 24} anchor="end" size={12}>{ROUND[r].short}</Txt>
       <line x1={x0} y1={y} x2={x1} y2={y} stroke={SOFT} strokeWidth="2" />
       <line x1={X(0.5)} y1={y - 44} x2={X(0.5)} y2={y + 16} stroke={SOFT} strokeWidth="2" strokeDasharray="6 5" />
-      {rows.map((sl) => { const d = slots[sl][field]; if (!d) return null;
-        const x = X(d.frac);
+      {rows.map((sl) => { const d = slots[sl][r]; if (!d) return null;
+        const x = X(d.frac), h = Math.min(36, d.n * 3);
         return (<g key={sl}>
-          <rect x={x - bw / 2} y={y - 6 - Math.min(36, d.n * 3)} width={bw} height={Math.min(36, d.n * 3)} fill={col} opacity="0.35" stroke={col} strokeWidth="1.5" />
-          <text x={x} y={y - 12 - Math.min(36, d.n * 3)} textAnchor="middle" fontSize="18">{slots[sl].tag}</text>
+          <rect x={x - bw / 2} y={y - 6 - h} width={bw} height={h} fill={ROUND[r].col} opacity="0.35" stroke={ROUND[r].col} strokeWidth="1.5" />
+          <text x={x} y={y - 12 - h} textAnchor="middle" fontSize="18">{slots[sl].tag}</text>
         </g>); })}
-      {mean !== null && <g>
-        <polygon points={`${X(mean)},${y + 2} ${X(mean) - 9},${y + 18} ${X(mean) + 9},${y + 18}`} fill={INK} />
-        <Txt x={X(mean)} y={y + 34} size={13} fill={INK} bold>{`room ${mean.toFixed(2)}`}</Txt>
+      {T[r].frac !== null && <g>
+        <polygon points={`${X(T[r].frac)},${y + 2} ${X(T[r].frac) - 9},${y + 18} ${X(T[r].frac) + 9},${y + 18}`} fill={INK} />
+        <Txt x={X(T[r].frac)} y={y + 34} size={13} fill={INK} bold>{`room ${T[r].frac.toFixed(2)}`}</Txt>
       </g>}
     </g>
   );
   return (
     <div>
-      <svg viewBox={`0 0 ${W} 460`} style={svgStyle}>
+      <svg viewBox={`0 0 ${W} 520`} style={svgStyle}>
         <Txt x={W / 2} y={36} size={19} fill={INK} bold>each phone's fraction of heads · ten flips each</Txt>
-        <Row y={170} label="round A" field="a" mean={A.frac} col={TEAL} />
-        <Row y={340} label="round B" field="b" mean={B.frac} col={GOLD} />
-        <Txt x={x0} y={400} size={14}>0</Txt><Txt x={X(0.5)} y={400} size={14}>½</Txt><Txt x={x1} y={400} size={14}>1</Txt>
-        <Txt x={W / 2} y={440} size={15}>{`round A: same coin, only the throws differ — statistical. round B: the coins themselves differ — systematic. Both rooms average ≈ ½.`}</Txt>
+        <Row y={150} r="A" />
+        <Row y={290} r="B" />
+        <Row y={430} r="C" />
+        <Txt x={x0} y={480} size={14}>0</Txt><Txt x={X(0.5)} y={480} size={14}>½</Txt><Txt x={x1} y={480} size={14}>1</Txt>
+        <Txt x={W / 2} y={508} size={14}>A: same coin, only the throws differ. B: no throw at all — only ignorance. C: both. All three rooms average ≈ ½.</Txt>
       </svg>
     </div>
   );
@@ -246,17 +249,18 @@ function FigBarsRoom() {
 function FigHalfPlaneRoom() {
   const room = Room.usePresenter();
   const showBand = !!room.state.showBandAxis, reveal = !!room.state.revealCoins, showPooled = !!room.state.showPooled;
-  const A = phoneDots(room.tallies("A")), B = phoneDots(room.tallies("B"));
-  const pA = pooled(A), pB = pooled(B);
+  const D = { A: phoneDots(room.tallies("A")), B: phoneDots(room.tallies("B")), C: phoneDots(room.tallies("C")) };
+  const P = { A: pooled(D.A), B: pooled(D.B), C: pooled(D.C) };
   const plane = Plane({ showBand, showArc: showBand, children: ({ X, Y }) => (<>
-    {A.map((d) => <circle key={"a" + d.slot} cx={X(d.p)} cy={showBand ? Y(d.w) : Y(0)} r="9" fill={TEAL} opacity="0.7" stroke={INK} strokeWidth="1.5" />)}
-    {B.map((d) => (<g key={"b" + d.slot}>
-      <circle cx={X(d.p)} cy={showBand ? Y(d.w) : Y(0)} r="9" fill={GOLD} opacity="0.75" stroke={INK} strokeWidth="1.5" />
-      <text x={X(d.p)} y={(showBand ? Y(d.w) : Y(0)) - 14} textAnchor="middle" fontSize="16">{d.tag}</text>
-      {reveal && showBand && (() => { const b = Room.secrets(d.slot).bias; return <circle cx={X(b)} cy={Y(sig(b))} r="7" fill="none" stroke={GOLD} strokeWidth="2.5" strokeDasharray="3 3" />; })()}
+    {["A", "B", "C"].map((r) => D[r].map((d) => (<g key={r + d.slot}>
+      <circle cx={X(d.p)} cy={showBand ? Y(d.w) : Y(0)} r="9" fill={ROUND[r].col} opacity="0.7" stroke={INK} strokeWidth="1.5" />
+      {r === "C" && <text x={X(d.p)} y={(showBand ? Y(d.w) : Y(0)) - 14} textAnchor="middle" fontSize="16">{d.tag}</text>}
+      {r === "C" && reveal && showBand && (() => { const b = Room.secrets(d.slot).bias; return <circle cx={X(b)} cy={Y(sig(b))} r="7" fill="none" stroke={GOLD} strokeWidth="2.5" strokeDasharray="3 3" />; })()}
+    </g>)))}
+    {showPooled && showBand && ["A", "B", "C"].map((r) => P[r] && (<g key={"p" + r}>
+      <circle cx={X(P[r].p)} cy={Y(P[r].w)} r="15" fill={ROUND[r].col} stroke={INK} strokeWidth="3" />
+      <Txt x={X(P[r].p)} y={Y(P[r].w) + (r === "A" ? -24 : r === "B" ? 40 : 34)} size={15} fill={INK} bold>{`room, ${ROUND[r].name}`}</Txt>
     </g>))}
-    {showPooled && showBand && pA && <g><circle cx={X(pA.p)} cy={Y(pA.w)} r="15" fill={TEAL} stroke={INK} strokeWidth="3" /><Txt x={X(pA.p)} y={Y(pA.w) - 24} size={15} fill={INK} bold>room, round A</Txt></g>}
-    {showPooled && showBand && pB && <g><circle cx={X(pB.p)} cy={Y(pB.w)} r="15" fill={GOLD} stroke={INK} strokeWidth="3" /><Txt x={X(pB.p)} y={Y(pB.w) + 34} size={15} fill={INK} bold>room, round B</Txt></g>}
   </>) });
   const pub = (k) => () => room.publish({ [k]: !room.state[k] }, true);
   return (
@@ -265,7 +269,7 @@ function FigHalfPlaneRoom() {
       <div style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
         <Button active={showBand} onClick={pub("showBandAxis")}>{showBand ? "bandwidth axis: on" : "add the second number"}</Button>
         <Button active={showPooled} onClick={pub("showPooled")}>{showPooled ? "room dots: on" : "pool each round"}</Button>
-        <Button ghost onClick={pub("revealCoins")}>{reveal ? "hide the true coins" : "reveal the true coins"}</Button>
+        <Button ghost onClick={pub("revealCoins")}>{reveal ? "hide the true coins" : "reveal the true coins (round C)"}</Button>
       </div>
     </div>
   );
@@ -275,7 +279,7 @@ function FigHalfPlaneRoom() {
 function FigArcRoom() {
   const room = Room.usePresenter();
   const p = room.state.p ?? 0.5;
-  const B = phoneDots(room.tallies("B"));
+  const B = phoneDots(room.tallies("C"));
   const plane = Plane({ children: ({ X, Y, cx, cy }) => (<>
     {B.map((d) => <circle key={d.slot} cx={X(d.p)} cy={Y(d.w)} r="7" fill={GOLD} opacity="0.25" />)}
     <path d={`M ${X(0)} ${cy} A ${320} ${320} 0 0 1 ${X(1)} ${cy}`} fill="none" stroke={INK} strokeWidth="4" />
@@ -298,55 +302,102 @@ function FigArcRoom() {
 function FigNeedleRoom() {
   const room = Room.usePresenter();
   const p = room.state.p ?? 0.5;
-  const th = Math.atan2(Math.sqrt(1 - p), Math.sqrt(p));           // needle angle from the H axis
+  const show = !!room.state.halfCircle;
+  const th = Math.atan2(Math.sqrt(1 - p), Math.sqrt(p));            // angle at the coin between pointer and blue chord; cos θ = √p
   const deg = (r) => (r * 180 / Math.PI).toFixed(0);
-  // left: Bernoulli circle with Thales triangle + pointer
-  const L = { cx: 240, cy: 330, R: 190 };
-  const XL = (q) => L.cx + (q - 0.5) * 2 * L.R, YL = (w) => L.cy - w * 2 * L.R;
-  const Px = XL(p), Py = YL(sig(p));
-  // right: the state's frame — perpendicular axes, needle at angle θ, quarter circle
-  const N = { ox: 560, oy: 330, S: 300 };
-  const XN = (u) => N.ox + u * N.S, YN = (v) => N.oy - v * N.S;
-  const a = Math.sqrt(p), b = Math.sqrt(1 - p);
+  // geometry: diameter 600 px, so ½ ↦ 300 px
+  const cx = 450, cy = 420, R = 300;
+  const X = (q) => cx + (q - 0.5) * 2 * R, Y = (w) => cy - w * 2 * R;
+  const Tx = X(0), Hx = X(1), Px = X(p), Py = Y(sig(p));
+  const near = (a, b) => Math.abs(a - b) < 0.02;
+  // T′ and H′: ½ along the chords from the coin
+  const lenT = Math.hypot(Px - Tx, Py - cy), lenH = Math.hypot(Px - Hx, Py - cy);
+  const T2 = [Px + (Tx - Px) * (R / lenT), Py + (cy - Py) * (R / lenT)];
+  const H2 = [Px + (Hx - Px) * (R / lenH), Py + (cy - Py) * (R / lenH)];
+  // θ at the coin: between the pointer (to the centre) and the blue chord (to T)
+  const aC = Math.atan2(cy - Py, cx - Px), aT = Math.atan2(cy - Py, Tx - Px);
+  const a0 = Math.min(aC, aT), a1 = Math.max(aC, aT), ar = 44, am = (a0 + a1) / 2;
+  // drag the coin along the arc
+  const onDown = (e) => {
+    const svg = e.currentTarget.ownerSVGElement || e.currentTarget.closest("svg");
+    const move = (ev) => {
+      const r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+      const x = (ev.clientX - r.left) * vb.width / r.width, y = (ev.clientY - r.top) * vb.height / r.height;
+      const ang = Math.atan2(cy - y, x - cx);                      // 0 at always-H, π at always-T
+      const q = Math.min(1, Math.max(0, 0.5 + 0.5 * Math.cos(Math.min(Math.PI, Math.max(0, ang)))));
+      room.publish({ p: Math.round(q * 100) / 100 });
+    };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up); e.preventDefault();
+  };
+  // right-angle marker at the coin
+  const uT = [(Tx - Px) / lenT, (cy - Py) / lenT], uH = [(Hx - Px) / lenH, (cy - Py) / lenH], m = 16;
+  const sq = `M ${Px + uT[0] * m} ${Py + uT[1] * m} L ${Px + (uT[0] + uH[0]) * m} ${Py + (uT[1] + uH[1]) * m} L ${Px + uH[0] * m} ${Py + uH[1] * m}`;
+  // inset: the coin's own frame — blue (toward T′) horizontal, orange (toward H′) vertical, needle at θ
+  const I = { x: 660, y: 40, w: 220, h: 180, ox: 700, oy: 190, S: 120 };
+  const nx = I.ox + I.S * Math.cos(th), ny = I.oy - I.S * Math.sin(th);
   return (
     <div>
-      <svg viewBox="0 0 900 430" style={svgStyle}>
-        <Txt x={240} y={34} size={17} fill={INK} bold>Bernoulli circle · the pointer</Txt>
-        <line x1={XL(0)} y1={L.cy} x2={XL(1)} y2={L.cy} stroke={INK} strokeWidth="3" />
-        <path d={`M ${XL(0)} ${L.cy} A ${L.R} ${L.R} 0 0 1 ${XL(1)} ${L.cy}`} fill="none" stroke={INK} strokeWidth="3" />
-        <Txt x={XL(0)} y={L.cy + 26} size={14} fill={INK} bold>always-T</Txt>
-        <Txt x={XL(1)} y={L.cy + 26} size={14} fill={INK} bold>always-H</Txt>
-        <line x1={XL(0)} y1={L.cy} x2={Px} y2={Py} stroke={TEAL} strokeWidth="3" />
-        <line x1={XL(1)} y1={L.cy} x2={Px} y2={Py} stroke={GOLD} strokeWidth="3" />
-        <line x1={L.cx} y1={L.cy} x2={Px} y2={Py} stroke={PURP} strokeWidth="4" />
-        <circle cx={L.cx} cy={L.cy} r="5" fill={INK} />
-        <Txt x={L.cx} y={L.cy + 26} size={13}>no information</Txt>
-        <circle cx={Px} cy={Py} r="11" fill={PURP} stroke={INK} strokeWidth="3" />
-        <Txt x={L.cx + 60} y={L.cy - 16} size={14} fill={PURP} bold>{`2θ = ${deg(2 * th)}°`}</Txt>
-        <Txt x={240} y={410} size={14}>{`right angle at the state (Thales) · legs² = ${p.toFixed(2)} and ${(1 - p).toFixed(2)}`}</Txt>
-
-        <Txt x={680} y={34} size={17} fill={INK} bold>from the state itself · the needle</Txt>
-        <line x1={N.ox} y1={N.oy} x2={XN(1.05)} y2={N.oy} stroke={GOLD} strokeWidth="3" />
-        <line x1={N.ox} y1={N.oy} x2={N.ox} y2={YN(1.0)} stroke={TEAL} strokeWidth="3" />
-        <Txt x={XN(1.05)} y={N.oy + 26} anchor="end" size={14} fill={GOLD} bold>toward always-H</Txt>
-        <Txt x={N.ox + 8} y={YN(0.98)} anchor="start" size={14} fill={TEAL} bold>toward always-T</Txt>
-        <path d={`M ${XN(1)} ${N.oy} A ${N.S} ${N.S} 0 0 0 ${N.ox} ${YN(1)}`} fill="none" stroke={SOFT} strokeWidth="2" strokeDasharray="6 5" />
-        <line x1={XN(a)} y1={N.oy} x2={XN(a)} y2={YN(b)} stroke={TEAL} strokeWidth="1.5" strokeDasharray="4 4" />
-        <line x1={N.ox} y1={YN(b)} x2={XN(a)} y2={YN(b)} stroke={GOLD} strokeWidth="1.5" strokeDasharray="4 4" />
-        <line x1={N.ox} y1={N.oy} x2={XN(a)} y2={YN(b)} stroke={PURP} strokeWidth="5" strokeLinecap="round" />
-        <circle cx={XN(a)} cy={YN(b)} r="11" fill={PURP} stroke={INK} strokeWidth="3" />
-        <Txt x={N.ox + 70} y={N.oy - 14} size={14} fill={PURP} bold>{`θ = ${deg(th)}°`}</Txt>
-        <Txt x={680} y={410} size={14}>{`needle = (√p, √(1−p)) = (${a.toFixed(2)}, ${b.toFixed(2)}) · squared: ${p.toFixed(2)} + ${(1 - p).toFixed(2)} = 1`}</Txt>
+      <svg viewBox="0 0 900 520" style={svgStyle}>
+        {/* axes */}
+        <line x1={Tx} y1={cy} x2={Hx + 60} y2={cy} stroke={INK} strokeWidth="3" />
+        <line x1={Tx} y1={cy} x2={Tx} y2={80} stroke={INK} strokeWidth="2.5" />
+        <Txt x={Tx + 16} y={104} anchor="start" size={15} fill={INK} bold>band width</Txt>
+        <Txt x={Hx + 20} y={cy - 18} anchor="start" size={15} fill={INK} bold>p = P(heads)</Txt>
+        <Txt x={Tx} y={cy + 32} size={14}>always T (p=0)</Txt>
+        <Txt x={Hx} y={cy + 32} size={14}>always H (p=1)</Txt>
+        {/* the Bernoulli circle */}
+        <path d={`M ${Tx} ${cy} A ${R} ${R} 0 0 1 ${Hx} ${cy}`} fill="none" stroke={GOLD} strokeWidth="4" strokeDasharray="10 9" />
+        <circle cx={Tx} cy={cy} r="9" fill={INK} /><circle cx={Hx} cy={cy} r="9" fill={INK} />
+        <circle cx={cx} cy={cy} r="7" fill={SOFT} />
+        {/* chords and pointer */}
+        <line x1={Tx} y1={cy} x2={Px} y2={Py} stroke={TEAL} strokeWidth="4" />
+        <line x1={Hx} y1={cy} x2={Px} y2={Py} stroke={GOLD} strokeWidth="4" />
+        <line x1={Px} y1={Py} x2={cx} y2={cy} stroke={PURP} strokeWidth="4" markerEnd="url(#arrowPurp)" />
+        <defs><marker id="arrowPurp" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill={PURP} /></marker></defs>
+        <path d={sq} fill="none" stroke={INK} strokeWidth="2" />
+        <Txt x={(Tx + Px) / 2 - 22} y={(cy + Py) / 2 - 10} size={17} fill={TEAL} bold>√p</Txt>
+        <Txt x={(Hx + Px) / 2 + 30} y={(cy + Py) / 2 - 10} size={17} fill={GOLD} bold>√(1−p)</Txt>
+        <Txt x={(Px + cx) / 2 - 20} y={(Py + cy) / 2} anchor="end" size={15} fill={PURP} bold>½</Txt>
+        {/* central angle 2θ */}
+        <path d={`M ${cx + 60} ${cy} A 60 60 0 0 0 ${cx + 60 * Math.cos(2 * th)} ${cy - 60 * Math.sin(2 * th)}`} fill="none" stroke={RED} strokeWidth="2.5" />
+        <Txt x={cx + 84} y={cy - 40} anchor="start" size={15} fill={RED} bold>{near(p, 0.5) ? "90°" : `2θ = ${deg(2 * th)}°`}</Txt>
+        {/* θ at the coin, shown with the ½-circle */}
+        {show && <>
+          <path d={`M ${Px + ar * Math.cos(a0)} ${Py + ar * Math.sin(a0)} A ${ar} ${ar} 0 0 1 ${Px + ar * Math.cos(a1)} ${Py + ar * Math.sin(a1)}`} fill="none" stroke={PURP} strokeWidth="2.5" />
+          <Txt x={Px + (ar + 18) * Math.cos(am)} y={Py + (ar + 18) * Math.sin(am) + 5} size={14} fill={PURP} bold>θ</Txt>
+          <path d={`M ${T2[0]} ${T2[1]} A ${R} ${R} 0 0 0 ${H2[0]} ${H2[1]}`} fill="none" stroke={PURP} strokeWidth="3.5" strokeDasharray="10 8" opacity="0.8" />
+          <circle cx={T2[0]} cy={T2[1]} r="8" fill={PURP} /><Txt x={T2[0] - 14} y={T2[1] + 28} size={15} fill={PURP} bold>T′</Txt>
+          <circle cx={H2[0]} cy={H2[1]} r="8" fill={PURP} /><Txt x={H2[0] + 14} y={H2[1] + 28} size={15} fill={PURP} bold>H′</Txt>
+          {/* inset */}
+          <rect x={I.x} y={I.y} width={I.w} height={I.h} rx="12" fill="#FFFFFF" stroke={LBLUE} strokeWidth="2" />
+          <line x1={I.ox} y1={I.oy} x2={I.ox + I.S + 30} y2={I.oy} stroke={TEAL} strokeWidth="3" />
+          <line x1={I.ox} y1={I.oy} x2={I.ox} y2={I.oy - I.S - 30} stroke={GOLD} strokeWidth="3" />
+          <circle cx={I.ox + I.S} cy={I.oy} r="5" fill={INK} /><Txt x={I.ox + I.S + 4} y={I.oy + 20} size={13} fill={INK} bold>T′</Txt>
+          <circle cx={I.ox} cy={I.oy - I.S} r="5" fill={INK} /><Txt x={I.ox - 16} y={I.oy - I.S + 5} anchor="end" size={13} fill={INK} bold>H′</Txt>
+          <path d={`M ${I.ox + I.S} ${I.oy} A ${I.S} ${I.S} 0 0 0 ${I.ox} ${I.oy - I.S}`} fill="none" stroke={SOFT} strokeWidth="1.5" strokeDasharray="5 4" />
+          <path d={`M ${I.ox + 40} ${I.oy} A 40 40 0 0 0 ${I.ox + 40 * Math.cos(th)} ${I.oy - 40 * Math.sin(th)}`} fill="none" stroke={RED} strokeWidth="2" />
+          <Txt x={I.ox + 58 * Math.cos(th / 2) + 8} y={I.oy - 58 * Math.sin(th / 2) + 5} anchor="start" size={13} fill={RED} bold>{`${deg(th)}°`}</Txt>
+          <line x1={I.ox} y1={I.oy} x2={nx} y2={ny} stroke={PURP} strokeWidth="4" markerEnd="url(#arrowPurp)" />
+        </>}
+        {/* the coin */}
+        <g style={{ cursor: "grab" }} onPointerDown={onDown}>
+          <circle cx={Px} cy={Py} r="30" fill="rgba(0,0,0,0)" />
+          <circle cx={Px} cy={Py} r="20" fill="none" stroke={GOLD} strokeWidth="1.5" opacity="0.5" />
+          <circle cx={Px} cy={Py} r="13" fill={GOLD} stroke={INK} strokeWidth="3" />
+        </g>
+        <Txt x={Px + 26} y={Py - 22} anchor="start" size={16} fill={TEAL} bold>{near(p, 0.5) ? "fair coin (½, ½)" : `your coin (${p.toFixed(2)}, ${sig(p).toFixed(2)})`}</Txt>
+        <Txt x={cx} y={cy + 66} size={15} fill={INK}>{`(p − ½)² + band width² = ¼ — the Bernoulli circle · drag the coin`}</Txt>
+        {show && <Txt x={cx} y={cy + 90} size={13}>{`centre–coin–T is isosceles, so the angle at the coin between pointer and blue chord is θ · cos θ = √p`}</Txt>}
       </svg>
-      <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", marginTop: 8 }}>
-        <span style={{ fontFamily: MONO, fontSize: 15, color: SOFT }}>p</span>
-        <input type="range" min="0" max="1" step="0.01" value={p} onChange={(e) => room.publish({ p: parseFloat(e.target.value) })} style={{ width: 420, accentColor: GOLD }} />
-        <span style={{ fontFamily: MONO, fontSize: 15, color: INK, fontWeight: 600 }}>{`opposite (180° apart) → perpendicular (90° apart) · the angle halves`}</span>
+      <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", marginTop: 6 }}>
+        <Button active={show} ghost={!show} onClick={() => room.publish({ halfCircle: !show }, true)}>{show ? "hide the ½-circle" : "circle of radius ½ around your coin"}</Button>
+        <span style={{ fontFamily: MONO, fontSize: 14, color: SOFT }}>p</span>
+        <input type="range" min="0" max="1" step="0.01" value={p} onChange={(e) => room.publish({ p: parseFloat(e.target.value) })} style={{ width: 260, accentColor: GOLD }} />
       </div>
     </div>
   );
 }
-
 
 // ═══════════════════════════ PART II — LIGHT ═══════════════════════════
 const DEG = Math.PI / 180;
